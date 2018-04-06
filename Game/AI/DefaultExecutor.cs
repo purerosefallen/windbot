@@ -12,13 +12,14 @@ namespace WindBot.Game.AI
         protected class _CardId
         {
             public const int JizukirutheStarDestroyingKaiju = 63941210;
-            public const int GadarlatheMysteryDustKaiju = 36956512;
-            public const int GamecieltheSeaTurtleKaiju = 55063751;
-            public const int RadiantheMultidimensionalKaiju = 28674152;
-            public const int KumongoustheStickyStringKaiju = 29726552;
             public const int ThunderKingtheLightningstrikeKaiju = 48770333;
             public const int DogorantheMadFlameKaiju = 93332803;
+            public const int RadiantheMultidimensionalKaiju = 28674152;
+            public const int GadarlatheMysteryDustKaiju = 36956512;
+            public const int KumongoustheStickyStringKaiju = 29726552;
+            public const int GamecieltheSeaTurtleKaiju = 55063751;
             public const int SuperAntiKaijuWarMachineMechaDogoran = 84769941;
+
 
             public const int DupeFrog = 46239604;
             public const int MaraudingCaptain = 2460565;
@@ -33,6 +34,9 @@ namespace WindBot.Game.AI
             public const int Number39Utopia = 84013237;
             public const int UltimayaTzolkin = 1686814;
 
+            public const int VampireFräulein = 6039967;
+            public const int InjectionFairyLily = 79575620;
+
         }
 
         protected DefaultExecutor(GameAI ai, Duel duel)
@@ -42,12 +46,39 @@ namespace WindBot.Game.AI
         }
 
         /// <summary>
+        /// Decide which card should the attacker attack.
+        /// </summary>
+        /// <param name="attacker">Card that attack.</param>
+        /// <param name="defenders">Cards that defend.</param>
+        /// <returns>BattlePhaseAction including the target, or null (in this situation, GameAI will check the next attacker)</returns>
+        public override BattlePhaseAction OnSelectAttackTarget(ClientCard attacker, IList<ClientCard> defenders)
+        {
+            for (int i = 0; i < defenders.Count; ++i)
+            {
+                ClientCard defender = defenders[i];
+
+                attacker.RealPower = attacker.Attack;
+                defender.RealPower = defender.GetDefensePower();
+                if (!OnPreBattleBetween(attacker, defender))
+                    continue;
+
+                if (attacker.RealPower > defender.RealPower || (attacker.RealPower >= defender.RealPower && attacker.IsLastAttacker))
+                    return AI.Attack(attacker, defender);
+            }
+
+            if (attacker.CanDirectAttack)
+                return AI.Attack(attacker, null);
+
+            return null;
+        }
+
+        /// <summary>
         /// Decide whether to declare attack between attacker and defender.
         /// Can be overrided to update the RealPower of attacker for cards like Honest.
         /// </summary>
         /// <param name="attacker">Card that attack.</param>
         /// <param name="defender">Card that defend.</param>
-        /// <returns>false if the attack can't be done.</returns>
+        /// <returns>false if the attack shouldn't be done.</returns>
         public override bool OnPreBattleBetween(ClientCard attacker, ClientCard defender)
         {
             if (attacker.RealPower <= 0)
@@ -63,6 +94,12 @@ namespace WindBot.Game.AI
 
                 if (defender.Id == _CardId.NumberS39UtopiaTheLightning && defender.IsAttack() && !defender.IsDisabled() && defender.HasXyzMaterial(2, _CardId.Number39Utopia))
                     defender.RealPower = 5000;
+                
+                if (defender.Id == _CardId.VampireFräulein && !defender.IsDisabled())
+                    defender.RealPower += (Enemy.LifePoints > 3000) ? 3000 : (Enemy.LifePoints - 100);
+
+                if (defender.Id == _CardId.InjectionFairyLily && !defender.IsDisabled() && Enemy.LifePoints > 2000)
+                    defender.RealPower += 3000;
             }
 
             if (!defender.IsMonsterHasPreventActivationEffectInBattle())
@@ -90,12 +127,27 @@ namespace WindBot.Game.AI
             return true;
         }
 
+        public override bool OnSelectBattleReplay()
+        {
+            if (Bot.BattlingMonster == null)
+                return false;
+            List<ClientCard> defenders = new List<ClientCard>(Duel.Fields[1].GetMonsters());
+            defenders.Sort(AIFunctions.CompareDefensePower);
+            defenders.Reverse();
+            BattlePhaseAction result = OnSelectAttackTarget(Bot.BattlingMonster, defenders);
+            if (result != null && result.Action == BattlePhaseAction.BattleAction.Attack)
+            {
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Destroy face-down cards first, in our turn.
         /// </summary>
         protected bool DefaultMysticalSpaceTyphoon()
         {
-            foreach (ClientCard card in CurrentChain)
+            foreach (ClientCard card in Duel.CurrentChain)
                 if (card.Id == _CardId.MysticalSpaceTyphoon)
                     return false;
 
@@ -128,10 +180,10 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultCosmicCyclone()
         {
-            foreach (ClientCard card in CurrentChain)
+            foreach (ClientCard card in Duel.CurrentChain)
                 if (card.Id == _CardId.CosmicCyclone)
                     return false;
-            return (Duel.LifePoints[0] > 1000) && DefaultMysticalSpaceTyphoon();
+            return (Bot.LifePoints > 1000) && DefaultMysticalSpaceTyphoon();
         }
 
         /// <summary>
@@ -234,11 +286,12 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultBreakthroughSkill()
         {
-            ClientCard LastChainCard = GetLastChainCard();
+            ClientCard LastChainCard = AI.Utils.GetLastChainCard();
 
             if (LastChainCard == null)
                 return false;
 
+            AI.SelectCard(LastChainCard);
             return LastChainCard.Controller == 1 && LastChainCard.Location == CardLocation.MonsterZone && DefaultUniqueTrap();
         }
 
@@ -247,7 +300,7 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultSolemnJudgment()
         {
-            return !AI.Utils.IsChainTargetOnly(Card) && !(Duel.Player == 0 && LastChainPlayer == -1) && DefaultTrap();
+            return !AI.Utils.IsChainTargetOnly(Card) && !(Duel.Player == 0 && Duel.LastChainPlayer == -1) && DefaultTrap();
         }
 
         /// <summary>
@@ -255,7 +308,7 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultSolemnWarning()
         {
-            return (Duel.LifePoints[0] > 2000) && !(Duel.Player == 0 && LastChainPlayer == -1) && DefaultTrap();
+            return (Bot.LifePoints > 2000) && !(Duel.Player == 0 && Duel.LastChainPlayer == -1) && DefaultTrap();
         }
 
         /// <summary>
@@ -263,7 +316,7 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultSolemnStrike()
         {
-            return (Duel.LifePoints[0] > 1500) && !(Duel.Player == 0 && LastChainPlayer == -1) && DefaultTrap();
+            return (Bot.LifePoints > 1500) && !(Duel.Player == 0 && Duel.LastChainPlayer == -1) && DefaultTrap();
         }
 
         /// <summary>
@@ -271,7 +324,7 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultTorrentialTribute()
         {
-            return !HasChainedTrap(0) && AI.Utils.IsAllEnemyBetter(true);
+            return !AI.Utils.HasChainedTrap(0) && AI.Utils.IsAllEnemyBetter(true);
         }
 
         /// <summary>
@@ -369,6 +422,9 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultMonsterRepos()
         {
+            if (Card.IsFaceup() && Card.IsDefense() && Card.Attack == 0)
+                return false;
+
             bool enemyBetter = AI.Utils.IsAllEnemyBetter(true);
 
             if (Card.IsAttack() && enemyBetter)
@@ -383,7 +439,7 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultTrap()
         {
-            return (LastChainPlayer == -1 && Duel.LastSummonPlayer != 0) || LastChainPlayer == 1;
+            return (Duel.LastChainPlayer == -1 && Duel.LastSummonPlayer != 0) || Duel.LastChainPlayer == 1;
         }
 
         /// <summary>
@@ -391,7 +447,7 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultUniqueTrap()
         {
-            if (HasChainedTrap(0))
+            if (AI.Utils.HasChainedTrap(0))
                 return false;
 
             return UniqueFaceupSpell();
@@ -433,7 +489,7 @@ namespace WindBot.Game.AI
                 if (exec.Type == Type && exec.CardId == Card.Id)
                     return false;
             }
-            return LastChainPlayer != 0;
+            return Duel.LastChainPlayer != 0;
         }
 
         /// <summary>
@@ -447,12 +503,35 @@ namespace WindBot.Game.AI
                 if (exec.Type == Type && exec.CardId == Card.Id)
                     count++;
             }
-            if (count > 1 || Duel.LifePoints[0] <= 1000)
+            if (count > 1 || Bot.LifePoints <= 1000)
                 return false;
-            if (Duel.LifePoints[0] <= Duel.LifePoints[1] && ActivateDescription == AI.Utils.GetStringId(_CardId.ChickenGame, 0))
+            if (Bot.LifePoints <= Enemy.LifePoints && ActivateDescription == AI.Utils.GetStringId(_CardId.ChickenGame, 0))
                 return true;
-            if (Duel.LifePoints[0] > Duel.LifePoints[1] && ActivateDescription == AI.Utils.GetStringId(_CardId.ChickenGame, 1))
+            if (Bot.LifePoints > Enemy.LifePoints && ActivateDescription == AI.Utils.GetStringId(_CardId.ChickenGame, 1))
                 return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Draw when we have Dark monster in hand,and banish random one. Can be overrided.
+        /// </summary>
+        protected bool DefaultAllureofDarkness()
+        {
+            IList<ClientCard> condition = Bot.Hand;
+            IList<ClientCard> check = new List<ClientCard>();
+            ClientCard con = null;
+            foreach (ClientCard card in condition)
+            {
+                if (card.HasAttribute(CardAttribute.Dark))
+                {
+                    con = card;
+                    break;
+                }
+            }
+            if (con != null)
+            {
+                return true;
+            }
             return false;
         }
 
@@ -506,8 +585,8 @@ namespace WindBot.Game.AI
                     return true;
                 }
             }
-            ClientCard lastchaincard = GetLastChainCard();
-            if (LastChainPlayer == 1 && lastchaincard != null && !lastchaincard.IsDisabled())
+            ClientCard lastchaincard = AI.Utils.GetLastChainCard();
+            if (Duel.LastChainPlayer == 1 && lastchaincard != null && !lastchaincard.IsDisabled())
             {
                 if (lastchaincard.HasType(CardType.Ritual))
                 {
@@ -544,7 +623,7 @@ namespace WindBot.Game.AI
         }
 
         /// <summary>
-        /// Clever enough.
+        /// Clever enough
         /// </summary>
         protected bool DefaultInterruptedKaijuSlumber()
         {
@@ -554,24 +633,34 @@ namespace WindBot.Game.AI
                 {
                     _CardId.GamecieltheSeaTurtleKaiju,
                     _CardId.KumongoustheStickyStringKaiju,
+                    _CardId.GadarlatheMysteryDustKaiju,
                     _CardId.RadiantheMultidimensionalKaiju,
-                    _CardId.GadarlatheMysteryDustKaiju
+                    _CardId.DogorantheMadFlameKaiju,
+                    _CardId.ThunderKingtheLightningstrikeKaiju,
+                    _CardId.JizukirutheStarDestroyingKaiju,
                 });
                 return true;
             }
             AI.SelectCard(new[]
                 {
                     _CardId.JizukirutheStarDestroyingKaiju,
+                    _CardId.ThunderKingtheLightningstrikeKaiju,
+                    _CardId.DogorantheMadFlameKaiju,
                     _CardId.RadiantheMultidimensionalKaiju,
                     _CardId.GadarlatheMysteryDustKaiju,
-                    _CardId.KumongoustheStickyStringKaiju
+                    _CardId.KumongoustheStickyStringKaiju,
+                    _CardId.GamecieltheSeaTurtleKaiju,
                 });
             AI.SelectNextCard(new[]
                 {
+                    _CardId.SuperAntiKaijuWarMachineMechaDogoran,
                     _CardId.GamecieltheSeaTurtleKaiju,
                     _CardId.KumongoustheStickyStringKaiju,
                     _CardId.GadarlatheMysteryDustKaiju,
-                    _CardId.RadiantheMultidimensionalKaiju
+                    _CardId.RadiantheMultidimensionalKaiju,
+                    _CardId.DogorantheMadFlameKaiju,
+                    _CardId.ThunderKingtheLightningstrikeKaiju,
+                    
                 });
             return DefaultDarkHole();
         }
@@ -627,6 +716,14 @@ namespace WindBot.Game.AI
         }
 
         /// <summary>
+        /// Activate if the card is attack pos, and its attack is below 5000, when the enemy monster is attack pos or not useless faceup defense pos
+        /// </summary>
+        protected bool DefaultNumberS39UtopiaTheLightningEffect()
+        {
+            return Card.IsAttack() && Card.Attack < 5000 && (Enemy.BattlingMonster.IsAttack() || Enemy.BattlingMonster.IsFacedown() || Enemy.BattlingMonster.GetDefensePower() >= Card.Attack);
+        }
+
+        /// <summary>
         /// Summon when it can and should use effect.
         /// </summary>
         protected bool DefaultEvilswarmExcitonKnightSummon()
@@ -679,7 +776,7 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultStardustDragonEffect()
         {
-            return (Card.Location == CardLocation.Grave) || LastChainPlayer == 1;
+            return (Card.Location == CardLocation.Grave) || Duel.LastChainPlayer == 1;
         }
 
         /// <summary>
@@ -740,6 +837,21 @@ namespace WindBot.Game.AI
 
             return (oppoCount > 0 && selfCount <= oppoCount) || oppoCount >= 3;
         }
+
+        /// <summary>
+        /// Clever enough.
+        /// </summary>
+        protected bool DefaultHonestEffect()
+        {
+            if (Card.Location == CardLocation.Hand)
+            {
+                return Bot.BattlingMonster.IsAttack() &&
+                    (((Bot.BattlingMonster.Attack < Enemy.BattlingMonster.Attack) || Bot.BattlingMonster.Attack >= Enemy.LifePoints)
+                    || ((Bot.BattlingMonster.Attack < Enemy.BattlingMonster.Defense) && (Bot.BattlingMonster.Attack + Enemy.BattlingMonster.Attack > Enemy.BattlingMonster.Defense)));
+            }
+            else return AI.Utils.IsTurn1OrMain2();
+        }
+
 
     }
 }
