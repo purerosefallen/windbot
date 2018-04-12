@@ -89,7 +89,10 @@ namespace WindBot.Game.AI
         {
             
         }
-
+        public virtual void OnNewPhase()
+        {
+            // Some AI need do something on new phase
+        }
         public virtual void OnNewTurn()
         {
             // Some AI need do something on new turn
@@ -151,6 +154,12 @@ namespace WindBot.Game.AI
         public virtual int OnSelectOption(IList<int> options)
         {
             return -1;
+        }
+
+        public virtual CardPosition OnSelectPosition(int cardId, IList<CardPosition> positions)
+        {
+            // Overrided in DefalultExecutor
+            return 0;
         }
 
         public virtual bool OnSelectBattleReplay()
