@@ -132,6 +132,25 @@ namespace WindBot.Game.AI
             return IsAllEnemyBetterThanValue(bestBotPower, onlyATK);
         }
 
+        public ClientCard GetBestBotMonster(bool onlyATK = false)
+        {
+            int bestPower = -1;
+            ClientCard bestMonster = null;
+            for (int i = 0; i < 7; ++i)
+            {
+                ClientCard card = Bot.MonsterZone[i];
+                if (card == null || card.Data == null) continue;
+                if (onlyATK && card.IsDefense()) continue;
+                int newPower = card.GetDefensePower();
+                if (newPower > bestPower)
+                {
+                    bestPower = newPower;
+                    bestMonster = card;
+                }
+            }
+            return bestMonster;
+        }
+
         public ClientCard GetOneEnemyBetterThanValue(int value, bool onlyATK = false)
         {
             ClientCard bestCard = null;
@@ -247,7 +266,8 @@ namespace WindBot.Game.AI
 
             foreach (ClientCard ecard in spells)
             {
-                if (ecard.IsFaceup() && ecard.HasType(CardType.Continuous))
+                if (ecard.IsFaceup() && ecard.HasType(CardType.Continuous)||
+                    ecard.IsFaceup() && ecard.HasType(CardType.Field))
                     return ecard;
             }
 

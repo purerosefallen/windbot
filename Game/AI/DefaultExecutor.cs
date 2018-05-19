@@ -20,10 +20,12 @@ namespace WindBot.Game.AI
             public const int GamecieltheSeaTurtleKaiju = 55063751;
             public const int SuperAntiKaijuWarMachineMechaDogoran = 84769941;
 
+            public const int UltimateConductorTytanno = 18940556;
 
             public const int DupeFrog = 46239604;
             public const int MaraudingCaptain = 2460565;
 
+            public const int HarpiesFeatherDuster = 18144506;
             public const int MysticalSpaceTyphoon = 5318639;
             public const int CosmicCyclone = 8267140;
             public const int ChickenGame = 67616300;
@@ -62,7 +64,7 @@ namespace WindBot.Game.AI
                 if (!OnPreBattleBetween(attacker, defender))
                     continue;
 
-                if (attacker.RealPower > defender.RealPower || (attacker.RealPower >= defender.RealPower && attacker.IsLastAttacker))
+                if (attacker.RealPower > defender.RealPower || (attacker.RealPower >= defender.RealPower && attacker.IsLastAttacker && defender.IsAttack()))
                     return AI.Attack(attacker, defender);
             }
 
@@ -86,8 +88,17 @@ namespace WindBot.Game.AI
 
             if (!attacker.IsMonsterHasPreventActivationEffectInBattle())
             {
-                if (defender.IsMonsterDangerous() || (defender.IsMonsterInvincible() && defender.IsDefense()))
+                if (defender.IsMonsterInvincible() && defender.IsDefense())
                     return false;
+
+                if (defender.IsMonsterDangerous())
+                {
+                    bool canignoreit = false;
+                    if (attacker.Id == _CardId.UltimateConductorTytanno && !attacker.IsDisabled() && defender.IsDefense())
+                        canignoreit = true;
+                    if (!canignoreit)
+                        return false;
+                }
 
                 if (defender.Id == _CardId.CrystalWingSynchroDragon && defender.IsAttack() && !defender.IsDisabled() && attacker.Level >= 5)
                     return false;
@@ -125,6 +136,23 @@ namespace WindBot.Game.AI
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Called when the AI has to select a card position.
+        /// </summary>
+        /// <param name="cardId">Id of the card to position on the field.</param>
+        /// <param name="positions">List of available positions.</param>
+        /// <returns>Selected position, or 0 if no position is set for this card.</returns>
+        public override CardPosition OnSelectPosition(int cardId, IList<CardPosition> positions)
+        {
+            YGOSharp.OCGWrapper.NamedCard cardData = YGOSharp.OCGWrapper.NamedCard.Get(cardId);
+            if (cardData != null)
+            {
+                if (cardData.Attack == 0)
+                    return CardPosition.FaceUpDefence;
+            }
+            return 0;
         }
 
         public override bool OnSelectBattleReplay()
@@ -290,9 +318,10 @@ namespace WindBot.Game.AI
 
             if (LastChainCard == null)
                 return false;
-
+            if (LastChainCard.Controller != 1 || LastChainCard.Location != CardLocation.MonsterZone || !DefaultUniqueTrap())
+                return false;
             AI.SelectCard(LastChainCard);
-            return LastChainCard.Controller == 1 && LastChainCard.Location == CardLocation.MonsterZone && DefaultUniqueTrap();
+            return true;
         }
 
         /// <summary>
@@ -434,6 +463,15 @@ namespace WindBot.Game.AI
             return false;
         }
 
+        /// <summary>
+        /// if spell/trap is the target or enermy activate HarpiesFeatherDuster
+        /// </summary>
+        protected bool DefaultOnBecomeTarget()
+        {
+            if (AI.Utils.IsChainTarget(Card)) return true;
+            if (Enemy.HasInSpellZone(_CardId.HarpiesFeatherDuster, true)) return true;
+            return false;
+        }
         /// <summary>
         /// Chain enemy activation or summon.
         /// </summary>
