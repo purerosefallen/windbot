@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace WindBot
 {
@@ -12,7 +12,8 @@ namespace WindBot
         public string HostInfo { get; set; }
         public int Version { get; set; }
         public int Hand { get; set; }
-
+        public bool Debug { get; set; }
+        public bool Chat { get; set; }
         public WindBotInfo()
         {
             Name = "WindBot";
@@ -21,8 +22,10 @@ namespace WindBot
             Host = "127.0.0.1";
             Port = 7911;
             HostInfo = "";
-            Version = 0x1341;
+            Version = 0x1344;
             Hand = 0;
+            Debug = false;
+            Chat = true;
         }
     }
 }

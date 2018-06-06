@@ -21,9 +21,6 @@ namespace WindBot.Game.AI
         protected ClientCard Card { get; private set; }
         protected int ActivateDescription { get; private set; }
 
-        protected int LastChainPlayer { get; private set; }
-        protected IList<ClientCard> CurrentChain { get; private set; }
-
         protected ClientField Bot { get; private set; }
         protected ClientField Enemy { get; private set; }
 
@@ -32,9 +29,6 @@ namespace WindBot.Game.AI
             Duel = duel;
             AI = ai;
             Executors = new List<CardExecutor>();
-
-            LastChainPlayer = -1;
-            CurrentChain = new List<ClientCard>();
 
             Bot = Duel.Fields[0];
             Enemy = Duel.Fields[1];
@@ -58,47 +52,26 @@ namespace WindBot.Game.AI
         /// <returns>A new BattlePhaseAction containing the action to do.</returns>
         public virtual BattlePhaseAction OnBattle(IList<ClientCard> attackers, IList<ClientCard> defenders)
         {
-            if (attackers.Count == 0)
-                return AI.ToMainPhase2();
+            // For overriding
+            return null;
+        }
 
-            if (defenders.Count == 0)
-            {
-                for (int i = attackers.Count - 1; i >= 0; --i)
-                {
-                    ClientCard attacker = attackers[i];
-                    if (attacker.Attack > 0)
-                        return AI.Attack(attacker, null);
-                }
-            }
-            else
-            {
-                for (int i = defenders.Count - 1; i >= 0; --i)
-                {
-                    ClientCard defender = defenders[i];
-                    for (int j = 0; j < attackers.Count; ++j)
-                    {
-                        ClientCard attacker = attackers[j];
-                        attacker.RealPower = attacker.Attack;
-                        defender.RealPower = defender.GetDefensePower();
-                        if (!OnPreBattleBetween(attacker, defender))
-                            continue;
-                        if (attacker.RealPower > defender.RealPower || (attacker.RealPower >= defender.RealPower && j == attackers.Count - 1))
-                            return AI.Attack(attacker, defender);
-                    }
-                }
+        /// <summary>
+        /// Called when the AI has to decide which card to attack first
+        /// </summary>
+        /// <param name="attackers">List of monsters that can attcack.</param>
+        /// <param name="defenders">List of monsters of enemy.</param>
+        /// <returns>The card to attack first.</returns>
+        public virtual ClientCard OnSelectAttacker(IList<ClientCard> attackers, IList<ClientCard> defenders)
+        {
+            // For overriding
+            return null;
+        }
 
-                for (int i = attackers.Count - 1; i >= 0; --i)
-                {
-                    ClientCard attacker = attackers[i];
-                    if (attacker.CanDirectAttack)
-                        return AI.Attack(attacker, null);
-                }
-            }
-
-            if (!Battle.CanMainPhaseTwo)
-                return AI.Attack(attackers[0], (defenders.Count == 0) ? null : defenders[0]);
-
-            return AI.ToMainPhase2();
+        public virtual BattlePhaseAction OnSelectAttackTarget(ClientCard attacker, IList<ClientCard> defenders)
+        {
+            // Overrided in DefalultExecutor
+            return null;
         }
 
         public virtual bool OnPreBattleBetween(ClientCard attacker, ClientCard defender)
@@ -109,19 +82,25 @@ namespace WindBot.Game.AI
 
         public virtual void OnChaining(int player, ClientCard card)
         {
-            CurrentChain.Add(card);
-            LastChainPlayer = player;
+            
         }
 
         public virtual void OnChainEnd()
         {
-            LastChainPlayer = -1;
-            CurrentChain.Clear();
+            
         }
-
+        public virtual void OnNewPhase()
+        {
+            // Some AI need do something on new phase
+        }
         public virtual void OnNewTurn()
         {
             // Some AI need do something on new turn
+        }
+		
+        public virtual void OnDraw(int player)
+        {
+            // Some AI need do something on draw
         }
 
         public virtual IList<ClientCard> OnSelectCard(IList<ClientCard> cards, int min, int max, int hint, bool cancelable)
@@ -172,6 +151,12 @@ namespace WindBot.Game.AI
             return null;
         }
 
+        public virtual IList<ClientCard> OnCardSorting(IList<ClientCard> cards)
+        {
+            // For overriding
+            return null;
+        }
+
         public virtual bool OnSelectYesNo(int desc)
         {
             return true;
@@ -182,42 +167,22 @@ namespace WindBot.Game.AI
             return -1;
         }
 
-        public bool ChainContainsCard(int id)
+        public virtual int OnSelectPlace(int cardId, int player, int location, int available)
         {
-            foreach (ClientCard card in CurrentChain)
-            {
-                if (card.Id == id)
-                    return true;
-            }
+            // For overriding
+            return 0;
+        }
+
+        public virtual CardPosition OnSelectPosition(int cardId, IList<CardPosition> positions)
+        {
+            // Overrided in DefalultExecutor
+            return 0;
+        }
+
+        public virtual bool OnSelectBattleReplay()
+        {
+            // Overrided in DefalultExecutor
             return false;
-        }
-
-        public int ChainCountPlayer(int player)
-        {
-            int count = 0;
-            foreach (ClientCard card in CurrentChain)
-            {
-                if (card.Controller == player)
-                    count++;
-            }
-            return count;
-        }
-
-        public bool HasChainedTrap(int player)
-        {
-            foreach (ClientCard card in CurrentChain)
-            {
-                if (card.Controller == player && card.HasType(CardType.Trap))
-                    return true;
-            }
-            return false;
-        }
-
-        public ClientCard GetLastChainCard()
-        {
-            if (CurrentChain.Count > 0)
-                return CurrentChain[CurrentChain.Count - 1];
-            return null;
         }
 
         public void SetMain(MainPhase main)

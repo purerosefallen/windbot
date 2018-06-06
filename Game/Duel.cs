@@ -8,7 +8,6 @@ namespace WindBot.Game
         public bool IsFirst { get; set; }
         public bool IsNewRule { get; set; }
 
-        public int[] LifePoints { get; private set; }
         public ClientField[] Fields { get; private set; }
 
         public int Turn { get; set; }
@@ -16,15 +15,19 @@ namespace WindBot.Game
         public DuelPhase Phase { get; set; }
         public MainPhase MainPhase { get; set; }
         public BattlePhase BattlePhase { get; set; }
+
+        public int LastChainPlayer { get; set; }
+        public IList<ClientCard> CurrentChain { get; set; }
         public IList<ClientCard> ChainTargets { get; set; }
         public int LastSummonPlayer { get; set; }
 
         public Duel()
         {
-            LifePoints = new int[2];
             Fields = new ClientField[2];
             Fields[0] = new ClientField();
             Fields[1] = new ClientField();
+            LastChainPlayer = -1;
+            CurrentChain = new List<ClientCard>();
             ChainTargets = new List<ClientCard>();
             LastSummonPlayer = -1;
         }
@@ -108,6 +111,37 @@ namespace WindBot.Game
                     break;
                 case CardLocation.Extra:
                     Fields[player].ExtraDeck.Add(new ClientCard(cardId, loc, pos));
+                    break;
+            }
+        }
+
+        public void AddCard(CardLocation loc, ClientCard card, int player, int zone, int pos, int id)
+        {
+            card.Location = loc;
+            card.Position = pos;
+            card.SetId(id);
+            switch (loc)
+            {
+                case CardLocation.Hand:
+                    Fields[player].Hand.Add(card);
+                    break;
+                case CardLocation.Grave:
+                    Fields[player].Graveyard.Add(card);
+                    break;
+                case CardLocation.Removed:
+                    Fields[player].Banished.Add(card);
+                    break;
+                case CardLocation.MonsterZone:
+                    Fields[player].MonsterZone[zone] = card;
+                    break;
+                case CardLocation.SpellZone:
+                    Fields[player].SpellZone[zone] = card;
+                    break;
+                case CardLocation.Deck:
+                    Fields[player].Deck.Add(card);
+                    break;
+                case CardLocation.Extra:
+                    Fields[player].ExtraDeck.Add(card);
                     break;
             }
         }

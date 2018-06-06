@@ -71,6 +71,14 @@ namespace WindBot.Game
         }
 
         /// <summary>
+        /// Called when any player draw card.
+        /// </summary>
+        public void OnDraw(int player)
+        {
+            Executor.OnDraw(player);
+        }
+
+        /// <summary>
         /// Called when it's a new turn.
         /// </summary>
         public void OnNewTurn()
@@ -90,11 +98,12 @@ namespace WindBot.Game
             m_option = -1;
             m_yesno = -1;
             m_position = CardPosition.FaceUpAttack;
-            Duel.LastSummonPlayer = -1;
+            m_place = 0;
             if (Duel.Player == 0 && Duel.Phase == DuelPhase.Draw)
             {
                 _dialogs.SendNewTurn();
             }
+            Executor.OnNewPhase();
         }
 
         /// <summary>
@@ -112,7 +121,6 @@ namespace WindBot.Game
         /// <param name="player">Player who is currently chaining.</param>
         public void OnChaining(ClientCard card, int player)
         {
-            Duel.LastSummonPlayer = -1;
             Executor.OnChaining(player,card);
         }
         
@@ -145,13 +153,57 @@ namespace WindBot.Game
                 }
             }
 
+            // Sort the attackers and defenders, make monster with higher attack go first.
             List<ClientCard> attackers = new List<ClientCard>(battle.AttackableCards);
             attackers.Sort(AIFunctions.CompareCardAttack);
+            attackers.Reverse();
 
             List<ClientCard> defenders = new List<ClientCard>(Duel.Fields[1].GetMonsters());
             defenders.Sort(AIFunctions.CompareDefensePower);
+            defenders.Reverse();
 
-            return Executor.OnBattle(attackers, defenders);
+            // Let executor decide which card should attack first.
+            ClientCard selected = Executor.OnSelectAttacker(attackers, defenders);
+            if (selected != null && attackers.Contains(selected))
+            {
+                attackers.Remove(selected);
+                attackers.Insert(0, selected);
+            }
+
+            // Check for the executor.
+            BattlePhaseAction result = Executor.OnBattle(attackers, defenders);
+            if (result != null)
+                return result;
+
+            if (attackers.Count == 0)
+                return ToMainPhase2();
+
+            if (defenders.Count == 0)
+            {
+                // Attack with the monster with the lowest attack first
+                for (int i = attackers.Count - 1; i >= 0; --i)
+                {
+                    ClientCard attacker = attackers[i];
+                    if (attacker.Attack > 0)
+                        return Attack(attacker, null);
+                }
+            }
+            else
+            {
+                for (int k = 0; k < attackers.Count; ++k)
+                {
+                    ClientCard attacker = attackers[k];
+                    attacker.IsLastAttacker = (k == attackers.Count - 1);
+                    result = Executor.OnSelectAttackTarget(attacker, defenders);
+                    if (result != null)
+                        return result;
+                }
+            }
+
+            if (!battle.CanMainPhaseTwo)
+                return Attack(attackers[0], (defenders.Count == 0) ? null : defenders[0]);
+
+            return ToMainPhase2();
         }
 
         /// <summary>
@@ -286,6 +338,26 @@ namespace WindBot.Game
         }
 
         /// <summary>
+        /// Called when the AI has to sort cards.
+        /// </summary>
+        /// <param name="cards">Cards to sort.</param>
+        /// <returns>List of sorted cards.</returns>
+        public IList<ClientCard> OnCardSorting(IList<ClientCard> cards)
+        {
+
+            IList<ClientCard> result = Executor.OnCardSorting(cards);
+            if (result != null)
+                return result;
+            result = new List<ClientCard>();
+            // TODO: use selector
+            for (int i = 0; i < cards.Count; i++)
+            {
+                result.Add(cards[i]);
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Called when the AI has to choose to activate or not an effect.
         /// </summary>
         /// <param name="card">Card to activate.</param>
@@ -393,6 +465,23 @@ namespace WindBot.Game
             return 0; // Always select the first option.
         }
 
+        public int OnSelectPlace(int cardId, int player, int location, int available)
+        {
+            int selector_selected = m_place;
+            m_place = 0;
+
+            int executor_selected = Executor.OnSelectPlace(cardId, player, location, available);
+
+            if ((executor_selected & available) > 0)
+                return executor_selected & available;
+            if ((selector_selected & available) > 0)
+                return selector_selected & available;
+
+            // TODO: LinkedZones
+
+            return 0;
+        }
+
         /// <summary>
         /// Called when the AI has to select a card position.
         /// </summary>
@@ -401,13 +490,17 @@ namespace WindBot.Game
         /// <returns>Selected position.</returns>
         public CardPosition OnSelectPosition(int cardId, IList<CardPosition> positions)
         {
+            CardPosition selector_selected = m_position;
+            m_position = CardPosition.FaceUpAttack;
+
+            CardPosition executor_selected = Executor.OnSelectPosition(cardId, positions);
+
             // Selects the selected position if available, the first available otherwise.
-            if (positions.Contains(m_position))
-            {
-                CardPosition old = m_position;
-                m_position = CardPosition.FaceUpAttack;
-                return old;
-            }
+            if (positions.Contains(executor_selected))
+                return executor_selected;
+            if (positions.Contains(selector_selected))
+                return selector_selected;
+
             return positions[0];
         }
 
@@ -606,6 +699,15 @@ namespace WindBot.Game
         }
 
         /// <summary>
+        /// Called when the AI has to select if to continue attacking when replay.
+        /// </summary>
+        /// <returns>True for yes, false for no.</returns>
+        public bool OnSelectBattleReplay()
+        {
+            return Executor.OnSelectBattleReplay();
+        }
+
+        /// <summary>
         /// Called when the AI has to declare a card.
         /// </summary>
         /// <returns>Id of the selected card.</returns>
@@ -624,6 +726,7 @@ namespace WindBot.Game
         private CardSelector m_thirdSelector;
         private CardSelector m_materialSelector;
         private CardPosition m_position = CardPosition.FaceUpAttack;
+        private int m_place;
         private int m_option;
         private int m_number;
         private int m_announce;
@@ -756,6 +859,11 @@ namespace WindBot.Game
         public void SelectPosition(CardPosition pos)
         {
             m_position = pos;
+        }
+
+        public void SelectPlace(int zones)
+        {
+            m_place = zones;
         }
 
         public void SelectOption(int opt)

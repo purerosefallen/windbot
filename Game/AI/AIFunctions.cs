@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using YGOSharp.OCGWrapper.Enums;
-
 namespace WindBot.Game.AI
 {
     public class AIFunctions
@@ -132,14 +131,52 @@ namespace WindBot.Game.AI
             return IsAllEnemyBetterThanValue(bestBotPower, onlyATK);
         }
 
-        public ClientCard GetOneEnemyBetterThanValue(int value, bool onlyATK = false)
+        public ClientCard GetBestBotMonster(bool onlyATK = false)
+        {
+            int bestPower = -1;
+            ClientCard bestMonster = null;
+            for (int i = 0; i < 7; ++i)
+            {
+                ClientCard card = Bot.MonsterZone[i];
+                if (card == null || card.Data == null) continue;
+                if (onlyATK && card.IsDefense()) continue;
+                int newPower = card.GetDefensePower();
+                if (newPower > bestPower)
+                {
+                    bestPower = newPower;
+                    bestMonster = card;
+                }
+            }
+            return bestMonster;
+        }
+		
+        public ClientCard GetWorstBotMonster(bool onlyATK = false)
+        {
+            int WorstPower = -1;
+            ClientCard WorstMonster = null;
+            for (int i = 0; i < 7; ++i)
+            {
+                ClientCard card = Bot.MonsterZone[i];
+                if (card == null || card.Data == null) continue;
+                if (onlyATK && card.IsDefense()) continue;
+                int newPower = card.GetDefensePower();
+                if (newPower < WorstPower)
+                {
+                    WorstPower = newPower;
+                    WorstMonster = card;
+                }
+            }
+            return WorstMonster;
+        }
+		
+        public ClientCard GetOneEnemyBetterThanValue(int value, bool onlyATK = false, bool canBeTarget = false)
         {
             ClientCard bestCard = null;
             int bestValue = value;
             for (int i = 0; i < 7; ++i)
             {
                 ClientCard card = Enemy.MonsterZone[i];
-                if (card == null || card.Data == null) continue;
+                if (card == null || card.Data == null || (canBeTarget && card.IsShouldNotBeTarget())) continue;
                 if (onlyATK && card.IsDefense()) continue;
                 int enemyValue = card.GetDefensePower();
                 if (enemyValue >= bestValue)
@@ -151,52 +188,52 @@ namespace WindBot.Game.AI
             return bestCard;
         }
 
-        public ClientCard GetOneEnemyBetterThanMyBest(bool onlyATK = false)
+        public ClientCard GetOneEnemyBetterThanMyBest(bool onlyATK = false, bool canBeTarget = false)
         {
             int bestBotPower = GetBestPower(Bot, onlyATK);
-            return GetOneEnemyBetterThanValue(bestBotPower, onlyATK);
+            return GetOneEnemyBetterThanValue(bestBotPower, onlyATK, canBeTarget);
         }
 
-        public ClientCard GetProblematicEnemyCard(int attack = 0)
+        public ClientCard GetProblematicEnemyCard(int attack = 0, bool canBeTarget = false)
         {
-            ClientCard card = Enemy.MonsterZone.GetFloodgate();
+            ClientCard card = Enemy.MonsterZone.GetFloodgate(canBeTarget);
             if (card != null)
                 return card;
 
-            card = Enemy.SpellZone.GetFloodgate();
+            card = Enemy.SpellZone.GetFloodgate(canBeTarget);
             if (card != null)
                 return card;
 
-            card = Enemy.MonsterZone.GetDangerousMonster();
+            card = Enemy.MonsterZone.GetDangerousMonster(canBeTarget);
             if (card != null)
                 return card;
 
-            card = Enemy.MonsterZone.GetInvincibleMonster();
+            card = Enemy.MonsterZone.GetInvincibleMonster(canBeTarget);
             if (card != null)
                 return card;
 
             if (attack == 0)
                 attack = GetBestAttack(Bot);
-            return GetOneEnemyBetterThanValue(attack, true);
+            return GetOneEnemyBetterThanValue(attack, true, canBeTarget);
         }
 
-        public ClientCard GetProblematicEnemyMonster(int attack = 0)
+        public ClientCard GetProblematicEnemyMonster(int attack = 0, bool canBeTarget = false)
         {
-            ClientCard card = Enemy.MonsterZone.GetFloodgate();
+            ClientCard card = Enemy.MonsterZone.GetFloodgate(canBeTarget);
             if (card != null)
                 return card;
 
-            card = Enemy.MonsterZone.GetDangerousMonster();
+            card = Enemy.MonsterZone.GetDangerousMonster(canBeTarget);
             if (card != null)
                 return card;
 
-            card = Enemy.MonsterZone.GetInvincibleMonster();
+            card = Enemy.MonsterZone.GetInvincibleMonster(canBeTarget);
             if (card != null)
                 return card;
 
             if (attack == 0)
                 attack = GetBestAttack(Bot);
-            return GetOneEnemyBetterThanValue(attack, true);
+            return GetOneEnemyBetterThanValue(attack, true, canBeTarget);
         }
 
         public ClientCard GetProblematicEnemySpell()
@@ -205,9 +242,9 @@ namespace WindBot.Game.AI
             return card;
         }
 
-        public ClientCard GetBestEnemyCard(bool onlyFaceup = false)
+        public ClientCard GetBestEnemyCard(bool onlyFaceup = false, bool canBeTarget = false)
         {
-            ClientCard card = GetBestEnemyMonster(onlyFaceup);
+            ClientCard card = GetBestEnemyMonster(onlyFaceup, canBeTarget);
             if (card != null)
                 return card;
 
@@ -218,13 +255,13 @@ namespace WindBot.Game.AI
             return null;
         }
 
-        public ClientCard GetBestEnemyMonster(bool onlyFaceup = false)
+        public ClientCard GetBestEnemyMonster(bool onlyFaceup = false, bool canBeTarget = false)
         {
-            ClientCard card = GetProblematicEnemyMonster();
+            ClientCard card = GetProblematicEnemyMonster(0, canBeTarget);
             if (card != null)
                 return card;
 
-            card = Enemy.MonsterZone.GetHighestAttackMonster();
+            card = Enemy.MonsterZone.GetHighestAttackMonster(canBeTarget);
             if (card != null)
                 return card;
 
@@ -237,6 +274,25 @@ namespace WindBot.Game.AI
             return null;
         }
 
+        public ClientCard GetWorstEnemyMonster(bool onlyATK = false)
+        {
+            int WorstPower = -1;
+            ClientCard WorstMonster = null;
+            for (int i = 0; i < 7; ++i)
+            {
+                ClientCard card = Enemy.MonsterZone[i];
+                if (card == null || card.Data == null) continue;
+                if (onlyATK && card.IsDefense()) continue;
+                int newPower = card.GetDefensePower();
+                if (newPower < WorstPower)
+                {
+                    WorstPower = newPower;
+                    WorstMonster = card;
+                }
+            }
+            return WorstMonster;
+        }
+
         public ClientCard GetBestEnemySpell(bool onlyFaceup = false)
         {
             ClientCard card = GetProblematicEnemySpell();
@@ -247,7 +303,8 @@ namespace WindBot.Game.AI
 
             foreach (ClientCard ecard in spells)
             {
-                if (ecard.IsFaceup() && ecard.HasType(CardType.Continuous))
+                if (ecard.IsFaceup() && ecard.HasType(CardType.Continuous)||
+                    ecard.IsFaceup() && ecard.HasType(CardType.Field))
                     return ecard;
             }
 
@@ -294,6 +351,54 @@ namespace WindBot.Game.AI
         public bool IsChainTargetOnly(ClientCard card)
         {
             return Duel.ChainTargets.Count == 1 && card.Equals(Duel.ChainTargets[0]);
+        }
+
+        public bool ChainContainsCard(int id)
+        {
+            foreach (ClientCard card in Duel.CurrentChain)
+            {
+                if (card.Id == id)
+                    return true;
+            }
+            return false;
+        }
+
+        public int ChainCountPlayer(int player)
+        {
+            int count = 0;
+            foreach (ClientCard card in Duel.CurrentChain)
+            {
+                if (card.Controller == player)
+                    count++;
+            }
+            return count;
+        }
+
+        public bool ChainContainPlayer(int player)
+        {            
+            foreach (ClientCard card in Duel.CurrentChain)
+            {
+                if (card.Controller == player)
+                    return true;
+            }
+            return false;
+        }
+
+        public bool HasChainedTrap(int player)
+        {
+            foreach (ClientCard card in Duel.CurrentChain)
+            {
+                if (card.Controller == player && card.HasType(CardType.Trap))
+                    return true;
+            }
+            return false;
+        }
+
+        public ClientCard GetLastChainCard()
+        {
+            if (Duel.CurrentChain.Count > 0)
+                return Duel.CurrentChain[Duel.CurrentChain.Count - 1];
+            return null;
         }
 
         /// <summary>

@@ -12,8 +12,6 @@ after_build:
   - rm -rf WindBot\WindBot.exe.config
   - mv -f BotWrapper\bin\Release\Bot.exe .
   - mv -f BotWrapper\bin\Release\bot.conf .
-  - bash -c "curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/purerosefallen/ygopro-7210srv/raw/master/cards.cdb ; exit 0"
-  - mv -f cards.cdb WindBot
   - 7z a -mx9 WindBot.7z WindBot Bot.exe bot.conf
   
 test_script:
@@ -24,4 +22,14 @@ test_script:
 artifacts:
   - path: WindBot.7z
     name: WindBot
+
+deploy:
+  release: latest
+  description: 'Automatic build commit $(APPVEYOR_REPO_COMMIT) $(APPVEYOR_REPO_COMMIT_TIMESTAMP)'
+  provider: GitHub
+  force_update: true
+  auth_token:
+    secure: EQ9miMjfX/QAoBvgc6D+JLmHatLyxOEKZ/uo68QijxWW5Gp4MzB/pOH9+u2GlDVO
+  on:
+    branch: master
 

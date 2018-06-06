@@ -46,6 +46,11 @@
         "dialog": "near.zh-CN"
       },
       {
+        "name": "尼亚",
+        "deck": "Trickstar",
+        "dialog": "near.zh-CN"
+      },
+      {
         "name": "千奈",
         "deck": "Nekroz",
         "dialog": "sennai.zh-CN"
@@ -63,32 +68,42 @@
       {
         "name": "弥音",
         "deck": "Blackwing",
-        "dialog": "sennai.zh-CN"
+        "dialog": "meon.zh-CN"
       },
-	  {
+      {
         "name": "弥音",
         "deck": "CyberDragon",
-        "dialog": "sennai.zh-CN"
+        "dialog": "meon.zh-CN"
       },
-	  {
+	{
         "name": "弥音",
         "deck": "Evilswarm",
-        "dialog": "sennai.zh-CN"
+        "dialog": "meon.zh-CN"
       },
-	  {
+      {
         "name": "早苗",
         "deck": "Gravekeeper",
-        "dialog": "sennai.zh-CN"
+        "dialog": "sanae.zh-CN"
       },
-	  {
+      {
         "name": "早苗",
         "deck": "Graydle",
-        "dialog": "sennai.zh-CN"
+        "dialog": "sanae.zh-CN"
       },
-	  {
+      {
         "name": "早苗",
         "deck": "Old School",
-        "dialog": "sennai.zh-CN"
+        "dialog": "sanae.zh-CN"
+      },
+      {
+        "name": "彩音",
+        "deck": "SkyStriker",
+        "dialog": "ayane.zh-CN"
+      },
+      {
+        "name": "彩音",
+        "deck": "DarkMagician",
+        "dialog": "ayane.zh-CN"
       },
       {
         "name": "永远之魂",
@@ -104,6 +119,16 @@
         "name": "永远之魂",
         "deck": "Horus",
         "dialog": "soul.zh-CN"
+      },
+      {
+        "name": "奇異果",
+        "deck": "LightswornShaddoldinosour",
+        "dialog": "kiwi.zh-TW"
+      },
+      {
+        "name": "燃血鬥士",
+        "deck": "ChainBurn",
+        "dialog": "kiwi.zh-TW"
       }
     ]
 }
