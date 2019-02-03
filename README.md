@@ -1,13 +1,5 @@
 # WindBot
 
-A C# bot for ygopro, compatible with the ygosharp server.
+This branch is a backup of WindBot used in YGOPro Version 1.033.D with Master Rule 3. The SRVPro compatitable with this edition is at [here](https://github.com/moecube/srvpro/tree/mr3).
 
-### How to use:
-
-* Code whatever you want to code in the `Program.cs` file.
-
-* Compile `WindBot.sln` using Visual Studio or Mono.
-
-* Put `cards.cdb` next to the compiled `WindBot.exe`.
-
-* Run and observe.
+Some features may not be available in this branch. Please move to `master` branch as soon as possible.
