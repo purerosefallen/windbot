@@ -1,12 +1,12 @@
 FROM mono:latest as builder
 
-RUN apt update && env DEBIAN_FRONTEND=noninteractive apt install -y wget
+RUN apt update && env DEBIAN_FRONTEND=noninteractive apt install -y wget git
 
 COPY . /windbot-source
 WORKDIR /windbot-source
 RUN xbuild /p:Configuration=Release /p:TargetFrameworkVersion=v4.5 /p:OutDir=/windbot/
-
-RUN wget -O /windbot/cards.cdb https://github.com/purerosefallen/ygopro-database/raw/master/locales/zh-CN/cards.cdb
+RUN git clone --depth=1 https://github.com/purerosefallen/ygopro-database /ygopro-database && \
+	cp -rf /ygopro-database/locales/zh-CN/cards.cdb  /windbot/
 
 FROM mono:silm
 COPY --from=builder /windbot /
