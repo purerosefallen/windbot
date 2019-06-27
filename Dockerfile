@@ -9,7 +9,7 @@ RUN git clone --depth=1 https://github.com/purerosefallen/ygopro-database /ygopr
 	cp -rf /ygopro-database/locales/zh-CN/cards.cdb  /windbot/
 
 FROM mono:slim
-COPY --from=builder /windbot /
+COPY --from=builder /windbot /windbot
 
 WORKDIR /windbot
 
