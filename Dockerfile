@@ -1,5 +1,7 @@
 FROM mono:latest as builder
 
+RUN apt update && env DEBIAN_FRONTEND=noninteractive apt install -y wget
+
 COPY . /windbot-source
 WORKDIR /windbot-source
 RUN xbuild /p:Configuration=Release /p:TargetFrameworkVersion=v4.5 /p:OutDir=/windbot/
