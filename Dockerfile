@@ -8,7 +8,7 @@ RUN xbuild /p:Configuration=Release /p:TargetFrameworkVersion=v4.5 /p:OutDir=/wi
 RUN git clone --depth=1 https://github.com/purerosefallen/ygopro-database /ygopro-database && \
 	cp -rf /ygopro-database/locales/zh-CN/cards.cdb  /windbot/
 
-FROM mono:silm
+FROM mono:slim
 COPY --from=builder /windbot /
 
 WORKDIR /windbot
