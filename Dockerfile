@@ -15,4 +15,4 @@ WORKDIR /windbot
 
 EXPOSE 2399
 ENTRYPOINT ["mono", "./WindBot.exe"]
-CMD [ "WindBot.exe", "ServerMode=true", "ServerPort=2399" ]
+CMD [ "ServerMode=true", "ServerPort=2399" ]
