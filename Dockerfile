@@ -14,4 +14,5 @@ COPY --from=builder /windbot /windbot
 WORKDIR /windbot
 
 EXPOSE 2399
-CMD [ "mono", "/windbot/WindBot.exe", "ServerMode=true", "ServerPort=2399" ]
+ENTRYPOINT ["mono", "./WindBot.exe"]
+CMD [ "WindBot.exe", "ServerMode=true", "ServerPort=2399" ]
