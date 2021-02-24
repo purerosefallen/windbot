@@ -25,7 +25,8 @@ build:
     - chmod +x ./bot
     - mkdir dist
     - 7z a -mx9 dist/WindBot.7z WindBot Bot.exe bot.conf
-    - tar zcvf dist/windbot.tar.gz WindBot bot.conf bot
+    - mv WindBot windbot
+    - tar zcvf dist/windbot.tar.gz windbot bot.conf bot
   artifacts:
     paths:
       - dist/
