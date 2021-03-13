@@ -47,9 +47,10 @@ namespace WindBot.Game
 
             _ai = new GameAI(Game, _duel);
             _ai.Executor = DecksManager.Instantiate(_ai, _duel);
-            Deck = Deck.Load(_ai.Executor.Deck);
-            DeckForWin = Deck.Load("Win/" + _ai.Executor.Deck);
-            DeckForLose = Deck.Load("Lose/" + _ai.Executor.Deck);
+            string deckName = Game.DeckFile ?? _ai.Executor.Deck;
+            Deck = Deck.Load(deckName);
+            DeckForWin = Deck.Load("Win/" + deckName);
+            DeckForLose = Deck.Load("Lose/" + deckName);
             _select_hint = 0;
             lastDuelResult = 2;
         }
