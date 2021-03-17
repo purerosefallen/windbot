@@ -105,8 +105,6 @@ namespace WindBot.Game.AI
             public const int lightningStorm = 14532163;
         }
 
-        int HonestEffectCount = 0;
-
         protected DefaultExecutor(GameAI ai, Duel duel)
             : base(ai, duel)
         {
@@ -263,9 +261,12 @@ namespace WindBot.Game.AI
             return false;
         }
 
-        public override void OnNewTurn()
+        /// <summary>
+        /// Set when this card can't beat the enemies
+        /// </summary>
+        public override bool OnSelectMonsterSummonOrSet(ClientCard card)
         {
-            HonestEffectCount = 0;
+            return card.Level <= 4 && Util.IsAllEnemyBetter(true) && Util.IsAllEnemyBetterThanValue(card.Attack + 300, false);
         }
 
         /// <summary>
@@ -647,10 +648,13 @@ namespace WindBot.Game.AI
         }
 
         /// <summary>
-        /// Summon with tributes ATK lower.
+        /// Summon with no tribute, or with tributes ATK lower.
         /// </summary>
-        protected bool DefaultTributeSummon()
+        protected bool DefaultMonsterSummon()
         {
+            if (Card.Level <= 4)
+                return true;
+
             if (!UniqueFaceupMonster())
                 return false;
             int tributecount = (int)Math.Ceiling((Card.Level - 4.0d) / 2.0d);
@@ -785,6 +789,8 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultDontChainMyself()
         {
+            if (Type != ExecutorType.Activate)
+                return true;
             if (Executors.Any(exec => exec.Type == Type && exec.CardId == Card.Id))
                 return false;
             return Duel.LastChainPlayer != 0;
@@ -797,6 +803,8 @@ namespace WindBot.Game.AI
         {
             if (Executors.Count(exec => exec.Type == Type && exec.CardId == Card.Id) > 1)
                 return false;
+            if (Card.IsFacedown())
+                return true;
             if (Bot.LifePoints <= 1000)
                 return false;
             if (Bot.LifePoints <= Enemy.LifePoints && ActivateDescription == Util.GetStringId(_CardId.ChickenGame, 0))
@@ -1110,13 +1118,7 @@ namespace WindBot.Game.AI
                     || ((Bot.BattlingMonster.Attack < Enemy.BattlingMonster.Defense) && (Bot.BattlingMonster.Attack + Enemy.BattlingMonster.Attack > Enemy.BattlingMonster.Defense)));
             }
 
-            if (Util.IsTurn1OrMain2() && HonestEffectCount <= 5)
-            {
-                HonestEffectCount++;
-                return true;
-            }
-
-            return false;
+            return Util.IsTurn1OrMain2();
         }
 
         protected bool DefaultLightingStorm()

@@ -12,10 +12,14 @@ namespace WindBot.Game.AI.Decks
         public LuckyExecutor(GameAI ai, Duel duel)
             : base(ai, duel)
         {
-            AddExecutor(ExecutorType.SpSummon, ImFeelingLucky);
             AddExecutor(ExecutorType.Activate, ImFeelingLucky);
-            AddExecutor(ExecutorType.SummonOrSet, ImFeelingLucky);
-            AddExecutor(ExecutorType.SpellSet, ImFeelingLucky);
+            AddExecutor(ExecutorType.SpSummon, ImFeelingLucky);
+
+            AddExecutor(ExecutorType.SpSummon, ImFeelingUnlucky);
+            AddExecutor(ExecutorType.Activate, ImFeelingUnlucky);
+
+            AddExecutor(ExecutorType.SummonOrSet, DefaultMonsterSummon);
+            AddExecutor(ExecutorType.SpellSet, DefaultSpellSet);
             AddExecutor(ExecutorType.Repos, DefaultMonsterRepos);
 
             AddExecutor(ExecutorType.Activate, _CardId.MysticalSpaceTyphoon, DefaultMysticalSpaceTyphoon);
@@ -90,9 +94,25 @@ namespace WindBot.Game.AI.Decks
             return Program.Rand.Next(options.Count);
         }
 
+        public override CardPosition OnSelectPosition(int cardId, IList<CardPosition> positions)
+        {
+            YGOSharp.OCGWrapper.NamedCard cardData = YGOSharp.OCGWrapper.NamedCard.Get(cardId);
+            if (cardData != null)
+            {
+                if (cardData.Attack <= 1000)
+                    return CardPosition.FaceUpDefence;
+            }
+            return 0;
+        }
+
         private bool ImFeelingLucky()
         {
-            return Program.Rand.Next(9) >= 3 && DefaultDontChainMyself();
+            return Program.Rand.Next(9) >= 6 && DefaultDontChainMyself();
+        }
+
+        private bool ImFeelingUnlucky()
+        {
+            return DefaultDontChainMyself();
         }
     }
 }
