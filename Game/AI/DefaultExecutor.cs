@@ -21,6 +21,23 @@ namespace WindBot.Game.AI
             public const int GamecieltheSeaTurtleKaiju = 55063751;
             public const int SuperAntiKaijuWarMachineMechaDogoran = 84769941;
 
+            public const int SandaionTheTimelord = 33015627;
+            public const int GabrionTheTimelord = 6616912;
+            public const int MichionTheTimelord = 7733560;
+            public const int ZaphionTheTimelord = 28929131;
+            public const int HailonTheTimelord = 34137269;
+            public const int RaphionTheTimelord = 60222213;
+            public const int SadionTheTimelord = 65314286;
+            public const int MetaionTheTimelord = 74530899;
+            public const int KamionTheTimelord = 91712985;
+            public const int LazionTheTimelord = 92435533;
+
+            public const int LeftArmofTheForbiddenOne = 7902349;
+            public const int RightLegofTheForbiddenOne = 8124921;
+            public const int LeftLegofTheForbiddenOne = 44519536;
+            public const int RightArmofTheForbiddenOne = 70903634;
+            public const int ExodiaTheForbiddenOne = 33396948;
+
             public const int UltimateConductorTytanno = 18940556;
             public const int ElShaddollConstruct = 20366274;
             public const int AllyOfJusticeCatastor = 26593852;
@@ -99,6 +116,7 @@ namespace WindBot.Game.AI
             public const int RedDragonArchfiend = 70902743;
 
             public const int ImperialOrder = 61740673;
+            public const int RoyalDecreel = 51452091;
             public const int NaturiaBeast = 33198837;
             public const int AntiSpellFragrance = 58921041;
 
@@ -146,9 +164,6 @@ namespace WindBot.Game.AI
         /// <returns>false if the attack shouldn't be done.</returns>
         public override bool OnPreBattleBetween(ClientCard attacker, ClientCard defender)
         {
-            if (attacker.RealPower <= 0)
-                return false;
-
             if (!attacker.IsMonsterHasPreventActivationEffectInBattle())
             {
                 if (defender.IsMonsterInvincible() && defender.IsDefense())
@@ -199,6 +214,12 @@ namespace WindBot.Game.AI
                 if (attacker.IsCode(_CardId.NumberS39UtopiaTheLightning) && !attacker.IsDisabled() && attacker.HasXyzMaterial(2, _CardId.Number39Utopia))
                     attacker.RealPower = 5000;
 
+                if (attacker.IsCode(_CardId.EaterOfMillions) && !attacker.IsDisabled())
+                    attacker.RealPower = 9999;
+
+                if (attacker.IsMonsterInvincible())
+                    attacker.RealPower = 9999;
+
                 foreach (ClientCard equip in attacker.EquipCards)
                 {
                     if (equip.IsCode(_CardId.MoonMirrorShield) && !equip.IsDisabled())
@@ -226,6 +247,29 @@ namespace WindBot.Game.AI
             if (defender.OwnTargets.Any(card => card.IsCode(_CardId.PhantomKnightsFogBlade) && !card.IsDisabled()))
                 return false;
 
+            return true;
+        }
+
+        public override bool OnPreActivate(ClientCard card)
+        {
+            ClientCard LastChainCard = Util.GetLastChainCard();
+            if (LastChainCard != null && Duel.Phase == DuelPhase.Standby &&
+                LastChainCard.IsCode(
+                    _CardId.SandaionTheTimelord,
+                    _CardId.GabrionTheTimelord,
+                    _CardId.MichionTheTimelord,
+                    _CardId.ZaphionTheTimelord,
+                    _CardId.HailonTheTimelord,
+                    _CardId.RaphionTheTimelord,
+                    _CardId.SadionTheTimelord,
+                    _CardId.MetaionTheTimelord,
+                    _CardId.KamionTheTimelord,
+                    _CardId.LazionTheTimelord
+                    ))
+                return false;
+            if ((card.Location == CardLocation.Hand || card.Location == CardLocation.SpellZone && card.IsFacedown()) &&
+                (card.IsSpell() && DefaultSpellWillBeNegated() || card.IsTrap() && DefaultTrapWillBeNegated()))
+                return false;
             return true;
         }
 
@@ -266,7 +310,7 @@ namespace WindBot.Game.AI
         /// </summary>
         public override bool OnSelectMonsterSummonOrSet(ClientCard card)
         {
-            return card.Level <= 4 && Util.IsAllEnemyBetter(true) && Util.IsAllEnemyBetterThanValue(card.Attack + 300, false);
+            return card.Level <= 4 && Bot.GetMonsters().Count(m => m.IsFaceup()) == 0 && Util.IsAllEnemyBetterThanValue(card.Attack, true);
         }
 
         /// <summary>
@@ -644,7 +688,7 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultSpellSet()
         {
-            return (Card.IsTrap() || Card.HasType(CardType.QuickPlay)) && Bot.GetSpellCountWithoutField() < 4;
+            return (Card.IsTrap() || Card.HasType(CardType.QuickPlay) || DefaultSpellMustSetFirst()) && Bot.GetSpellCountWithoutField() < 4;
         }
 
         /// <summary>
@@ -681,8 +725,13 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultMonsterRepos()
         {
-            if (Card.IsFaceup() && Card.IsDefense() && Card.Attack == 0)
-                return false;
+            if (Card.Attack == 0)
+            {
+                if (Card.IsFaceup() && Card.IsAttack())
+                    return true;
+                if (Card.IsFaceup() && Card.IsDefense())
+                    return false;
+            }
 
             if (Enemy.HasInMonstersZone(_CardId.BlueEyesChaosMAXDragon, true) &&
                 Card.IsAttack() && (4000 - Card.Defense) * 2 > (4000 - Card.Attack))
@@ -695,7 +744,7 @@ namespace WindBot.Game.AI
             bool enemyBetter = Util.IsAllEnemyBetter(true);
             if (Card.IsAttack() && enemyBetter)
                 return true;
-            if (Card.IsDefense() && !enemyBetter && Card.Attack >= Card.Defense)
+            if (Card.IsDefense() && !enemyBetter && (Card.Attack >= Card.Defense || Card.Attack >= Util.GetBestPower(Enemy)))
                 return true;
 
             return false;
@@ -706,7 +755,15 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultSpellWillBeNegated()
         {
-            return Bot.HasInSpellZone(_CardId.ImperialOrder, true, true) || Enemy.HasInSpellZone(_CardId.ImperialOrder, true) || Enemy.HasInMonstersZone(_CardId.NaturiaBeast, true);
+            return (Bot.HasInSpellZone(_CardId.ImperialOrder, true, true) || Enemy.HasInSpellZone(_CardId.ImperialOrder, true)) && !Util.ChainContainsCard(_CardId.ImperialOrder);
+        }
+
+        /// <summary>
+        /// If trap will be negated
+        /// </summary>
+        protected bool DefaultTrapWillBeNegated()
+        {
+            return (Bot.HasInSpellZone(_CardId.RoyalDecreel, true, true) || Enemy.HasInSpellZone(_CardId.RoyalDecreel, true)) && !Util.ChainContainsCard(_CardId.RoyalDecreel);
         }
 
         /// <summary>
@@ -714,15 +771,7 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultSpellMustSetFirst()
         {
-            ClientCard card = null;
-            foreach (ClientCard check in Bot.GetSpells())
-            {
-                if (check.IsCode(_CardId.AntiSpellFragrance) && !check.IsDisabled())
-                    card = check;
-            }
-            if (card != null && card.IsFaceup())
-                return true;
-            return Bot.HasInSpellZone(_CardId.AntiSpellFragrance, true, true) ||  Enemy.HasInSpellZone(_CardId.AntiSpellFragrance, true);
+            return Bot.HasInSpellZone(_CardId.AntiSpellFragrance, true, true) || Enemy.HasInSpellZone(_CardId.AntiSpellFragrance, true);
         }
 
         /// <summary>
