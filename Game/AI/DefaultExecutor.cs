@@ -741,7 +741,7 @@ namespace WindBot.Game.AI
                 (4000 - Card.Defense) * 2 > (4000 - Card.Attack))
                 return true;
 
-            bool enemyBetter = Util.IsAllEnemyBetter(true);
+            bool enemyBetter = Util.IsAllEnemyBetter();
             if (Card.IsAttack() && enemyBetter)
                 return true;
             if (Card.IsDefense() && !enemyBetter && (Card.Attack >= Card.Defense || Card.Attack >= Util.GetBestPower(Enemy)))
@@ -1143,6 +1143,11 @@ namespace WindBot.Game.AI
             int selfBestAttack = Util.GetBestAttack(Bot);
             int oppoBestAttack = Util.GetBestPower(Enemy);
             return (selfBestAttack <= oppoBestAttack && oppoBestAttack <= 3000) || DefaultScarlightRedDragonArchfiendEffect();
+        }
+
+        protected bool DefaultTimelordSummon()
+        {
+            return Bot.GetMonsterCount() == 0;
         }
 
         /// <summary>

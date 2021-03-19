@@ -65,16 +65,16 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.SpSummon, _CardId.EvilswarmExcitonKnight, DefaultEvilswarmExcitonKnightSummon);
             AddExecutor(ExecutorType.Activate, _CardId.EvilswarmExcitonKnight, DefaultEvilswarmExcitonKnightEffect);
 
-            AddExecutor(ExecutorType.Summon, _CardId.SandaionTheTimelord);
-            AddExecutor(ExecutorType.Summon, _CardId.GabrionTheTimelord);
-            AddExecutor(ExecutorType.Summon, _CardId.MichionTheTimelord);
-            AddExecutor(ExecutorType.Summon, _CardId.ZaphionTheTimelord);
-            AddExecutor(ExecutorType.Summon, _CardId.HailonTheTimelord);
-            AddExecutor(ExecutorType.Summon, _CardId.RaphionTheTimelord);
-            AddExecutor(ExecutorType.Summon, _CardId.SadionTheTimelord);
-            AddExecutor(ExecutorType.Summon, _CardId.MetaionTheTimelord);
-            AddExecutor(ExecutorType.Summon, _CardId.KamionTheTimelord);
-            AddExecutor(ExecutorType.Summon, _CardId.LazionTheTimelord);
+            AddExecutor(ExecutorType.Summon, _CardId.SandaionTheTimelord, DefaultTimelordSummon);
+            AddExecutor(ExecutorType.Summon, _CardId.GabrionTheTimelord, DefaultTimelordSummon);
+            AddExecutor(ExecutorType.Summon, _CardId.MichionTheTimelord, DefaultTimelordSummon);
+            AddExecutor(ExecutorType.Summon, _CardId.ZaphionTheTimelord, DefaultTimelordSummon);
+            AddExecutor(ExecutorType.Summon, _CardId.HailonTheTimelord, DefaultTimelordSummon);
+            AddExecutor(ExecutorType.Summon, _CardId.RaphionTheTimelord, DefaultTimelordSummon);
+            AddExecutor(ExecutorType.Summon, _CardId.SadionTheTimelord, DefaultTimelordSummon);
+            AddExecutor(ExecutorType.Summon, _CardId.MetaionTheTimelord, DefaultTimelordSummon);
+            AddExecutor(ExecutorType.Summon, _CardId.KamionTheTimelord, DefaultTimelordSummon);
+            AddExecutor(ExecutorType.Summon, _CardId.LazionTheTimelord, DefaultTimelordSummon);
 
             AddExecutor(ExecutorType.Summon, _CardId.LeftArmofTheForbiddenOne, JustDontIt);
             AddExecutor(ExecutorType.Summon, _CardId.RightLegofTheForbiddenOne, JustDontIt);
@@ -87,6 +87,16 @@ namespace WindBot.Game.AI.Decks
         {
             HintMsg.Release, HintMsg.Destroy, HintMsg.Remove, HintMsg.ToGrave, HintMsg.ReturnToHand, HintMsg.ToDeck,
             HintMsg.FusionMaterial, HintMsg.SynchroMaterial, HintMsg.XyzMaterial, HintMsg.LinkMaterial, HintMsg.Disable
+        };
+
+        private List<int> HintMsgForDeck = new List<int>
+        {
+            HintMsg.SpSummon, HintMsg.ToGrave, HintMsg.Remove, HintMsg.AddToHand, HintMsg.FusionMaterial
+        };
+
+        private List<int> HintMsgForMaxSelect = new List<int>
+        {
+            HintMsg.SpSummon, HintMsg.ToGrave, HintMsg.AddToHand, HintMsg.FusionMaterial, HintMsg.Destroy
         };
 
         public override IList<ClientCard> OnSelectCard(IList<ClientCard> _cards, int min, int max, int hint, bool cancelable)
@@ -115,12 +125,37 @@ namespace WindBot.Game.AI.Decks
                 }
             }
 
+            if (HintMsgForDeck.Contains(hint))
+            {
+                IList<ClientCard> deckCards = cards.Where(card => card.Location == CardLocation.Deck).ToList();
+
+                // select deck's card first
+                while (deckCards.Count > 0 && selected.Count < max)
+                {
+                    ClientCard card = deckCards[Program.Rand.Next(deckCards.Count)];
+                    selected.Add(card);
+                    deckCards.Remove(card);
+                    cards.Remove(card);
+                }
+            }
+
             // select random cards
             while (selected.Count < min)
             {
                 ClientCard card = cards[Program.Rand.Next(cards.Count)];
                 selected.Add(card);
                 cards.Remove(card);
+            }
+
+            if (HintMsgForMaxSelect.Contains(hint))
+            {
+                // select max cards
+                while (selected.Count < max)
+                {
+                    ClientCard card = cards[Program.Rand.Next(cards.Count)];
+                    selected.Add(card);
+                    cards.Remove(card);
+                }
             }
 
             return selected;
