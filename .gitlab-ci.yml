@@ -15,14 +15,18 @@ build:
   image: mono
   script:
     - sed -i '/download.mono-project.com/d' /etc/apt/sources.list /etc/apt/sources.list.d/*
-    - apt update && apt -y install p7zip-full
+    - apt update && apt -y install p7zip-full tar
     - msbuild /p:Configuration=Release /p:TargetFrameworkVersion=v4.6
     - mv -f bin/Release WindBot
     - rm -rf WindBot/WindBot.exe.config
     - mv -f BotWrapper/bin/Release/Bot.exe .
     - mv -f BotWrapper/bin/Release/bot.conf .
+    - mv -f BotWrapper/BotWrapper.sh ./bot
+    - chmod +x ./bot
     - mkdir dist
     - 7z a -mx9 dist/WindBot.7z WindBot Bot.exe bot.conf
+    - mv WindBot windbot
+    - tar zcvf dist/windbot.tar.gz windbot bot.conf bot
   artifacts:
     paths:
       - dist/

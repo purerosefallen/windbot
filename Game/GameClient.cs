@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using YGOSharp.Network;
@@ -12,6 +13,8 @@ namespace WindBot.Game
         public YGOClient Connection { get; private set; }
         public string Username;
         public string Deck;
+        public string DeckFile;
+        public string DeckCode;
         public string Dialog;
         public int Hand;
         public bool Debug;
@@ -28,6 +31,8 @@ namespace WindBot.Game
         {
             Username = Info.Name;
             Deck = Info.Deck;
+            DeckFile = Info.DeckFile;
+            DeckCode = Info.DeckCode;
             Dialog = Info.Dialog;
             Hand = Info.Hand;
             Debug = Info.Debug;
@@ -45,13 +50,18 @@ namespace WindBot.Game
 
             Connection.Connected += OnConnected;
             Connection.PacketReceived += OnPacketReceived;
+
             IPAddress target_address;
-            try { 
+            try
+            {
                 target_address = IPAddress.Parse(_serverHost);
-            } catch (System.Exception e) {
-                IPHostEntry _hostEntry = Dns.GetHostEntry(_serverHost);
-                target_address = _hostEntry.AddressList[0];
             }
+            catch (System.Exception)
+            {
+                IPHostEntry _hostEntry = Dns.GetHostEntry(_serverHost);
+                target_address = _hostEntry.AddressList.FirstOrDefault(findIPv4 => findIPv4.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+            }
+
             Connection.Connect(target_address, _serverPort);
         }
 
