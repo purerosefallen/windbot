@@ -18,7 +18,7 @@ build:
     - apt update && apt -y install p7zip-full tar
     - msbuild /p:Configuration=Release /p:TargetFrameworkVersion=v4.6
     - mv -f bin/Release WindBot
-    - rm -rf WindBot/WindBot.exe.config
+    #- rm -rf WindBot/WindBot.exe.config
     - mv -f BotWrapper/bin/Release/Bot.exe .
     - mv -f BotWrapper/bin/Release/bot.conf .
     - mv -f BotWrapper/BotWrapper.sh ./bot
