@@ -99,7 +99,7 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.Activate, CardId.HarpieFeatherDuster, DefaultHarpiesFeatherDusterFirst);
             AddExecutor(ExecutorType.Activate, CardId.CosmicCyclone, DefaultMysticalSpaceTyphoon);
             AddExecutor(ExecutorType.Activate, CardId.Raigeki, DefaultRaigeki);
-            AddExecutor(ExecutorType.Activate, CardId.PotofGreed);
+            AddExecutor(ExecutorType.Activate, _CardId.PotOfGreed);
             AddExecutor(ExecutorType.Activate, CardId.PotOfDesires, PotOfDesireseff);
             //sp
             AddExecutor(ExecutorType.Activate, CardId.Linkuriboh, Linkuriboheff);
