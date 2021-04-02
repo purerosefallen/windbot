@@ -79,6 +79,7 @@ namespace WindBot.Game.AI.Decks
             : base(ai, duel)
         {
             // do first
+            AddExecutor(ExecutorType.Activate, CardId.PotofGreed);
             AddExecutor(ExecutorType.Activate, CardId.PotofExtravagance, PotofExtravaganceActivate);
             AddExecutor(ExecutorType.SpellSet, SpellSetForFiveRainbow);
 

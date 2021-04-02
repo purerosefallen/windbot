@@ -59,6 +59,8 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.Activate, CardId.MaxxC, DefaultMaxxC);
             AddExecutor(ExecutorType.Activate, CardId.HarpiesFeatherDuster);
 
+            AddExecutor(ExecutorType.Activate, CardId.PotofGreed);
+
             AddExecutor(ExecutorType.Activate, CardId.DragunofRedEyes, DragunofRedEyesDestroy);
             AddExecutor(ExecutorType.Activate, CardId.ThousandEyesRestrict, ThousandEyesRestrictEffect);
 

@@ -121,6 +121,7 @@ namespace WindBot.Game.AI
             public const int AntiSpellFragrance = 58921041;
 
             public const int lightningStorm = 14532163;
+            public const int PotOfGreed = 55144522;
         }
 
         protected DefaultExecutor(GameAI ai, Duel duel)
