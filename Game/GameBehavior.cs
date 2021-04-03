@@ -188,8 +188,8 @@ namespace WindBot.Game
             int duel_rule = packet.ReadByte();
             _ai.Duel.IsNewRule = (duel_rule >= 4);
             _ai.Duel.IsNewRule2020 = (duel_rule >= 5);
-            BinaryWriter deck = buildUpdateDeck(pickDeckOnResult());
-            Connection.Send(deck);
+            //BinaryWriter deck = buildUpdateDeck(pickDeckOnResult());
+            //Connection.Send(deck);
             _ai.OnJoinGame();
         }
         
@@ -228,6 +228,8 @@ namespace WindBot.Game
             _room.Position = pos;
             _room.IsHost = ((type >> 4) & 0xF) != 0;
             _room.IsReady[pos] = true;
+            BinaryWriter deck = buildUpdateDeck(pickDeckOnResult());
+            Connection.Send(deck);
             Connection.Send(CtosMessage.HsReady);
         }
 
