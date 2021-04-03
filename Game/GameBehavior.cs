@@ -353,7 +353,7 @@ namespace WindBot.Game
                     if (card != null)
                         _ai.OnDeckError(card.Name);
                     else
-                        _ai.OnDeckError("Unknown Card");
+                        _ai.OnDeckError(code.ToString());
                 }
                 else
                     _ai.OnDeckError("DECK");
