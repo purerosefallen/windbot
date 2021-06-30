@@ -46,9 +46,7 @@ upload_to_minio:
     - build
   tags: 
     - linux
-  image: python
   script:
-    - pip install -U -i https://mirrors.aliyun.com/pypi/simple/ awscli
     - aws s3 --endpoint=https://minio.mycard.moe:9000 sync dist/ s3://mycard/windbot
   only:
     - master
