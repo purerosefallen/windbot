@@ -4,14 +4,14 @@
     {
         public enum MainAction
         {
-            Summon = 0,
+            Summon = 3,
             SpSummon = 1,
             Repos = 2,
-            SetMonster = 3,
+            SetMonster = 0,
             SetSpell = 4,
             Activate = 5,
-            ToBattlePhase = 6,
-            ToEndPhase = 7
+            ToBattlePhase = 7,
+            ToEndPhase = 6
         }
 
         public MainAction Action { get; private set; }

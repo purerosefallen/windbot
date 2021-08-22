@@ -941,8 +941,8 @@ namespace WindBot.Game
                     monster.Attacked = true;
             }
 
-            battle.CanMainPhaseTwo = packet.ReadByte() != 0;
             battle.CanEndPhase = packet.ReadByte() != 0;
+            battle.CanMainPhaseTwo = packet.ReadByte() != 0;
 
             Connection.Send(CtosMessage.Response, _ai.OnSelectBattleCmd(battle).ToValue());
         }
@@ -1191,7 +1191,7 @@ namespace WindBot.Game
             ClientCard card = _duel.GetCard(player, loc, seq);
             if (card == null)
             {
-                Connection.Send(CtosMessage.Response, 0);
+                Connection.Send(CtosMessage.Response, 1);
                 return;
             }
             
@@ -1199,7 +1199,7 @@ namespace WindBot.Game
                 card.SetId(cardId);
 
             int reply = _ai.OnSelectEffectYn(card, desc) ? (1) : (0);
-            Connection.Send(CtosMessage.Response, reply);
+            Connection.Send(CtosMessage.Response, 1 - reply);
         }
 
         private void OnSelectIdleCmd(BinaryReader packet)
@@ -1223,7 +1223,7 @@ namespace WindBot.Game
                     card.ActionIndex[k] = i;
                     switch (k)
                     {
-                        case 0:
+                        case 3:
                             main.SummonableCards.Add(card);
                             break;
                         case 1:
@@ -1232,7 +1232,7 @@ namespace WindBot.Game
                         case 2:
                             main.ReposableCards.Add(card);
                             break;
-                        case 3:
+                        case 0:
                             main.MonsterSetableCards.Add(card);
                             break;
                         case 4:
@@ -1260,8 +1260,8 @@ namespace WindBot.Game
                 main.ActivableDescs.Add(desc);
             }
 
-            main.CanBattlePhase = packet.ReadByte() != 0;
             main.CanEndPhase = packet.ReadByte() != 0;
+            main.CanBattlePhase = packet.ReadByte() != 0;
             packet.ReadByte(); // CanShuffle
 
             Connection.Send(CtosMessage.Response, _ai.OnSelectIdleCmd(main).ToValue());
@@ -1470,7 +1470,7 @@ namespace WindBot.Game
                 reply = _ai.OnSelectBattleReplay() ? 1 : 0;
             else
                 reply = _ai.OnSelectYesNo(desc) ? 1 : 0;
-            Connection.Send(CtosMessage.Response, reply);
+            Connection.Send(CtosMessage.Response, 1 - reply);
         }
 
         private void OnAnnounceAttrib(BinaryReader packet)

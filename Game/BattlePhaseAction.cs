@@ -6,8 +6,8 @@
         {
             Activate = 0,
             Attack = 1,
-            ToMainPhaseTwo = 2,
-            ToEndPhase = 3
+            ToMainPhaseTwo = 3,
+            ToEndPhase = 2
         }
 
         public BattleAction Action { get; private set; }
