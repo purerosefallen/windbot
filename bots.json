@@ -209,6 +209,11 @@
         "name": "璃璃子",
         "deck": "TimeThief",
         "dialog": "default"
+      },
+      {
+        "name": "濑名歌铃",
+        "deck": "Brave",
+        "dialog": "wof-Sena-Karin"
       }
     ]
 }
