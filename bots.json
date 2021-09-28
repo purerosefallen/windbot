@@ -189,11 +189,6 @@
         "dialog": "kiwi.zh-TW"
       },
       {
-        "name": "幻煌果",
-        "deck": "Phantasm",
-        "dialog": "kiwi.zh-TW"
-      },
-      {
         "name": "報社鬥士",
         "deck": "GrenMajuThunderBoarder",
         "dialog": "kiwi.zh-TW",
@@ -214,6 +209,11 @@
         "name": "璃璃子",
         "deck": "TimeThief",
         "dialog": "default"
+      },
+      {
+        "name": "濑名歌铃",
+        "deck": "Brave",
+        "dialog": "wof-Sena-Karin"
       }
     ]
 }
