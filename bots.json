@@ -47,13 +47,18 @@
       },
       {
         "name": "我太帅了",
-        "deck": "Dragun",
+        "deck": "Brave",
         "dialog": "smart.zh-CN"
       },
       {
-        "name": "玻璃女巫",
-        "deck": "Witchcraft",
-        "dialog": "verre.zh-CN"
+        "name": "我太帅了",
+        "deck": "Brave",
+        "dialog": "smart.zh-CN"
+      },
+      {
+        "name": "我太帅了",
+        "deck": "Brave",
+        "dialog": "smart.zh-CN"
       },
       {
         "name": "玻璃女巫",
@@ -191,21 +196,6 @@
       {
         "name": "VI-1911",
         "deck": "FamiliarPossessed",
-        "dialog": "VI-1911.zh-CN"
-      },
-      {
-        "name": "VI-1911",
-        "deck": "FamiliarPossessed",
-        "dialog": "VI-1911.zh-CN"
-      },
-      {
-        "name": "VI-1911",
-        "deck": "TimeThief",
-        "dialog": "VI-1911.zh-CN"
-      },
-      {
-        "name": "VI-1911",
-        "deck": "TimeThief",
         "dialog": "VI-1911.zh-CN"
       },
       {
