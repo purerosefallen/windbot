@@ -189,6 +189,11 @@
         "name": "黑崎智秋",
         "deck": "FamiliarPossessed",
         "dialog": "wof-Kurosaki-Chiaki"
+      },
+      {
+        "name": "神代心春",
+        "deck": "Brave",
+        "dialog": "wof-Kamishiro-Koharu"
       }
     ]
 }
