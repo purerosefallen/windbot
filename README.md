@@ -111,6 +111,8 @@ WindBot can run as a "server", provide a http interface to create bot.
 
 * ST1732
 
+* ThunderDragon
+
 * Toadally Awesome
 
 * Trickstar
