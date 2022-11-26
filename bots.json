@@ -56,11 +56,6 @@
         "dialog": "smart.zh-CN"
       },
       {
-        "name": "我太帅了",
-        "deck": "Brave",
-        "dialog": "smart.zh-CN"
-      },
-      {
         "name": "玻璃女巫",
         "deck": "Witchcraft",
         "dialog": "verre.zh-CN"
@@ -208,6 +203,21 @@
         "deck": "ThunderDragon",
         "dialog": "Zefra.zh-CN",
         "hidden": true
+      },
+      {
+        "name": "神数不神",
+        "deck": "Kashtira",
+        "dialog": "Zefra.zh-CN"
+      },
+      {
+        "name": "神数不神",
+        "deck": "Kashtira",
+        "dialog": "Zefra.zh-CN"
+      },
+      {
+        "name": "神数不神",
+        "deck": "Kashtira",
+        "dialog": "Zefra.zh-CN"
       }
     ]
 }
