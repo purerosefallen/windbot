@@ -220,6 +220,11 @@
         "deck": "ThunderDragon",
         "dialog": "Zefra.zh-CN",
         "hidden": true
+      },
+      {
+        "name": "神数不神",
+        "deck": "Kashtira",
+        "dialog": "Zefra.zh-CN"
       }
     ]
 }
