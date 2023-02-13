@@ -225,6 +225,11 @@
         "name": "神数不神",
         "deck": "Kashtira",
         "dialog": "Zefra.zh-CN"
+      },
+      {
+        "name": "神数不神",
+        "deck": "Tearlaments",
+        "dialog": "Zefra.zh-CN"
       }
     ]
 }
