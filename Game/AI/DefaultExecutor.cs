@@ -1192,7 +1192,6 @@ namespace WindBot.Game.AI
             return Util.IsTurn1OrMain2();
         }
 
-<<<<<<< HEAD
         protected bool DefaultLightingStorm()
         {
             if ((Enemy.MonsterZone.ToList().Count > Enemy.SpellZone.ToList().Count ) && Enemy.MonsterZone.ToList().Count>3)
@@ -1206,7 +1205,6 @@ namespace WindBot.Game.AI
                 return true;
             }
 
-=======
         /// <summary>
         /// Always activate
         /// </summary>
@@ -1255,7 +1253,6 @@ namespace WindBot.Game.AI
             }
 
             return false;
->>>>>>> 6260492fb4014076ca1854193cba6cf2cbe4df68
         }
     }
 }
