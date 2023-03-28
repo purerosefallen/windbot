@@ -36,6 +36,56 @@
         "dialog": "swordsman.zh-CN"
       },
       {
+        "name": "谜之剑士LV4",
+        "deck": "Level VIII",
+        "dialog": "swordsman.zh-CN"
+      },
+      {
+        "name": "我太帅了",
+        "deck": "Dragun",
+        "dialog": "smart.zh-CN"
+      },
+      {
+        "name": "我太帅了",
+        "deck": "Brave",
+        "dialog": "smart.zh-CN"
+      },
+      {
+        "name": "我太帅了",
+        "deck": "Brave",
+        "dialog": "smart.zh-CN"
+      },
+      {
+        "name": "玻璃女巫",
+        "deck": "Witchcraft",
+        "dialog": "verre.zh-CN"
+      },
+      {
+        "name": "玻璃女巫",
+        "deck": "Exosister",
+        "dialog": "verre.zh-CN"
+      },
+      {
+        "name": "玻璃女巫",
+        "deck": "Exosister",
+        "dialog": "verre.zh-CN"
+      },
+      {
+        "name": "玻璃女巫",
+        "deck": "Exosister",
+        "dialog": "verre.zh-CN"
+      },
+      {
+        "name": "复制植物",
+        "deck": "Blue-Eyes",
+        "dialog": "copy.zh-CN"
+      },
+      {
+        "name": "复制植物",
+        "deck": "Blue-Eyes",
+        "dialog": "copy.zh-CN"
+      },
+      {
         "name": "复制植物",
         "deck": "Zoodiac",
         "dialog": "copy.zh-CN"
