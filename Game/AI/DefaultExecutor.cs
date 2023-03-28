@@ -1204,6 +1204,7 @@ namespace WindBot.Game.AI
                 AI.SelectPlace(Zones.SpellZones);
                 return true;
             }
+        }
 
         /// <summary>
         /// Always activate
