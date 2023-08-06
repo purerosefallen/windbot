@@ -230,9 +230,19 @@
         "dialog": "Zefra.zh-CN"
       },
       {
-        "name": "神数不神",
-        "deck": "Zefra",
-        "dialog": "Zefra.zh-CN"
+        "name": "艾克莉西娅",
+        "deck": "Swordsoul",
+        "dialog": "ecclesia.zh-CN"
+      },
+      {
+        "name": "艾克莉西娅",
+        "deck": "Swordsoul",
+        "dialog": "ecclesia.zh-CN"
+      },
+      {
+        "name": "艾克莉西娅",
+        "deck": "Swordsoul",
+        "dialog": "ecclesia.zh-CN"
       }
     ]
 }
