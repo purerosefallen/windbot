@@ -1127,7 +1127,7 @@ namespace WindBot.Game
             packet.ReadByte(); // specount
             bool forced = packet.ReadByte() != 0;
             packet.ReadInt32(); // hint1
-            packet.ReadInt32(); // hint2
+            int hint2 = packet.ReadInt32(); // hint2
 
             IList<ClientCard> cards = new List<ClientCard>();
             IList<int> descs = new List<int>();
@@ -1167,7 +1167,7 @@ namespace WindBot.Game
                 return;
             }
 
-            Connection.Send(CtosMessage.Response, _ai.OnSelectChain(cards, descs, forced));
+            Connection.Send(CtosMessage.Response, _ai.OnSelectChain(cards, descs, forced, hint2));
         }
 
         private void OnSelectCounter(BinaryReader packet)
