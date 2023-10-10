@@ -7,11 +7,6 @@
       },
       {
         "name": "琪露诺",
-        "deck": "Rainbow",
-        "dialog": "cirno.zh-CN"
-      },
-      {
-        "name": "琪露诺",
         "deck": "Toadally Awesome",
         "dialog": "cirno.zh-CN"
       },
@@ -36,18 +31,8 @@
         "dialog": "swordsman.zh-CN"
       },
       {
-        "name": "谜之剑士LV4",
-        "deck": "Level VIII",
-        "dialog": "swordsman.zh-CN"
-      },
-      {
         "name": "我太帅了",
         "deck": "Dragun",
-        "dialog": "smart.zh-CN"
-      },
-      {
-        "name": "我太帅了",
-        "deck": "Brave",
         "dialog": "smart.zh-CN"
       },
       {
@@ -64,21 +49,6 @@
         "name": "玻璃女巫",
         "deck": "Exosister",
         "dialog": "verre.zh-CN"
-      },
-      {
-        "name": "玻璃女巫",
-        "deck": "Exosister",
-        "dialog": "verre.zh-CN"
-      },
-      {
-        "name": "玻璃女巫",
-        "deck": "Exosister",
-        "dialog": "verre.zh-CN"
-      },
-      {
-        "name": "复制植物",
-        "deck": "Blue-Eyes",
-        "dialog": "copy.zh-CN"
       },
       {
         "name": "复制植物",
@@ -236,12 +206,17 @@
       },
       {
         "name": "艾克莉西娅",
-        "deck": "Swordsoul",
+        "deck": "Dogmatika",
+        "dialog": "Dogmatika.zh-CN"
+      },
+      {
+        "name": "艾克莉西娅",
+        "deck": "Dogmatika",
         "dialog": "ecclesia.zh-CN"
       },
       {
         "name": "艾克莉西娅",
-        "deck": "Swordsoul",
+        "deck": "Dogmatika",
         "dialog": "ecclesia.zh-CN"
       }
     ]
