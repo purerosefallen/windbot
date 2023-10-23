@@ -1,223 +1,49 @@
 {
-    "windbots": [
-      {
-        "name": "琪露诺",
-        "deck": "Rainbow",
-        "dialog": "cirno.zh-CN"
-      },
-      {
-        "name": "琪露诺",
-        "deck": "Toadally Awesome",
-        "dialog": "cirno.zh-CN"
-      },
-      {
-        "name": "谜之剑士LV4",
-        "deck": "Dragunity",
-        "dialog": "swordsman.zh-CN"
-      },
-      {
-        "name": "谜之剑士LV4",
-        "deck": "Rank V",
-        "dialog": "swordsman.zh-CN"
-      },
-      {
-        "name": "谜之剑士LV4",
-        "deck": "Zexal Weapons",
-        "dialog": "swordsman.zh-CN"
-      },
-      {
-        "name": "谜之剑士LV4",
-        "deck": "Level VIII",
-        "dialog": "swordsman.zh-CN"
-      },
-      {
-        "name": "我太帅了",
-        "deck": "Dragun",
-        "dialog": "smart.zh-CN"
-      },
-      {
-        "name": "我太帅了",
-        "deck": "Brave",
-        "dialog": "smart.zh-CN"
-      },
-      {
-        "name": "玻璃女巫",
-        "deck": "Witchcraft",
-        "dialog": "verre.zh-CN"
-      },
-      {
-        "name": "玻璃女巫",
-        "deck": "Exosister",
-        "dialog": "verre.zh-CN"
-      },
-      {
-        "name": "复制植物",
-        "deck": "Blue-Eyes",
-        "dialog": "copy.zh-CN"
-      },
-      {
-        "name": "复制植物",
-        "deck": "Zoodiac",
-        "dialog": "copy.zh-CN",
-        "hidden": true
-      },
-      {
-        "name": "悠悠",
-        "deck": "MokeyMokey",
-        "dialog": "mokey.zh-CN",
-        "hidden": true
-      },
-      {
-        "name": "悠悠王",
-        "deck": "MokeyMokeyKing",
-        "dialog": "mokey.zh-CN",
-        "hidden": true
-      },
-      {
-        "name": "复制梁龙",
-        "deck": "SkyStriker",
-        "dialog": "anothercopy.zh-CN"
-      },
-      {
-        "name": "复制梁龙",
-        "deck": "Orcust",
-        "dialog": "anothercopy.zh-CN"
-      },
-      {
-        "name": "复制梁龙",
-        "deck": "Salamangreat",
-        "dialog": "anothercopy.zh-CN"
-      },
-      {
-        "name": "尼亚",
-        "deck": "Yosenju",
-        "dialog": "near.zh-CN"
-      },
-      {
-        "name": "尼亚",
-        "deck": "Qliphort",
-        "dialog": "near.zh-CN"
-      },
-      {
-        "name": "尼亚",
-        "deck": "Trickstar",
-        "dialog": "near.zh-CN"
-      },
-      {
-        "name": "尼亚",
-        "deck": "Altergeist",
-        "dialog": "near.zh-CN"
-      },
-      {
-        "name": "试作型机器人1732",
-        "deck": "ST1732",
-        "dialog": "default"
-      },
-      {
-        "name": "比特机灵",
-        "deck": "PureWinds",
-        "dialog": "zh-CN"
-      },
-      {
-        "name": "永远之魂",
-        "deck": "Burn",
-        "dialog": "soul.zh-CN",
-        "hidden": true
-      },
-      {
-        "name": "永远之魂",
-        "deck": "Frog",
-        "dialog": "soul.zh-CN",
-        "hidden": true
-      },
-      {
-        "name": "永远之魂",
-        "deck": "Horus",
-        "dialog": "soul.zh-CN",
-        "hidden": true
-      },
-      {
-        "name": "奇異果",
-        "deck": "LightswornShaddoldinosour",
-        "dialog": "kiwi.zh-TW"
-      },
-      {
-        "name": "奇魔果",
-        "deck": "DarkMagician",
-        "dialog": "kiwi.zh-TW"
-      },
-      {
-        "name": "MAX龍果",
-        "deck": "BlueEyesMaxDragon",
-        "dialog": "kiwi.zh-TW"
-      },
-      {
-        "name": "幻煌果",
-        "deck": "Phantasm",
-        "dialog": "kiwi.zh-TW"
-      },
-      {
-        "name": "報社鬥士",
-        "deck": "GrenMajuThunderBoarder",
-        "dialog": "kiwi.zh-TW",
-        "hidden": true
-      },
-      {
-        "name": "燃血鬥士",
-        "deck": "ChainBurn",
-        "dialog": "kiwi.zh-TW",
-        "hidden": true
-      },
-      {
-        "name": "VI-1911",
-        "deck": "FamiliarPossessed",
-        "dialog": "VI-1911.zh-CN"
-      },
-      {
-        "name": "VI-1911",
-        "deck": "TimeThief",
-        "dialog": "VI-1911.zh-CN"
-      },
-      {
-        "name": "神数不神",
-        "deck": "ThunderDragon",
-        "dialog": "Zefra.zh-CN",
-        "hidden": true
-      },
-      {
-        "name": "神数不神",
-        "deck": "Kashtira",
-        "dialog": "Zefra.zh-CN"
-      },
-      {
-        "name": "神数不神",
-        "deck": "Tearlaments",
-        "dialog": "Zefra.zh-CN"
-      },
-      {
-        "name": "神数不神",
-        "deck": "Zefra",
-        "dialog": "Zefra.zh-CN"
-      },
-      {
-        "name": "艾克莉西娅",
-        "deck": "Swordsoul",
-        "dialog": "ecclesia.zh-CN"
-      },
-      {
-        "name": "艾克莉西娅",
-        "deck": "Dogmatika",
-        "dialog": "Dogmatika.zh-CN"
-      },
-      {
-        "name": "艾克莉西娅",
-        "deck": "Dogmatika",
-        "dialog": "ecclesia.zh-CN"
-      },
-      {
-        "name": "艾克莉西娅",
-        "deck": "Dogmatika",
-        "dialog": "ecclesia.zh-CN"
-      }
-    ]
+  "windbots": [
+    {
+      "name": "神数不神",
+      "deck": "ThunderDragon",
+      "dialog": "Zefra.zh-CN"
+    },
+    {
+      "name": "神数不神",
+      "deck": "Kashtira",
+      "dialog": "Zefra.zh-CN"
+    },
+    {
+      "name": "神数不神",
+      "deck": "Zefra",
+      "dialog": "Zefra.zh-CN"
+    },
+    {
+      "name": "神数不神",
+      "deck": "Tearlaments",
+      "dialog": "Zefra.zh-CN"
+    },
+    {
+      "name": "玻璃女巫",
+      "deck": "Witchcraft",
+      "dialog": "verre.zh-CN"
+    },
+    {
+      "name": "我太帅了",
+      "deck": "Dragun",
+      "dialog": "smart.zh-CN"
+    },
+    {
+      "name": "我太帅了",
+      "deck": "Brave",
+      "dialog": "smart.zh-CN"
+    },
+    {
+      "name": "复制梁龙",
+      "deck": "SkyStriker",
+      "dialog": "anothercopy.zh-CN"
+    },
+    {
+      "name": "发牌姬",
+      "deck": "Lucky",
+      "dialog": "fapaiji.zh-CN"
+    }
+  ]
 }
