@@ -109,6 +109,21 @@
         "dialog": "near.zh-CN"
       },
       {
+        "name": "尼亚",
+        "deck": "Labrynth",
+        "dialog": "near.zh-CN"
+      },
+      {
+        "name": "尼亚",
+        "deck": "Labrynth",
+        "dialog": "near.zh-CN"
+      },
+      {
+        "name": "尼亚",
+        "deck": "Labrynth",
+        "dialog": "near.zh-CN"
+      },
+      {
         "name": "试作型机器人1732",
         "deck": "ST1732",
         "dialog": "default"
@@ -202,16 +217,6 @@
       {
         "name": "艾克莉西娅",
         "deck": "Swordsoul",
-        "dialog": "ecclesia.zh-CN"
-      },
-      {
-        "name": "艾克莉西娅",
-        "deck": "Dogmatika",
-        "dialog": "Dogmatika.zh-CN"
-      },
-      {
-        "name": "艾克莉西娅",
-        "deck": "Dogmatika",
         "dialog": "ecclesia.zh-CN"
       },
       {
