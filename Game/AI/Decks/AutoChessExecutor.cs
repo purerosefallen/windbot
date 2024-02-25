@@ -303,7 +303,7 @@ namespace WindBot.Game.AI.Decks
                 }
             else if (cards2.Count() > 0)
                 return base.OnSelectAttackTarget(attacker, cards2);
-            else if (cards4.Count() > 0 || attacker.Attack >= 1200 )
+            else if (cards4.Count() > 0 && (attacker.Attack >= 1500 || Bot.LifePoints >= 1000))
                 return AI.Attack(attacker, cards4[0]);
             else if (cards3.Count() > 0)
                 return base.OnSelectAttackTarget(attacker, cards3);
