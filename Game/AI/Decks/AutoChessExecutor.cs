@@ -256,6 +256,9 @@ namespace WindBot.Game.AI.Decks
         public override BattlePhaseAction OnSelectAttackTarget(ClientCard attacker, IList<ClientCard> defenders)
         {
             int atk = attacker.Attack;
+            if (!attacker.IsAttack())
+                atk = attacker.GetDefensePower();
+
             List<ClientCard> cards = defenders.Where(defender => defender != null && !BlackmailAttacker(defender, Enemy) && defender.IsFaceup()).ToList();
             List<ClientCard> cards1 = defenders.Where(defender => defender != null && !BlackmailAttacker(defender, Enemy) && defender.IsFaceup() && ((defender.IsAttack() && defender.Attack >= atk) || (!defender.IsAttack() && defender.GetDefensePower() >= atk))).ToList();
             List<ClientCard> cards2 = defenders.Where(defender => defender != null && !BlackmailAttacker(defender, Enemy) && defender.IsFaceup() && defender.IsAttack() && defender.Attack < atk).ToList();
@@ -263,6 +266,7 @@ namespace WindBot.Game.AI.Decks
             List<ClientCard> cards3 = defenders.Where(defender => defender != null && !BlackmailAttacker(defender, Enemy) && defender.IsFaceup() && !defender.IsAttack() && defender.GetDefensePower() < atk).ToList();
             List<ClientCard> cards4 = defenders.Where(defender => defender != null && defender.IsFacedown()).ToList();
             List<ClientCard> cards5 = defenders.Where(defender => defender != null && BlackmailAttacker(defender, Enemy) && defender.IsFaceup()).ToList();
+
             if (BlackmailAttacker(attacker, Bot))
             {
                 if (attacker.CanDirectAttack)
@@ -303,7 +307,7 @@ namespace WindBot.Game.AI.Decks
                 }
             else if (cards2.Count() > 0)
                 return base.OnSelectAttackTarget(attacker, cards2);
-            else if (cards4.Count() > 0)
+            else if (cards4.Count() > 0 && (attacker.Attack >= 1500 || Bot.LifePoints >= 1000))
                 return AI.Attack(attacker, cards4[0]);
             else if (cards3.Count() > 0)
                 return base.OnSelectAttackTarget(attacker, cards3);
@@ -413,12 +417,9 @@ namespace WindBot.Game.AI.Decks
                 return DefaultMonsterSummon();
             else if (Bot.LifePoints > 1500)
             {
-                if (DontSummon(Card.Id))
-                    return false;
-                else
-                    return DefaultMonsterSummon();
+                return DefaultMonsterSummon() && !DontSummon(Card.Id);
             }
-            else if (Bot.LifePoints <= 1500 && GetZoneCards(CardLocation.MonsterZone, Enemy).Count(card => card != null && card.Attack < Card.Attack) > 0)
+            else if (Bot.LifePoints <= 1500 && GetZoneCards(CardLocation.MonsterZone, Enemy).Count(card => card != null && card.Attack < Card.Attack) > 0 || GetZoneCards(CardLocation.MonsterZone, Enemy).Count() == 0 || Card.Attack >= 1500)
                 return DefaultMonsterSummon();
             return false;
         }
@@ -427,7 +428,7 @@ namespace WindBot.Game.AI.Decks
             if (Card.HasType(CardType.Flip))
                 return DefaultMonsterSummon();
             if (Card.HasSetcode(0x40)) return false;
-            return DefaultMonsterSummon() && (Bot.LifePoints <= 1500 || Card.HasType(CardType.Flip) || GetZoneCards(CardLocation.MonsterZone, Bot).Count() == 0 || GetZoneCards(CardLocation.MonsterZone, Bot).Count() <= GetZoneCards(CardLocation.MonsterZone, Enemy).Count());
+            return DefaultMonsterSummon() && (Bot.LifePoints <= 1500 || (GetZoneCards(CardLocation.MonsterZone, Bot).Count() == 0 && Bot.LifePoints <= 4000));
         }
     }
 } 
