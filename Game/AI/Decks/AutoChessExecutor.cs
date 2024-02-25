@@ -1,4 +1,4 @@
-﻿using YGOSharp.OCGWrapper.Enums;
+using YGOSharp.OCGWrapper.Enums;
 using System.Collections.Generic;
 using System.Linq;
 using WindBot;
@@ -418,14 +418,15 @@ namespace WindBot.Game.AI.Decks
                 else
                     return DefaultMonsterSummon();
             }
-            else if (Bot.LifePoints <= 1500 && GetZoneCards(CardLocation.MonsterZone, Enemy).Count(card => card != null && card.Attack < Card.Attack))
+            else if (Bot.LifePoints <= 1500 && GetZoneCards(CardLocation.MonsterZone, Enemy).Count(card => card != null && card.Attack < Card.Attack) > 0)
+                return DefaultMonsterSummon();
             return false;
         }
         private bool MonsterSet()
         {
             if (Card.HasType(CardType.Flip))
                 return DefaultMonsterSummon();
-            if (card.HasSetcode(0x40)) return false;
+            if (Card.HasSetcode(0x40)) return false;
             return DefaultMonsterSummon() && (Bot.LifePoints <= 1500 || Card.HasType(CardType.Flip) || GetZoneCards(CardLocation.MonsterZone, Bot).Count() == 0 || GetZoneCards(CardLocation.MonsterZone, Bot).Count() <= GetZoneCards(CardLocation.MonsterZone, Enemy).Count());
         }
     }
