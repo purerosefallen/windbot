@@ -7,11 +7,6 @@
       },
       {
         "name": "琪露诺",
-        "deck": "Rainbow",
-        "dialog": "cirno.zh-CN"
-      },
-      {
-        "name": "琪露诺",
         "deck": "Toadally Awesome",
         "dialog": "cirno.zh-CN"
       },
@@ -36,18 +31,8 @@
         "dialog": "swordsman.zh-CN"
       },
       {
-        "name": "谜之剑士LV4",
-        "deck": "Level VIII",
-        "dialog": "swordsman.zh-CN"
-      },
-      {
         "name": "我太帅了",
         "deck": "Dragun",
-        "dialog": "smart.zh-CN"
-      },
-      {
-        "name": "我太帅了",
-        "deck": "Brave",
         "dialog": "smart.zh-CN"
       },
       {
@@ -64,21 +49,6 @@
         "name": "玻璃女巫",
         "deck": "Exosister",
         "dialog": "verre.zh-CN"
-      },
-      {
-        "name": "玻璃女巫",
-        "deck": "Exosister",
-        "dialog": "verre.zh-CN"
-      },
-      {
-        "name": "玻璃女巫",
-        "deck": "Exosister",
-        "dialog": "verre.zh-CN"
-      },
-      {
-        "name": "复制植物",
-        "deck": "Blue-Eyes",
-        "dialog": "copy.zh-CN"
       },
       {
         "name": "复制植物",
@@ -113,6 +83,11 @@
       {
         "name": "尼亚",
         "deck": "Altergeist",
+        "dialog": "near.zh-CN"
+      },
+      {
+        "name": "尼亚",
+        "deck": "Labrynth",
         "dialog": "near.zh-CN"
       },
       {
@@ -280,6 +255,36 @@
         "name": "神数不神",
         "deck": "Tearlaments",
         "dialog": "Zefra.zh-CN"
+      },
+      {
+        "name": "神数不神",
+        "deck": "Zefra",
+        "dialog": "Zefra.zh-CN"
+      },
+      {
+        "name": "艾克莉西娅",
+        "deck": "Swordsoul",
+        "dialog": "ecclesia.zh-CN"
+      },
+      {
+        "name": "艾克莉西娅",
+        "deck": "Dogmatika",
+        "dialog": "ecclesia.zh-CN"
+      },
+      {
+        "name": "今晚有宵夜吗",
+        "deck": "SuperheavySamurai",
+        "dialog": "superheavysamurai.zh-CN"
+      },
+      {
+        "name": "今晚有宵夜吗",
+        "deck": "SuperheavySamurai",
+        "dialog": "superheavysamurai.zh-CN"
+      },
+      {
+        "name": "今晚有宵夜吗",
+        "deck": "SuperheavySamurai",
+        "dialog": "superheavysamurai.zh-CN"
       }
     ]
 }
