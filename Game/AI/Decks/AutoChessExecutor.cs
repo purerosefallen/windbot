@@ -256,6 +256,9 @@ namespace WindBot.Game.AI.Decks
         public override BattlePhaseAction OnSelectAttackTarget(ClientCard attacker, IList<ClientCard> defenders)
         {
             int atk = attacker.Attack;
+            if (!attacker.IsAttack())
+                atk = attacker.GetDefensePower();
+
             List<ClientCard> cards = defenders.Where(defender => defender != null && !BlackmailAttacker(defender, Enemy) && defender.IsFaceup()).ToList();
             List<ClientCard> cards1 = defenders.Where(defender => defender != null && !BlackmailAttacker(defender, Enemy) && defender.IsFaceup() && ((defender.IsAttack() && defender.Attack >= atk) || (!defender.IsAttack() && defender.GetDefensePower() >= atk))).ToList();
             List<ClientCard> cards2 = defenders.Where(defender => defender != null && !BlackmailAttacker(defender, Enemy) && defender.IsFaceup() && defender.IsAttack() && defender.Attack < atk).ToList();
@@ -263,6 +266,7 @@ namespace WindBot.Game.AI.Decks
             List<ClientCard> cards3 = defenders.Where(defender => defender != null && !BlackmailAttacker(defender, Enemy) && defender.IsFaceup() && !defender.IsAttack() && defender.GetDefensePower() < atk).ToList();
             List<ClientCard> cards4 = defenders.Where(defender => defender != null && defender.IsFacedown()).ToList();
             List<ClientCard> cards5 = defenders.Where(defender => defender != null && BlackmailAttacker(defender, Enemy) && defender.IsFaceup()).ToList();
+
             if (BlackmailAttacker(attacker, Bot))
             {
                 if (attacker.CanDirectAttack)
