@@ -629,25 +629,42 @@ namespace WindBot.Game.AI.Decks
         /// <param name="avoidList">Whether need to avoid set in this place</param>
         public void SelectSTPlace(ClientCard card = null, bool avoidImpermanence = false, List<int> avoidList = null)
         {
-            List<int> list = new List<int> { 0, 1, 2, 3, 4 };
-            int n = list.Count;
-            while (n-- > 1)
+            if (card == null) card = Card;
+            List<int> list = new List<int>();
+            for (int seq = 0; seq < 5; ++seq)
             {
-                int index = Program.Rand.Next(n + 1);
-                int temp = list[index];
-                list[index] = list[n];
-                list[n] = temp;
-            }
-            foreach (int seq in list)
-            {
-                int zone = (int)System.Math.Pow(2, seq);
                 if (Bot.SpellZone[seq] == null)
                 {
                     if (card != null && card.Location == CardLocation.Hand && avoidImpermanence && infiniteImpermanenceList.Contains(seq)) continue;
                     if (avoidList != null && avoidList.Contains(seq)) continue;
+                    list.Add(seq);
+                }
+            }
+            int n = list.Count;
+            while (n-- > 1)
+            {
+                int index = Program.Rand.Next(list.Count);
+                int nextIndex = (index + Program.Rand.Next(list.Count - 1)) % list.Count;
+                int tempInt = list[index];
+                list[index] = list[nextIndex];
+                list[nextIndex] = tempInt;
+            }
+            if (avoidImpermanence && Bot.GetMonsters().Any(c => c.IsFaceup() && !c.IsDisabled()))
+            {
+                foreach (int seq in list)
+                {
+                    ClientCard enemySpell = Enemy.SpellZone[4 - seq];
+                    if (enemySpell != null && enemySpell.IsFacedown()) continue;
+                    int zone = (int)System.Math.Pow(2, seq);
                     AI.SelectPlace(zone);
                     return;
-                };
+                }
+            }
+            foreach (int seq in list)
+            {
+                int zone = (int)System.Math.Pow(2, seq);
+                AI.SelectPlace(zone);
+                return;
             }
             AI.SelectPlace(0);
         }
@@ -816,6 +833,7 @@ namespace WindBot.Game.AI.Decks
 
         public override void OnNewTurn()
         {
+            if (Duel.Turn <= 1) calledbytheGraveCount.Clear();
             enemyActivateMaxxC = false;
             enemyActivateLockBird = false;
             infiniteImpermanenceList.Clear();
@@ -1950,7 +1968,7 @@ namespace WindBot.Game.AI.Decks
                 }
                 
                 // become target
-                if (DefaultOnBecomeTarget() || (Duel.CurrentChain.Any(c => c == Card) && Duel.LastChainPlayer != 0))
+                if ((DefaultOnBecomeTarget() && !Util.ChainContainsCard(_CardId.EvenlyMatched)) || (Duel.CurrentChain.Any(c => c == Card) && Duel.LastChainPlayer != 0))
                 {
                     targetedMagnificaList.Add(Card);
                     transformDestList.AddRange(new List<int>{CardId.ExosistersMagnifica, CardId.ExosisterMikailis, CardId.ExosisterGibrine, CardId.ExosisterKaspitell, CardId.ExosisterAsophiel});
@@ -2025,7 +2043,7 @@ namespace WindBot.Game.AI.Decks
 
         public bool ExosisterPaxActivate()
         {
-            if (potActivate)
+            if (potActivate || Bot.LifePoints <= 800)
             {
                 return false;
             }
@@ -2198,7 +2216,7 @@ namespace WindBot.Game.AI.Decks
 
         public bool ExosisterPaxActivateForEndSearch()
         {
-            if (potActivate)
+            if (potActivate || Bot.LifePoints <= 800)
             {
                 return false;
             }
@@ -2230,6 +2248,10 @@ namespace WindBot.Game.AI.Decks
 
         public bool ExosisterArmentActivate()
         {
+            if (Bot.LifePoints <= 800)
+            {
+                return false;
+            }
             ClientCard activateTarget = null;
 
             if (Duel.Player == 0)
@@ -2366,6 +2388,11 @@ namespace WindBot.Game.AI.Decks
 
         public bool ExosisterVadisActivate()
         {
+            if (Bot.LifePoints <= 800)
+            {
+                return false;
+            }
+
             List<int> checkListForSpSummon = new List<int>{
                 CardId.ExosisterSophia, CardId.ExosisterIrene, CardId.ExosisterStella, CardId.ExosisterMartha, CardId.ExosisterElis
             };
@@ -2435,6 +2462,11 @@ namespace WindBot.Game.AI.Decks
 
         public bool ExosisterReturniaActivate()
         {
+            if (Bot.LifePoints <= 800)
+            {
+                return false;
+            }
+
             // banish problem card
             ClientCard target = GetProblematicEnemyCard(true);
             if (target != null && Duel.LastChainPlayer != 0)
@@ -2463,7 +2495,7 @@ namespace WindBot.Game.AI.Decks
 
             // dump banish
             target = GetBestEnemyCard(false, true, true);
-            bool check1 = DefaultOnBecomeTarget() && target.Id != _CardId.EvenlyMatched;
+            bool check1 = DefaultOnBecomeTarget() && target != null && (target.Location != CardLocation.Onfield || target.Id != _CardId.EvenlyMatched);
             bool check2 = Bot.UnderAttack;
             bool check3 = (Duel.Player == 1 && Duel.Phase == DuelPhase.End && Duel.LastChainPlayer != 0 && target != null && target.Location != CardLocation.Grave);
             bool check4 = (Duel.Player == 1 && Enemy.GetMonsterCount() >= 2 && Duel.LastChainPlayer != 0);

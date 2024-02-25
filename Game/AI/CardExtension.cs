@@ -21,7 +21,8 @@ namespace WindBot.Game.AI
         /// </summary>
         public static bool IsMonsterDangerous(this ClientCard card)
         {
-            return !card.IsDisabled() && Enum.IsDefined(typeof(DangerousMonster), card.Id);
+            return !card.IsDisabled() &&
+                (Enum.IsDefined(typeof(DangerousMonster), card.Id) || (card.HasSetcode(0x18d) && (card.HasType(CardType.Ritual) || card.EquipCards.Count > 0)));
         }
 
         /// <summary>
@@ -77,6 +78,22 @@ namespace WindBot.Game.AI
         public static bool IsFusionSpell(this ClientCard card)
         {
             return Enum.IsDefined(typeof(FusionSpell), card.Id);
+        }
+
+        /// <summary>
+        /// Is this monster not be synchro material?
+        /// </summary>
+        public static bool IsMonsterNotBeSynchroMaterial(this ClientCard card)
+        {
+            return Enum.IsDefined(typeof(NotBeSynchroMaterialMonster), card.Id);
+        }
+
+        /// <summary>
+        /// Is this monster not be xyz material?
+        /// </summary>
+        public static bool IsMonsterNotBeXyzMaterial(this ClientCard card)
+        {
+            return Enum.IsDefined(typeof(NotBeXyzMaterialMonster), card.Id);
         }
     }
 }
