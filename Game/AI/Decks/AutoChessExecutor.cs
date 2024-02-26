@@ -291,6 +291,22 @@ namespace WindBot.Game.AI.Decks
 
         private bool ActivateFunction()
         {
+            //设p
+            if (Card.HasType(CardType.Pendulum) && Card.Location == CardLocation.Hand && ActivateDescription == 1160)
+            {
+                if (Card.Location != CardLocation.Hand)
+                    return false;
+                ClientCard l = Util.GetPZone(0, 0);
+                ClientCard r = Util.GetPZone(0, 1);
+                if (l == null && r == null)
+                    return true;
+                if (l == null && r.RScale != Card.LScale)
+                    return true;
+                if (r == null && l.LScale != Card.RScale)
+                    return true;
+                return false;
+            }
+            //优化单卡是怎么想的啊喂(#`O′)
             if (Card.Id == 60461804)
             {
                 if (Card.Location == CardLocation.Grave)
