@@ -152,18 +152,33 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
+
         private bool DontSummon(int cardId)//别通召这些
         {
             YGOSharp.OCGWrapper.NamedCard card = YGOSharp.OCGWrapper.NamedCard.Get(cardId);
             if (card.HasSetcode(0x40) || card.HasSetcode(0xa4) || card.HasSetcode(0xd3)) return true;
-            int[] cardsname = new[] {74762582, 90179822, 16759958, 26964762, 42352091, 2511, 74018812, 76214441, 62886670, 69105797, 32391566, 94076521, 73625877, 1980574, 42090294, 68823957, 34976176, 89785779, 76133574, 3248469
-            , 57647597, 37961969, 51993760, 87988305, 38339996, 37629703, 58131925, 71133680, 42790071, 34475451, 63009228, 24725825, 48427163, 86028783, 51852507, 29280589, 87462901, 73640163, 68120130, 84813516, 55461064, 59042331, 26775203
+            int[] cardsname = new[] {74762582, 90179822, 16759958, 26964762, 42352091, 2511, 74018812, 76214441, 62886670, 69105797, 32391566, 94076521, 73625877, 1980574, 42090294, 68823957, 34976176, 89785779, 76133574, 3248469, 87102774
+            , 57647597, 37961969, 51993760, 87988305, 38339996, 37629703, 58131925, 71133680, 42790071, 34475451, 63009228, 24725825, 48427163, 86028783, 51852507, 29280589, 87462901, 73640163, 68120130, 84813516, 55461064, 59042331, 26775203, 89169343
             , 67750322, 68819554, 26084285, 15613529, 19096726, 59546797, 12235475, 38695361, 37742478, 26914168, 43534808, 13313278, 99581584, 04192696, 89662736, 81109178, 18444902, 04807253, 12423762, 72318602, 86613346, 82489470, 16223761, 08152834/*时尚小垃圾*/
             , 97268402/*效果遮蒙者*/, 24508238/*D.D.乌鸦*/, 94145021/*锁鸟*/
             , 14558127, 14558128, 52038441, 52038442, 59438930, 59438931, 60643553, 60643554, 62015408, 62015409, 73642296, 73642297/*手坑六姐妹*/
             , 15721123, 23434538, 25137581, 46502744, 80978111, 87170768, 94081496/*xx的G*/
             , 17266660, 21074344, 94689635/*byd原来宣告者没字段啊*/
-            , 20450925, 19665973, 28427869, 27352108/*攻宣坑*/
+            , 18964575, 20450925, 19665973, 28427869, 27352108/*攻宣坑*/
+            };
+            foreach(int cardname in cardsname)
+            {
+                if (cardId == cardname) return true;
+            }
+
+            return false;
+        }
+
+        private bool FilpMonster(int cardId)//反转
+        {
+            YGOSharp.OCGWrapper.NamedCard card = YGOSharp.OCGWrapper.NamedCard.Get(cardId);
+            if (card.HasType(CardType.Flip)) return true;
+            int[] cardsname = new[] {20073910, 89707961, 41753322, 86346363, 75421661, 87483942, 40659562, 41039846, 72370114, 92693205, 22134079, 16509093, 96352326, 923596, 47111934, 81306586, 26016357, 52323207, 64804316, 75209824, 71071546, 92736188, 16279989, 97584500, 72913666, 71415349, 51196805, 85463083, 41872150, 75109441, 3510565, 15383415, 2326738, 80885284, 84472026, 93294869, 27491571, 54490275, 36239585, 2694423, 81278754, 24101897, 46925518, 99641328, 61318483, 54512827, 81907872, 98707192
             };
             foreach(int cardname in cardsname)
             {
@@ -306,6 +321,90 @@ namespace WindBot.Game.AI.Decks
                     return true;
                 return false;
             }
+
+            //装备
+            if (Card.HasType(CardType.Equip))
+            {
+                List<ClientCard> cards = new List<ClientCard>();
+                if(Card.Location == CardLocation.SpellZone)
+                {
+                    if (Card.Id == 43527730)
+                    {
+                        return !Card.EquipTarget.HasSetcode(0x18d);
+                    }
+                    if (Card.Id == 32939238 || Card.Id == 57736667 || Card.Id == 36148308)
+                    {
+                        cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget()).ToList();
+                        AI.SelectNextCard(cards);
+                        return cards.Count() > 0;
+                    }
+                    if (Card.Id == 99013397 || Card.Id == 70423794 || Card.Id == 22147147)
+                    {
+                        cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && (card.HasType(CardType.Spell) || card.HasType(CardType.Trap))).ToList();
+                        AI.SelectCard(cards);
+                        return cards.Count() > 0;
+                    }
+                    return DefaultDontChainMyself();
+                }
+                else if (Card.Location == CardLocation.Hand)
+                {
+                    if (Card.HasSetcode(0x18d))
+                    {
+                        cards = GetZoneCards(CardLocation.MonsterZone, Enemy).Where(card => card != null && card.IsFaceup() && !card.IsShouldNotBeTarget()).ToList();
+                        if (cards.Count() == 0)
+                            cards = GetZoneCards(CardLocation.MonsterZone, Bot).Where(card => card != null && card.IsFaceup() && !card.IsShouldNotBeTarget()).ToList();
+                        else
+                        {
+                            cards.Sort(CardContainer.CompareCardAttack);
+                            cards.Reverse();
+                        }
+
+                        AI.SelectCard(cards[0]);
+                        return cards.Count() > 0;
+                    }
+                    else if (Card.Id == 41927278)
+                    {
+                        cards = GetZoneCards(CardLocation.MonsterZone, Enemy).Where(card => card != null && card.IsFaceup() && !card.IsShouldNotBeTarget()).ToList();
+                        if (cards.Count() == 0)
+                            cards = GetZoneCards(CardLocation.MonsterZone, Bot).Where(card => card != null && card.IsFaceup() && !card.IsShouldNotBeTarget() && card.HasSetcode(0x18d)).ToList();
+                        else
+                        {
+                            cards.Sort(CardContainer.CompareCardAttack);
+                            cards.Reverse();
+                        }
+
+                        AI.SelectCard(cards[0]);
+                        return cards.Count() > 0;
+                    }
+                    else if (Card.Id == 6203182 || Card.Id == 69954399)
+                    {
+                        cards = GetZoneCards(CardLocation.MonsterZone, Enemy).Where(card => card != null && card.IsFaceup() && !card.IsShouldNotBeTarget()).ToList();
+                        AI.SelectCard(cards);
+                        return cards.Count() > 0;
+                    }
+                    cards = GetZoneCards(CardLocation.MonsterZone, Bot).Where(card => card != null && card.IsFaceup() && !card.IsShouldNotBeTarget() && card.HasSetcode(0x18d)).ToList();
+                    AI.SelectCard(cards);
+                    return cards.Count() > 0;
+                }
+                else if (Card.Location == CardLocation.Grave || Card.Location == CardLocation.Removed)
+                {
+                    if (Card.Id == 64867422)
+                    {
+                        cards = GetZoneCards(CardLocation.MonsterZone, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && card.IsFaceup()).ToList();
+                        AI.SelectCard(cards);
+                        return cards.Count() > 0;
+                    }
+                    if (Card.Id == 66947913)
+                    {
+                        cards = GetZoneCards(CardLocation.MonsterZone, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget()).ToList();
+                        AI.SelectCard(cards);
+                        return cards.Count() > 0;
+                    }
+                    return DefaultDontChainMyself();
+                }
+                return DefaultDontChainMyself();
+            }
+
             //优化单卡是怎么想的啊喂(#`O′)
             if (Card.Id == 60461804)
             {
@@ -379,12 +478,8 @@ namespace WindBot.Game.AI.Decks
 
                 if (cards1.Count() > 0 && cards2.Count() > 0)
                 {
-                    int dam1 = -1;
-                    int dam2 = cards2[0].Attack;
-                    if (cards1[0].IsAttack())
-                        dam1 = cards1[0].Attack;
-                    else
-                        dam1 = cards1[0].GetDefensePower();
+                    int dam1 = cards1[0].GetDefensePower();
+                    int dam2 = cards2[0].GetDefensePower();
 
                     if (dam1 - atk > atk - dam2)
                         return AI.Attack(attacker, cards1[0]);
@@ -394,21 +489,31 @@ namespace WindBot.Game.AI.Decks
                 else if (cards1.Count() > 0)
                     return AI.Attack(attacker, cards1[0]);
                 else if (cards2.Count() > 0)
-                {
                     return AI.Attack(attacker, cards2[0]);
-                }
-                    return AI.Attack(attacker, defenders[Program.Rand.Next(defenders.Count())]);
+
+                return AI.Attack(attacker, defenders[0]);
             }
 
             if (defenders.Any(defender => defender != null && defender.HasSetcode(0x10) && BlackmailAttacker(defender, Enemy)))
-                {
-                    List<ClientCard> scards = defenders.Where(defender => defender != null && defender.Id == 69058960 && !defender.IsDisabled() && defender.IsFaceup()).ToList();
+            {
+                List<ClientCard> scards = defenders.Where(defender => defender != null && defender.Id == 69058960 && !defender.IsDisabled() && defender.IsFaceup()).ToList();
+                if (scards.Count() > 0)
                     return base.OnSelectAttackTarget(attacker, scards);
-                }
+                else if (defenders.Any(defender => defender != null && !BlackmailAttacker(defender, Enemy)))
+                    foreach (ClientCard defender in defenders)
+                    {
+                        if (defender == null || !base.OnPreBattleBetween(attacker, defender) || BlackmailAttacker(defender, Enemy))
+                            continue;
 
+                        if ((atk > defender.GetDefensePower()) || (atk >= defender.GetDefensePower() && attacker.IsLastAttacker && defender.IsAttack()) || (defender.IsFacedown()))
+                            return AI.Attack(attacker, defender);
+                    }
+
+                return null;
+            }
             foreach (ClientCard defender in defenders)
             {
-                if (!base.OnPreBattleBetween(attacker, defender) || BlackmailAttacker(defender, Enemy))
+                if (defender == null || !base.OnPreBattleBetween(attacker, defender) || BlackmailAttacker(defender, Enemy))
                     continue;
 
                 if ((atk > defender.GetDefensePower()) || (atk >= defender.GetDefensePower() && attacker.IsLastAttacker && defender.IsAttack()) || (defender.IsFacedown()))
@@ -423,7 +528,7 @@ namespace WindBot.Game.AI.Decks
 
         private bool MonsterRepos()
         {
-            if (Duel.Phase == DuelPhase.Main1 && Card.HasType(CardType.Flip) && Card.IsFacedown())
+            if (Duel.Phase == DuelPhase.Main1 && (FilpMonster(Card.Id)) && Card.IsFacedown())
             {
                 return true;
             }
@@ -443,23 +548,23 @@ namespace WindBot.Game.AI.Decks
         }
         private bool MonsterSummon()
         {
+            if (DontSummon(Card.Id))
+                return false;
+
             if (BlackmailAttackerSunmmon(Card.Id))
                 return DefaultMonsterSummon();
-            else if (Card.HasType(CardType.Flip))
+            else if (FilpMonster(Card.Id))
                 return false;
-            else if (Card.Level > 4)
+            else if (Card.Level > 4 || Bot.LifePoints > 1500)
                 return DefaultMonsterSummon();
-            else if (Bot.LifePoints > 1500)
-            {
-                return DefaultMonsterSummon() && !DontSummon(Card.Id);
-            }
             else if (Bot.LifePoints <= 1500 && GetZoneCards(CardLocation.MonsterZone, Enemy).Count(card => card != null && card.Attack < Card.Attack) > 0 || GetZoneCards(CardLocation.MonsterZone, Enemy).Count() == 0 || Card.Attack >= 1500)
                 return DefaultMonsterSummon();
+
             return false;
         }
         private bool MonsterSet()
         {
-            if (Card.HasType(CardType.Flip))
+            if (FilpMonster(Card.Id))
                 return DefaultMonsterSummon();
             if (Card.HasSetcode(0x40)) return false;
             return DefaultMonsterSummon() && (Bot.LifePoints <= 1500 || (GetZoneCards(CardLocation.MonsterZone, Bot).Count() == 0 && Bot.LifePoints <= 4000));
