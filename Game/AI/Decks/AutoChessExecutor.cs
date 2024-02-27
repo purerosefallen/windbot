@@ -483,10 +483,21 @@ namespace WindBot.Game.AI.Decks
             {
                 if (BlackmailAttackerSunmmon(cardId))
                     return CardPosition.FaceUpAttack;
-                if (cardData.Attack < 0)
-                    return CardPosition.FaceUpAttack;
-                if (cardData.Attack <= 1000)
-                    return CardPosition.FaceUpDefence;
+
+                if (Bot.LifePoints <= 1500)
+                {
+                    if (cardData.Attack >= 1800 && cardData.Attack > cardData.Defense)
+                        return CardPosition.FaceUpAttack;
+                    else
+                        return CardPosition.FaceUpDefence;
+                }
+                else
+                {
+                    if (cardData.Defense < 3000)
+                        return CardPosition.FaceUpAttack;
+                    else
+                        return CardPosition.FaceUpDefence;
+                }
             }
             return 0;
         }
@@ -570,7 +581,15 @@ namespace WindBot.Game.AI.Decks
                     if (Card.IsFaceup() && Card.IsDefense())
                         return true;
                 }
-                return DefaultMonsterRepos();
+                if (Card.Defense > Card.Attack)
+                    return DefaultMonsterRepos();
+                else
+                {
+                    if (Card.IsFaceup() && Card.IsAttack())
+                        return Bot.LifePoints <= 1500;
+                    if (Card.IsDefense())
+                        return Bot.LifePoints > 1500;
+                }
             }
 
             return false;
