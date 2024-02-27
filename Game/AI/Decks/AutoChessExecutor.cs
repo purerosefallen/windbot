@@ -16,6 +16,9 @@ namespace WindBot.Game.AI.Decks
         {
 
             AddExecutor(ExecutorType.SpSummon);
+            AddExecutor(ExecutorType.Activate, PendulumActivateFunction);
+            AddExecutor(ExecutorType.Activate, EquipEffectActivateFunction);
+            AddExecutor(ExecutorType.Activate, EquipActivateFunction);
             AddExecutor(ExecutorType.Activate, ActivateFunction);
 
             AddExecutor(ExecutorType.Summon, MonsterSummon);
@@ -304,49 +307,41 @@ namespace WindBot.Game.AI.Decks
             return Program.Rand.Next(options.Count);
         }
 
-        private bool ActivateFunction()
+        private bool PendulumActivateFunction()
         {
-            //设p
             if (Card.HasType(CardType.Pendulum) && Card.Location == CardLocation.Hand && ActivateDescription == 1160)
             {
-                if (Card.Location != CardLocation.Hand)
+                if (Card.Location != CardLocation.Hand || Bot.HasInSpellZone(Card.Id))
                     return false;
+
                 ClientCard l = Util.GetPZone(0, 0);
                 ClientCard r = Util.GetPZone(0, 1);
                 if (l == null && r == null)
                     return true;
                 if (l == null && r.RScale != Card.LScale)
-                    return true;
+                {
+                    if (r.RScale > Card.LScale)
+                        return r.RScale != Card.LScale + 1;
+                    else
+                        return r.RScale != Card.LScale - 1;
+                }
                 if (r == null && l.LScale != Card.RScale)
-                    return true;
+                {
+                    if (l.LScale > Card.RScale)
+                        return l.LScale != Card.RScale + 1;
+                    else
+                        return l.LScale != Card.RScale - 1;
+                }
                 return false;
             }
-
-            //装备
+            return false;
+        }
+        private bool EquipActivateFunction()
+        {
             if (Card.HasType(CardType.Equip))
             {
                 List<ClientCard> cards = new List<ClientCard>();
-                if(Card.Location == CardLocation.SpellZone)
-                {
-                    if (Card.Id == 43527730)
-                    {
-                        return !Card.EquipTarget.HasSetcode(0x18d);
-                    }
-                    if (Card.Id == 32939238 || Card.Id == 57736667 || Card.Id == 36148308)
-                    {
-                        cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget()).ToList();
-                        AI.SelectNextCard(cards);
-                        return cards.Count() > 0;
-                    }
-                    if (Card.Id == 99013397 || Card.Id == 70423794 || Card.Id == 22147147)
-                    {
-                        cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && (card.HasType(CardType.Spell) || card.HasType(CardType.Trap))).ToList();
-                        AI.SelectCard(cards);
-                        return cards.Count() > 0;
-                    }
-                    return DefaultDontChainMyself();
-                }
-                else if (Card.Location == CardLocation.Hand)
+                if (Card.Location == CardLocation.Hand)
                 {
                     if (Card.HasSetcode(0x18d))
                     {
@@ -386,6 +381,35 @@ namespace WindBot.Game.AI.Decks
                     AI.SelectCard(cards);
                     return cards.Count() > 0;
                 }
+                return false;
+            }
+            return false;
+        }
+        private bool EquipEffectActivateFunction()
+        {
+            if (Card.HasType(CardType.Equip))
+            {
+                List<ClientCard> cards = new List<ClientCard>();
+                if(Card.Location == CardLocation.SpellZone)
+                {
+                    if (Card.Id == 43527730)
+                    {
+                        return !Card.EquipTarget.HasSetcode(0x18d);
+                    }
+                    if (Card.Id == 32939238 || Card.Id == 57736667 || Card.Id == 36148308)
+                    {
+                        cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget()).ToList();
+                        AI.SelectNextCard(cards);
+                        return cards.Count() > 0;
+                    }
+                    if (Card.Id == 99013397 || Card.Id == 70423794 || Card.Id == 22147147)
+                    {
+                        cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && (card.HasType(CardType.Spell) || card.HasType(CardType.Trap))).ToList();
+                        AI.SelectCard(cards);
+                        return cards.Count() > 0;
+                    }
+                    return DefaultDontChainMyself();
+                }
                 else if (Card.Location == CardLocation.Grave || Card.Location == CardLocation.Removed)
                 {
                     if (Card.Id == 64867422)
@@ -402,9 +426,15 @@ namespace WindBot.Game.AI.Decks
                     }
                     return DefaultDontChainMyself();
                 }
-                return DefaultDontChainMyself();
+                return false;
             }
+            return false;
+        }
 
+        private bool ActivateFunction()
+        {
+            if (Card.HasType(CardType.Equip) || (Card.HasType(CardType.Pendulum) && Card.Location == CardLocation.Hand && ActivateDescription == 1160))
+                return false;
             //优化单卡是怎么想的啊喂(#`O′)
             if (Card.Id == 60461804)
             {
@@ -441,7 +471,6 @@ namespace WindBot.Game.AI.Decks
             }
             return DefaultDontChainMyself();
         }
-
 
         private bool JustDontIt()
         {
