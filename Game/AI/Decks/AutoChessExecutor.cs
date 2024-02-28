@@ -15,7 +15,7 @@ namespace WindBot.Game.AI.Decks
             : base(ai, duel)
         {
 
-            AddExecutor(ExecutorType.SpSummon); 
+            AddExecutor(ExecutorType.SpSummon, SPSummonFunction); 
             AddExecutor(ExecutorType.Activate, PendulumActivateFunction);
             AddExecutor(ExecutorType.Activate, EquipEffectActivateFunction);
             AddExecutor(ExecutorType.Activate, EquipActivateFunction);
@@ -94,6 +94,9 @@ namespace WindBot.Game.AI.Decks
         {
             HintMsg.SpSummon, HintMsg.ToGrave, HintMsg.AddToHand, HintMsg.FusionMaterial, HintMsg.Destroy
         };
+
+        private bool p_summoning = false;
+
         /*
         函数目录    Function Catalogue
             卡片过滤函数
@@ -125,6 +128,8 @@ namespace WindBot.Game.AI.Decks
                     MonsterSummon()
                 盖放
                     MonsterSet()
+                特殊召唤
+                    SPSummonFunction()
             OnSelect函数重写
                 选择卡片
                     OnSelectCard(IList<ClientCard> _cards, int min, int max, int hint, bool cancelable)
@@ -504,6 +509,7 @@ namespace WindBot.Game.AI.Decks
 
             return false;
         }
+
         private bool MonsterSet()
         {
             if (FilpMonster(Card))
@@ -511,6 +517,32 @@ namespace WindBot.Game.AI.Decks
             if (Card.HasSetcode(0x40)) return false;
             return DefaultMonsterSummon() && (Bot.LifePoints <= 1500 || (GetZoneCards(CardLocation.MonsterZone, Bot).Count() == 0 && Bot.LifePoints <= 4000));
         }
+
+        private bool SPSummonFunction()
+        {
+            ClientCard l = Util.GetPZone(0, 0);
+            ClientCard r = Util.GetPZone(0, 1);
+            if ((Card == l || Card == r) && l != null && r != null)
+            {
+                int lowscales = 0;
+                int highscales = 0;
+                if (l.LScale > r.RScale)
+                {
+                    lowscales = r.RScale;
+                    highscales = l.LScale;
+                }
+                else
+                {
+                    lowscales = l.LScale;
+                    highscales = r.RScale;
+                }
+                List<ClientCard> cards = GetZoneCards(CardLocation.Hand, Bot).Where(card => card != null && !DontSummon(card) && card.Level > lowscales && card.Level < highscales).ToList();
+                p_summoning = true;
+                return cards.Count() > 0;
+            }
+            return true;
+        }
+
         public override IList<ClientCard> OnSelectCard(IList<ClientCard> _cards, int min, int max, int hint, bool cancelable)
         {
             if (Duel.Phase == DuelPhase.BattleStart)
@@ -604,6 +636,34 @@ namespace WindBot.Game.AI.Decks
                     if (card.IsCode(60461804))
                         return new List<ClientCard>(new[] { card });
                 }
+            }
+            if (hint == 501 || hint == 504)
+            {
+                IList<ClientCard> handCards = cards.Where(card => card.Location != CardLocation.Hand || !card.HasSetcode(0x40)).ToList();
+                if (handCards.Count() < min)
+                {
+                    IList<ClientCard> handCards2 = cards.Where(card => (card.Location == CardLocation.Hand && card.HasSetcode(0x40))).ToList();
+                    if (handCards2.Count() > 0)
+                    {
+                        foreach (ClientCard card in cards)
+                        {
+                            if (handCards.Count() < min)
+                                handCards.Add(card);
+                        }
+                    }
+                }
+
+                if (handCards.Count() >= min)
+                    return handCards;
+            }
+
+            if (p_summoning || ((Card == Util.GetPZone(0, 0) || Card == Util.GetPZone(0, 1)) && hint == HintMsg.SpSummon))
+            {
+                List<ClientCard> result = new List<ClientCard>();
+                List<ClientCard> scards = cards.Where(card => card != null && !DontSummon(card)).ToList();
+                p_summoning = false;
+                if (scards.Count > 0) return Util.CheckSelectCount(result, scards, 1, 1);
+                else if (min == 0) return result;
             }
 
             return selected;
