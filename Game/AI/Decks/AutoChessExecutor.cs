@@ -67,23 +67,6 @@ namespace WindBot.Game.AI.Decks
 
             AddExecutor(ExecutorType.SpSummon, _CardId.EvilswarmExcitonKnight, DefaultEvilswarmExcitonKnightSummon);
             AddExecutor(ExecutorType.Activate, _CardId.EvilswarmExcitonKnight, DefaultEvilswarmExcitonKnightEffect);
-
-            AddExecutor(ExecutorType.Summon, _CardId.SandaionTheTimelord, DefaultTimelordSummon);
-            AddExecutor(ExecutorType.Summon, _CardId.GabrionTheTimelord, DefaultTimelordSummon);
-            AddExecutor(ExecutorType.Summon, _CardId.MichionTheTimelord, DefaultTimelordSummon);
-            AddExecutor(ExecutorType.Summon, _CardId.ZaphionTheTimelord, DefaultTimelordSummon);
-            AddExecutor(ExecutorType.Summon, _CardId.HailonTheTimelord, DefaultTimelordSummon);
-            AddExecutor(ExecutorType.Summon, _CardId.RaphionTheTimelord, DefaultTimelordSummon);
-            AddExecutor(ExecutorType.Summon, _CardId.SadionTheTimelord, DefaultTimelordSummon);
-            AddExecutor(ExecutorType.Summon, _CardId.MetaionTheTimelord, DefaultTimelordSummon);
-            AddExecutor(ExecutorType.Summon, _CardId.KamionTheTimelord, DefaultTimelordSummon);
-            AddExecutor(ExecutorType.Summon, _CardId.LazionTheTimelord, DefaultTimelordSummon);
-
-            AddExecutor(ExecutorType.Summon, _CardId.LeftArmofTheForbiddenOne, JustDontIt);
-            AddExecutor(ExecutorType.Summon, _CardId.RightLegofTheForbiddenOne, JustDontIt);
-            AddExecutor(ExecutorType.Summon, _CardId.LeftLegofTheForbiddenOne, JustDontIt);
-            AddExecutor(ExecutorType.Summon, _CardId.RightArmofTheForbiddenOne, JustDontIt);
-            AddExecutor(ExecutorType.Summon, _CardId.ExodiaTheForbiddenOne, JustDontIt);
         }
 
         private List<int> HintMsgForEnemy = new List<int>
@@ -343,7 +326,7 @@ namespace WindBot.Game.AI.Decks
                 List<ClientCard> cards = new List<ClientCard>();
                 if (Card.Location == CardLocation.Hand)
                 {
-                    if (Card.HasSetcode(0x18d))
+                    if (Card.Id == 43527730)
                     {
                         cards = GetZoneCards(CardLocation.MonsterZone, Enemy).Where(card => card != null && card.IsFaceup() && !card.IsShouldNotBeTarget()).ToList();
                         if (cards.Count() == 0)
@@ -354,8 +337,12 @@ namespace WindBot.Game.AI.Decks
                             cards.Reverse();
                         }
 
-                        AI.SelectCard(cards[0]);
-                        return cards.Count() > 0;
+                        if (cards.Count() > 0)
+                        {
+                            AI.SelectCard(cards);
+                            return true;
+                        }
+                        return false;
                     }
                     else if (Card.Id == 41927278)
                     {
@@ -368,18 +355,30 @@ namespace WindBot.Game.AI.Decks
                             cards.Reverse();
                         }
 
-                        AI.SelectCard(cards[0]);
-                        return cards.Count() > 0;
+                        if (cards.Count() > 0)
+                        {
+                            AI.SelectCard(cards);
+                            return true;
+                        }
+                        return false;
                     }
-                    else if (Card.Id == 6203182 || Card.Id == 69954399)
+                    else if (Card.Id == 6203182 || Card.Id == 69954399 || Card.Id == 33453260)
                     {
                         cards = GetZoneCards(CardLocation.MonsterZone, Enemy).Where(card => card != null && card.IsFaceup() && !card.IsShouldNotBeTarget()).ToList();
-                        AI.SelectCard(cards);
-                        return cards.Count() > 0;
+                        if (cards.Count() > 0)
+                        {
+                            AI.SelectCard(cards);
+                            return true;
+                        }
+                        return false;
                     }
-                    cards = GetZoneCards(CardLocation.MonsterZone, Bot).Where(card => card != null && card.IsFaceup() && !card.IsShouldNotBeTarget() && card.HasSetcode(0x18d)).ToList();
-                    AI.SelectCard(cards);
-                    return cards.Count() > 0;
+                    cards = GetZoneCards(CardLocation.MonsterZone, Bot).Where(card => card != null && card.IsFaceup() && !card.IsShouldNotBeTarget()).ToList();
+                    if (cards.Count() > 0)
+                    {
+                        AI.SelectCard(cards);
+                        return true;
+                    }
+                    return false;
                 }
                 return false;
             }
@@ -396,17 +395,35 @@ namespace WindBot.Game.AI.Decks
                     {
                         return !Card.EquipTarget.HasSetcode(0x18d);
                     }
-                    if (Card.Id == 32939238 || Card.Id == 57736667 || Card.Id == 36148308)
+                    if (Card.Id == 32939238)
                     {
                         cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget()).ToList();
-                        AI.SelectNextCard(cards);
-                        return cards.Count() > 0;
+                        if (cards.Count() > 0)
+                        {
+                            AI.SelectNextCard(cards);
+                            return true;
+                        }
+                        return false;
+                    }
+                    if (Card.Id == 57736667 || Card.Id == 36148308)
+                    {
+                        cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget()).ToList();
+                        if (cards.Count() > 0)
+                        {
+                            AI.SelectCard(cards);
+                            return true;
+                        }
+                        return false;
                     }
                     if (Card.Id == 99013397 || Card.Id == 70423794 || Card.Id == 22147147)
                     {
                         cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && (card.HasType(CardType.Spell) || card.HasType(CardType.Trap))).ToList();
-                        AI.SelectCard(cards);
-                        return cards.Count() > 0;
+                        if (cards.Count() > 0)
+                        {
+                            AI.SelectCard(cards);
+                            return true;
+                        }
+                        return false;
                     }
                     return DefaultDontChainMyself();
                 }
@@ -415,14 +432,22 @@ namespace WindBot.Game.AI.Decks
                     if (Card.Id == 64867422)
                     {
                         cards = GetZoneCards(CardLocation.MonsterZone, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && card.IsFaceup()).ToList();
-                        AI.SelectCard(cards);
-                        return cards.Count() > 0;
+                        if (cards.Count() > 0)
+                        {
+                            AI.SelectCard(cards);
+                            return true;
+                        }
+                        return false;
                     }
                     if (Card.Id == 66947913)
                     {
                         cards = GetZoneCards(CardLocation.MonsterZone, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget()).ToList();
-                        AI.SelectCard(cards);
-                        return cards.Count() > 0;
+                        if (cards.Count() > 0)
+                        {
+                            AI.SelectCard(cards);
+                            return true;
+                        }
+                        return false;
                     }
                     return DefaultDontChainMyself();
                 }
@@ -472,10 +497,6 @@ namespace WindBot.Game.AI.Decks
             return DefaultDontChainMyself();
         }
 
-        private bool JustDontIt()
-        {
-            return false;
-        }
         public override CardPosition OnSelectPosition(int cardId, IList<CardPosition> positions)
         {
             YGOSharp.OCGWrapper.NamedCard cardData = YGOSharp.OCGWrapper.NamedCard.Get(cardId);
@@ -493,16 +514,19 @@ namespace WindBot.Game.AI.Decks
                 }
                 else
                 {
-                    if (cardData.Defense < 3000)
-                        return CardPosition.FaceUpAttack;
-                    else
+                    if (cardData.Defense >= 2000 && cardData.Defense > cardData.Attack)
                         return CardPosition.FaceUpDefence;
+                    else
+                        return CardPosition.FaceUpAttack;
                 }
             }
             return 0;
         }
         public override BattlePhaseAction OnSelectAttackTarget(ClientCard attacker, IList<ClientCard> defenders)
         {
+            if (attacker.CanDirectAttack)
+                return AI.Attack(attacker, null);
+
             int atk = attacker.Attack;
             if (!attacker.IsAttack())
                 atk = attacker.GetDefensePower();
@@ -513,9 +537,6 @@ namespace WindBot.Game.AI.Decks
 
             if (BlackmailAttacker(attacker, Bot))
             {
-                if (attacker.CanDirectAttack)
-                    return AI.Attack(attacker, null);
-
                 if (cards1.Count() > 0 && cards2.Count() > 0)
                 {
                     int dam1 = cards1[0].GetDefensePower();
@@ -563,9 +584,6 @@ namespace WindBot.Game.AI.Decks
             return null;
         }
 
-
-
-
         private bool MonsterRepos()
         {
             if (Duel.Phase == DuelPhase.Main1 && (FilpMonster(Card.Id)) && Card.IsFacedown())
@@ -581,15 +599,16 @@ namespace WindBot.Game.AI.Decks
                     if (Card.IsFaceup() && Card.IsDefense())
                         return true;
                 }
-                if (Card.Defense > Card.Attack)
+                else if (Card.Defense > Card.Attack)
                     return DefaultMonsterRepos();
                 else
                 {
                     if (Card.IsFaceup() && Card.IsAttack())
-                        return Bot.LifePoints <= 1500;
-                    if (Card.IsDefense())
-                        return Bot.LifePoints > 1500;
+                        return Bot.LifePoints <= 1500 && GetZoneCards(CardLocation.MonsterZone, Enemy).Count(card => card != null && card.Attack < Card.Attack) == 0 && GetZoneCards(CardLocation.MonsterZone, Enemy).Count() > 0 && Card.Attack < 1500;
+                    else
+                        return Bot.LifePoints > 1500 ||  GetZoneCards(CardLocation.MonsterZone, Enemy).Count(card => card != null && card.Attack < Card.Attack) > 0 || GetZoneCards(CardLocation.MonsterZone, Enemy).Count() == 0 || Card.Attack >= 1500;
                 }
+                return false;
             }
 
             return false;
