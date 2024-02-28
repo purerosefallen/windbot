@@ -15,7 +15,7 @@ namespace WindBot.Game.AI.Decks
             : base(ai, duel)
         {
 
-            AddExecutor(ExecutorType.SpSummon);
+            AddExecutor(ExecutorType.SpSummon); 
             AddExecutor(ExecutorType.Activate, PendulumActivateFunction);
             AddExecutor(ExecutorType.Activate, EquipEffectActivateFunction);
             AddExecutor(ExecutorType.Activate, EquipActivateFunction);
@@ -94,9 +94,49 @@ namespace WindBot.Game.AI.Decks
         {
             HintMsg.SpSummon, HintMsg.ToGrave, HintMsg.AddToHand, HintMsg.FusionMaterial, HintMsg.Destroy
         };
-        
-        //非常愚蠢的穷举函数
-        private bool BlackmailAttackerSunmmon(ClientCard card)//黑手！（其实是碰瓷）
+        /*
+        函数目录    Function Catalogue
+            卡片过滤函数
+                碰瓷怪检测
+                    BlackmailAttackerSunmmon(ClientCard card)
+                    BlackmailAttackerSunmmon2(int cardId)
+                    BlackmailAttacker(ClientCard card, ClientField player)
+                不可通招怪兽检测
+                    DontSummon(ClientCard card)
+                反转怪兽检测
+                    FilpMonster(ClientCard card)
+                装备检测
+                    EquipForEnemy(ClientCard card)
+                得到某个位置的卡片的函数（从神数不神那借来的）
+                    GetZoneCards(CardLocation loc, ClientField player)
+            卡片发动过滤函数
+                灵摆刻度设置
+                    PendulumActivateFunction()
+                装备卡的发动
+                    EquipActivateFunction()
+                装备卡的效果的发动
+                    EquipEffectActivateFunction()
+                其他
+                    ActivateFunction()
+            怪兽相关函数
+                改变表示形式
+                    MonsterRepos()
+                通常召唤
+                    MonsterSummon()
+                盖放
+                    MonsterSet()
+            OnSelect函数重写
+                选择卡片
+                    OnSelectCard(IList<ClientCard> _cards, int min, int max, int hint, bool cancelable)
+                选择效果的选项
+                    OnSelectOption(IList<int> options)
+                选择特殊召唤时的表示形式
+                    OnSelectPosition(int cardId, IList<CardPosition> positions)
+                选择攻击对象
+                    OnSelectAttackTarget(ClientCard attacker, IList<ClientCard> defenders)
+        */
+
+        private bool BlackmailAttackerSunmmon(ClientCard card)
         {
             int[] cardsname = new[] {34031284, 35494087, 54366836, 94004268, 97403510, 59627393, 93730230, 69058960, 95442074, 24874631};
             foreach(int cardname in cardsname)
@@ -126,7 +166,7 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
-        private bool BlackmailAttacker(ClientCard card, ClientField player)//让你知道什么是黑手！
+        private bool BlackmailAttacker(ClientCard card, ClientField player)
         {
             if (!card.IsDisabled())
             {
@@ -154,7 +194,7 @@ namespace WindBot.Game.AI.Decks
         }
 
 
-        private bool DontSummon(ClientCard card)//别通召这些
+        private bool DontSummon(ClientCard card)
         {
             if (card.HasSetcode(0x40) || card.HasSetcode(0xa4) || card.HasSetcode(0xd3)) return true;
             int[] cardsname = new[] {74762582, 90179822, 16759958, 26964762, 42352091, 2511, 74018812, 76214441, 62886670, 69105797, 32391566, 94076521, 73625877, 1980574, 42090294, 68823957, 34976176, 89785779, 76133574, 3248469, 87102774
@@ -174,7 +214,7 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
-        private bool FilpMonster(ClientCard card)//反转
+        private bool FilpMonster(ClientCard card)
         {
             if (card.HasType(CardType.Flip)) return true;
             int[] cardsname = new[] {20073910, 89707961, 41753322, 86346363, 75421661, 87483942, 40659562, 41039846, 72370114, 92693205, 22134079, 16509093, 96352326, 923596, 47111934, 81306586, 26016357, 52323207, 64804316, 75209824, 71071546, 92736188, 16279989, 97584500, 72913666, 71415349, 51196805, 85463083, 41872150, 75109441, 3510565, 15383415, 2326738, 80885284, 84472026, 93294869, 27491571, 54490275, 36239585, 2694423, 81278754, 24101897, 46925518, 99641328, 61318483, 54512827, 81907872, 98707192
@@ -187,7 +227,7 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
-        private bool EquipForEnemy(ClientCard card)//装备给对手
+        private bool EquipForEnemy(ClientCard card)
         {
             int[] cardsname = new[] {33453260, 79912449, 32919136, 45986603, 45247637, 44092304, 46967601, 94303232, 56948373, 69954399, 83584898, 62472614, 75560629, 23842445, 24668830, 98867329, 50152549, 62472614
             };
@@ -199,7 +239,6 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
-        //从神数不神那借来的非常有亲切感的函数 Duel.GetMatchingGroup（不是）
         private List<ClientCard> GetZoneCards(CardLocation loc, ClientField player)
         {
             List<ClientCard> res = new List<ClientCard>();
@@ -211,108 +250,6 @@ namespace WindBot.Game.AI.Decks
             if ((loc & CardLocation.Removed) > 0) { temp = player.Banished.Where(card => card != null).ToList(); if (temp.Count() > 0) res.AddRange(temp); }
             if ((loc & CardLocation.Extra) > 0) { temp = player.ExtraDeck.Where(card => card != null).ToList(); if (temp.Count() > 0) res.AddRange(temp); }
             return res;
-        }
-        public override IList<ClientCard> OnSelectCard(IList<ClientCard> _cards, int min, int max, int hint, bool cancelable)
-        {
-            if (Duel.Phase == DuelPhase.BattleStart)
-                return null;
-            if (AI.HaveSelectedCards())
-                return null;
-
-            IList<ClientCard> selected = new List<ClientCard>();
-            IList<ClientCard> cards = new List<ClientCard>(_cards);
-            if (max > cards.Count)
-                max = cards.Count;
-
-            if (HintMsgForEnemy.Contains(hint))
-            {
-                IList<ClientCard> enemyCards = cards.Where(card => card.Controller == 1).ToList();
-
-                // select enemy's card first
-                while (enemyCards.Count > 0 && selected.Count < max)
-                {
-                    ClientCard card = enemyCards[Program.Rand.Next(enemyCards.Count)];
-                    selected.Add(card);
-                    enemyCards.Remove(card);
-                    cards.Remove(card);
-                }
-            }
-
-            if (HintMsgForDeck.Contains(hint))
-            {
-                IList<ClientCard> deckCards = cards.Where(card => card.Location == CardLocation.Deck).ToList();
-
-                // select deck's card first
-                while (deckCards.Count > 0 && selected.Count < max)
-                {
-                    ClientCard card = deckCards[Program.Rand.Next(deckCards.Count)];
-                    selected.Add(card);
-                    deckCards.Remove(card);
-                    cards.Remove(card);
-                }
-            }
-
-            if (HintMsgForSelf.Contains(hint))
-            {
-                IList<ClientCard> botCards = cards.Where(card => card.Controller == 0).ToList();
-
-                // select bot's card first
-                while (botCards.Count > 0 && selected.Count < max)
-                {
-                    ClientCard card = botCards[Program.Rand.Next(botCards.Count)];
-                    selected.Add(card);
-                    botCards.Remove(card);
-                    cards.Remove(card);
-                }
-            }
-
-            if (HintMsgForMaterial.Contains(hint))
-            {
-                IList<ClientCard> materials = cards.OrderBy(card => card.Attack).ToList();
-
-                // select low attack first
-                while (materials.Count > 0 && selected.Count < min)
-                {
-                    ClientCard card = materials[0];
-                    selected.Add(card);
-                    materials.Remove(card);
-                    cards.Remove(card);
-                }
-            }
-
-            // select random cards
-            while (selected.Count < min)
-            {
-                ClientCard card = cards[Program.Rand.Next(cards.Count)];
-                selected.Add(card);
-                cards.Remove(card);
-            }
-
-            if (HintMsgForMaxSelect.Contains(hint))
-            {
-                // select max cards
-                while (selected.Count < max)
-                {
-                    ClientCard card = cards[Program.Rand.Next(cards.Count)];
-                    selected.Add(card);
-                    cards.Remove(card);
-                }
-            }
-            if (hint == HintMsg.SpSummon && max == 1)
-            {
-                foreach (ClientCard card in cards)
-                {
-                    if (card.IsCode(60461804))
-                        return new List<ClientCard>(new[] { card });
-                }
-            }
-
-            return selected;
-        }
-
-        public override int OnSelectOption(IList<int> options)
-        {
-            return Program.Rand.Next(options.Count);
         }
 
         private bool PendulumActivateFunction()
@@ -521,6 +458,161 @@ namespace WindBot.Game.AI.Decks
             }
             return DefaultDontChainMyself();
         }
+        private bool MonsterRepos()
+        {
+            if (Duel.Phase == DuelPhase.Main1 && (FilpMonster(Card)) && Card.IsFacedown())
+            {
+                return true;
+            }
+            else if (Duel.Phase == DuelPhase.Main2)
+            {
+                if (BlackmailAttacker(Card, Bot))
+                {
+                    if (Card.IsFaceup() && Card.IsAttack())
+                        return false;
+                    if (Card.IsFaceup() && Card.IsDefense())
+                        return true;
+                }
+                else if (Card.Defense > Card.Attack)
+                    return DefaultMonsterRepos();
+                else
+                {
+                    if (Card.IsFaceup() && Card.IsAttack())
+                        return Bot.LifePoints <= 1500 && GetZoneCards(CardLocation.MonsterZone, Enemy).Count(card => card != null && card.Attack < Card.Attack) == 0 && GetZoneCards(CardLocation.MonsterZone, Enemy).Count() > 0 && Card.Attack < 1500;
+                    else
+                        return Bot.LifePoints > 1500 ||  GetZoneCards(CardLocation.MonsterZone, Enemy).Count(card => card != null && card.Attack < Card.Attack) > 0 || GetZoneCards(CardLocation.MonsterZone, Enemy).Count() == 0 || Card.Attack >= 1500;
+                }
+                return false;
+            }
+
+            return false;
+        }
+
+        private bool MonsterSummon()
+        {
+            if (DontSummon(Card))
+                return false;
+
+            if (BlackmailAttackerSunmmon(Card))
+                return DefaultMonsterSummon();
+            else if (FilpMonster(Card))
+                return false;
+            else if (Card.Level > 4 || Bot.LifePoints > 1500)
+                return DefaultMonsterSummon();
+            else if (Bot.LifePoints <= 1500 && GetZoneCards(CardLocation.MonsterZone, Enemy).Count(card => card != null && card.Attack < Card.Attack) > 0 || GetZoneCards(CardLocation.MonsterZone, Enemy).Count() == 0 || Card.Attack >= 1500)
+                return DefaultMonsterSummon();
+
+            return false;
+        }
+        private bool MonsterSet()
+        {
+            if (FilpMonster(Card))
+                return DefaultMonsterSummon();
+            if (Card.HasSetcode(0x40)) return false;
+            return DefaultMonsterSummon() && (Bot.LifePoints <= 1500 || (GetZoneCards(CardLocation.MonsterZone, Bot).Count() == 0 && Bot.LifePoints <= 4000));
+        }
+        public override IList<ClientCard> OnSelectCard(IList<ClientCard> _cards, int min, int max, int hint, bool cancelable)
+        {
+            if (Duel.Phase == DuelPhase.BattleStart)
+                return null;
+            if (AI.HaveSelectedCards())
+                return null;
+
+            IList<ClientCard> selected = new List<ClientCard>();
+            IList<ClientCard> cards = new List<ClientCard>(_cards);
+            if (max > cards.Count)
+                max = cards.Count;
+
+            if (HintMsgForEnemy.Contains(hint))
+            {
+                IList<ClientCard> enemyCards = cards.Where(card => card.Controller == 1).ToList();
+
+                // select enemy's card first
+                while (enemyCards.Count > 0 && selected.Count < max)
+                {
+                    ClientCard card = enemyCards[Program.Rand.Next(enemyCards.Count)];
+                    selected.Add(card);
+                    enemyCards.Remove(card);
+                    cards.Remove(card);
+                }
+            }
+
+            if (HintMsgForDeck.Contains(hint))
+            {
+                IList<ClientCard> deckCards = cards.Where(card => card.Location == CardLocation.Deck).ToList();
+
+                // select deck's card first
+                while (deckCards.Count > 0 && selected.Count < max)
+                {
+                    ClientCard card = deckCards[Program.Rand.Next(deckCards.Count)];
+                    selected.Add(card);
+                    deckCards.Remove(card);
+                    cards.Remove(card);
+                }
+            }
+
+            if (HintMsgForSelf.Contains(hint))
+            {
+                IList<ClientCard> botCards = cards.Where(card => card.Controller == 0).ToList();
+
+                // select bot's card first
+                while (botCards.Count > 0 && selected.Count < max)
+                {
+                    ClientCard card = botCards[Program.Rand.Next(botCards.Count)];
+                    selected.Add(card);
+                    botCards.Remove(card);
+                    cards.Remove(card);
+                }
+            }
+
+            if (HintMsgForMaterial.Contains(hint))
+            {
+                IList<ClientCard> materials = cards.OrderBy(card => card.Attack).ToList();
+
+                // select low attack first
+                while (materials.Count > 0 && selected.Count < min)
+                {
+                    ClientCard card = materials[0];
+                    selected.Add(card);
+                    materials.Remove(card);
+                    cards.Remove(card);
+                }
+            }
+
+            // select random cards
+            while (selected.Count < min)
+            {
+                ClientCard card = cards[Program.Rand.Next(cards.Count)];
+                selected.Add(card);
+                cards.Remove(card);
+            }
+
+            if (HintMsgForMaxSelect.Contains(hint))
+            {
+                // select max cards
+                while (selected.Count < max)
+                {
+                    ClientCard card = cards[Program.Rand.Next(cards.Count)];
+                    selected.Add(card);
+                    cards.Remove(card);
+                }
+            }
+            if (hint == HintMsg.SpSummon && max == 1)
+            {
+                foreach (ClientCard card in cards)
+                {
+                    if (card.IsCode(60461804))
+                        return new List<ClientCard>(new[] { card });
+                }
+            }
+
+            return selected;
+        }
+
+        public override int OnSelectOption(IList<int> options)
+        {
+            return Program.Rand.Next(options.Count);
+        }
 
         public override CardPosition OnSelectPosition(int cardId, IList<CardPosition> positions)
         {
@@ -609,59 +701,6 @@ namespace WindBot.Game.AI.Decks
             }
 
             return null;
-        }
-
-        private bool MonsterRepos()
-        {
-            if (Duel.Phase == DuelPhase.Main1 && (FilpMonster(Card)) && Card.IsFacedown())
-            {
-                return true;
-            }
-            else if (Duel.Phase == DuelPhase.Main2)
-            {
-                if (BlackmailAttacker(Card, Bot))
-                {
-                    if (Card.IsFaceup() && Card.IsAttack())
-                        return false;
-                    if (Card.IsFaceup() && Card.IsDefense())
-                        return true;
-                }
-                else if (Card.Defense > Card.Attack)
-                    return DefaultMonsterRepos();
-                else
-                {
-                    if (Card.IsFaceup() && Card.IsAttack())
-                        return Bot.LifePoints <= 1500 && GetZoneCards(CardLocation.MonsterZone, Enemy).Count(card => card != null && card.Attack < Card.Attack) == 0 && GetZoneCards(CardLocation.MonsterZone, Enemy).Count() > 0 && Card.Attack < 1500;
-                    else
-                        return Bot.LifePoints > 1500 ||  GetZoneCards(CardLocation.MonsterZone, Enemy).Count(card => card != null && card.Attack < Card.Attack) > 0 || GetZoneCards(CardLocation.MonsterZone, Enemy).Count() == 0 || Card.Attack >= 1500;
-                }
-                return false;
-            }
-
-            return false;
-        }
-        private bool MonsterSummon()
-        {
-            if (DontSummon(Card))
-                return false;
-
-            if (BlackmailAttackerSunmmon(Card))
-                return DefaultMonsterSummon();
-            else if (FilpMonster(Card))
-                return false;
-            else if (Card.Level > 4 || Bot.LifePoints > 1500)
-                return DefaultMonsterSummon();
-            else if (Bot.LifePoints <= 1500 && GetZoneCards(CardLocation.MonsterZone, Enemy).Count(card => card != null && card.Attack < Card.Attack) > 0 || GetZoneCards(CardLocation.MonsterZone, Enemy).Count() == 0 || Card.Attack >= 1500)
-                return DefaultMonsterSummon();
-
-            return false;
-        }
-        private bool MonsterSet()
-        {
-            if (FilpMonster(Card))
-                return DefaultMonsterSummon();
-            if (Card.HasSetcode(0x40)) return false;
-            return DefaultMonsterSummon() && (Bot.LifePoints <= 1500 || (GetZoneCards(CardLocation.MonsterZone, Bot).Count() == 0 && Bot.LifePoints <= 4000));
         }
     }
 } 
