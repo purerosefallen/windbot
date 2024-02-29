@@ -308,7 +308,7 @@ namespace WindBot.Game.AI.Decks
                     }
                     else if (a == 3 && b == 3)
                     {
-                        cardsname = new[] {5318639, 51232472, 6983839, 8267140, 22923081, 29223325, 71413901, 76471944, 89172051, 
+                        cardsname = new[] {5318639, 51232472, 6983839, 8267140, 22923081, 29223325, 71413901, 76471944, 89172051, 43898403
                         };
                         foreach(int cardname in cardsname)
                         {
@@ -1027,4 +1027,4 @@ namespace WindBot.Game.AI.Decks
             return null;
         }
     }
-} 
+}
