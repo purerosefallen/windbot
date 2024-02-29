@@ -606,16 +606,16 @@ namespace WindBot.Game.AI.Decks
 
             if (Card.HasType(CardType.Equip) || (Card.HasType(CardType.Pendulum) && Card.Location == CardLocation.Hand && ActivateDescription == 1160))
                 return false;
-            if (EnemyCardTarget(Card, true, CardLocation.Onfield, new[]{CardType.Spell, CardType.Trap}, new[]{CardPosition.FaceUp}))
-                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && (card.HasType(CardType.Spell) || card.HasType(CardType.Trap)) && card.IsFaceup())
-            if (EnemyCardTarget(Card, true, CardLocation.Onfield, new[]{CardType.Spell, CardType.Trap}, new[]{CardPosition.FaceDown}))
-                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && (card.HasType(CardType.Spell) || card.HasType(CardType.Trap)) && card.IsFacedown())
-            if (EnemyCardTarget(Card, true, CardLocation.Onfield, new[]{CardType.Spell, CardType.Trap, CardType.Monster}, new[]{CardPosition.FaceUp}))
-                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && card.IsFaceup())
-            if (EnemyCardTarget(Card, true, CardLocation.Onfield, new[]{CardType.Spell, CardType.Trap, CardType.Monster}, new[]{CardPosition.FaceDown}))
-                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && card.IsFacedown())
-            if (EnemyCardTarget(Card, true, CardLocation.Onfield, new[]{CardType.Spell, CardType.Trap, CardType.Monster}, new[]{CardPosition.FaceUp, CardPosition.FaceDown}))
-                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && card.IsFacedown())
+            if (EnemyCardTarget(Card, true, CardLocation.Onfield, new[] { CardType.Spell, CardType.Trap }, new[] { CardPosition.FaceUp }))
+                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && (card.HasType(CardType.Spell) || card.HasType(CardType.Trap)) && card.IsFaceup());
+            if (EnemyCardTarget(Card, true, CardLocation.Onfield, new[] { CardType.Spell, CardType.Trap }, new[] { CardPosition.FaceDown }))
+                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && (card.HasType(CardType.Spell) || card.HasType(CardType.Trap)) && card.IsFacedown());
+            if (EnemyCardTarget(Card, true, CardLocation.Onfield, new[] { CardType.Spell, CardType.Trap, CardType.Monster }, new[] { CardPosition.FaceUp }))
+                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && card.IsFaceup());
+            if (EnemyCardTarget(Card, true, CardLocation.Onfield, new[] { CardType.Spell, CardType.Trap, CardType.Monster }, new[] { CardPosition.FaceDown }))
+                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && card.IsFacedown());
+            if (EnemyCardTarget(Card, true, CardLocation.Onfield, new[] { CardType.Spell, CardType.Trap, CardType.Monster }, new[] { CardPosition.FaceUp, CardPosition.FaceDown }))
+                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && card.IsFacedown());
 
             //优化单卡是怎么想的啊喂(#`O′)
             if (Card.Id == 60461804)
@@ -639,7 +639,7 @@ namespace WindBot.Game.AI.Decks
             {
                 if (ActivateDescription == Util.GetStringId(84815190, 0))
                 {
-                    List<ClientCard> cards = GetZoneCards(CardLocation.Onfield, Enemy);
+                    cards = GetZoneCards(CardLocation.Onfield, Enemy);
                     cards = cards.Where(tcard => tcard != null && !tcard.IsShouldNotBeTarget()).ToList();
                     if (cards.Count <= 0) return false;
                     //AI.SelectCard(cards);
