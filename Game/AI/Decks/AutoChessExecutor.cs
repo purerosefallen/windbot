@@ -110,6 +110,8 @@ namespace WindBot.Game.AI.Decks
                     FilpMonster(ClientCard card)
                 装备检测
                     EquipForEnemy(ClientCard card)
+                卡片选择检测
+                    EnemyCardTarget(ClientCard card, bool chkc, CardLocation loc, CardType[] type, CardPosition[] pos)
                 得到某个位置的卡片的函数（从神数不神那借来的）
                     GetZoneCards(CardLocation loc, ClientField player)
                 系统提示检测
