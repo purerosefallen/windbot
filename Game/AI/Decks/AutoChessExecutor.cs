@@ -306,6 +306,40 @@ namespace WindBot.Game.AI.Decks
                         )
                             return true;
                     }
+                    else if (a == 3 && b == 3)
+                    {
+                        cardsname = new[] {5318639, 51232472, 6983839, 8267140, 22923081, 29223325, 71413901, 76471944, 89172051, 
+                        };
+                        foreach(int cardname in cardsname)
+                        {
+                            if (card.Id == cardname) return true;
+                        }
+                        if ((card.Id == 41470137 && ActivateDescription == Util.GetStringId(41470137, 0))
+                        || (card.Id == 98558751 && ActivateDescription == Util.GetStringId(98558751, 0))
+                        || (card.Id == 49456901 && ActivateDescription == Util.GetStringId(49456901, 0))
+                        || (card.Id == 53618197 && ActivateDescription == Util.GetStringId(53618197, 0))
+                        || (card.Id == 71100270 && ActivateDescription == Util.GetStringId(71100270, 0))
+                        || (card.Id == 85252081 && ActivateDescription == Util.GetStringId(85252081, 0))
+                        || (card.Id == 89423971 && ActivateDescription == Util.GetStringId(89423971, 0))
+                        || (card.Id == 19025379 && ActivateDescription == Util.GetStringId(19025379, 1))
+                        || (card.Id == 64182380 && ActivateDescription == Util.GetStringId(64182380, 1))
+                        || (card.Id == 75425320 && ActivateDescription == Util.GetStringId(75425320, 2))
+                        || (card.Id == 10117149 && card.Location == CardLocation.MonsterZone)
+                        || (card.Id == 15710054 && card.Location == CardLocation.MonsterZone)
+                        || (card.Id == 37991342 && card.Location == CardLocation.MonsterZone)
+                        || (card.Id == 94454495 && card.Location == CardLocation.MonsterZone)
+                        || (card.Id == 35035481 && card.Location == CardLocation.SpellZone)
+                        || (card.Id == 75782277 && card.Location == CardLocation.SpellZone)
+                        || (card.Id == 51531505 && card.Location == CardLocation.SpellZone)
+                        || (card.Id == 97692972 && card.Location == CardLocation.SpellZone)
+                        || (card.Id == 18444733 && card.Location == CardLocation.SpellZone && card.IsFaceup())
+                        || (card.Id == 49430782 && card.Location == CardLocation.Grave)
+                        || (card.Id == 77723643 && card.Location == CardLocation.Grave)
+                        || (card.Id == 83656563 && card.Location == CardLocation.Grave)
+                        || (card.Id == 60362066 && card.Location != CardLocation.Grave)
+                        )
+                            return true;
+                    }
                     else if (a == 6 && b == 1)
                     {
                         cardsname = new[] {744887, 20403123, 20745268, 23204029, 38694052, 38904695, 43892408, 48905153, 89883517, 93379652, 
@@ -607,15 +641,17 @@ namespace WindBot.Game.AI.Decks
             if (Card.HasType(CardType.Equip) || (Card.HasType(CardType.Pendulum) && Card.Location == CardLocation.Hand && ActivateDescription == 1160))
                 return false;
             if (EnemyCardTarget(Card, true, CardLocation.Onfield, new[] { CardType.Spell, CardType.Trap }, new[] { CardPosition.FaceUp }))
-                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && (card.HasType(CardType.Spell) || card.HasType(CardType.Trap)) && card.IsFaceup());
+                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && (card.HasType(CardType.Spell) || card.HasType(CardType.Trap)) && card.IsFaceup() && !card.IsShouldNotBeTarget());
             if (EnemyCardTarget(Card, true, CardLocation.Onfield, new[] { CardType.Spell, CardType.Trap }, new[] { CardPosition.FaceDown }))
-                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && (card.HasType(CardType.Spell) || card.HasType(CardType.Trap)) && card.IsFacedown());
+                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && (card.HasType(CardType.Spell) || card.HasType(CardType.Trap)) && card.IsFacedown() && !card.IsShouldNotBeTarget());
+            if (EnemyCardTarget(Card, true, CardLocation.Onfield, new[] { CardType.Spell, CardType.Trap }, new[] { CardPosition.FaceUp, CardPosition.FaceDown }))
+                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && (card.HasType(CardType.Spell) || card.HasType(CardType.Trap)) && !card.IsShouldNotBeTarget());
             if (EnemyCardTarget(Card, true, CardLocation.Onfield, new[] { CardType.Spell, CardType.Trap, CardType.Monster }, new[] { CardPosition.FaceUp }))
-                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && card.IsFaceup());
+                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && card.IsFaceup() && !card.IsShouldNotBeTarget());
             if (EnemyCardTarget(Card, true, CardLocation.Onfield, new[] { CardType.Spell, CardType.Trap, CardType.Monster }, new[] { CardPosition.FaceDown }))
-                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && card.IsFacedown());
+                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && card.IsFacedown() && !card.IsShouldNotBeTarget());
             if (EnemyCardTarget(Card, true, CardLocation.Onfield, new[] { CardType.Spell, CardType.Trap, CardType.Monster }, new[] { CardPosition.FaceUp, CardPosition.FaceDown }))
-                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && card.IsFacedown());
+                return GetZoneCards(CardLocation.Onfield, Enemy).Any(card => card != null && !card.IsShouldNotBeTarget());
 
             //优化单卡是怎么想的啊喂(#`O′)
             if (Card.Id == 60461804)
