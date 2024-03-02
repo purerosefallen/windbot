@@ -662,8 +662,18 @@ namespace WindBot.Game.AI.Decks
         }
         private bool EquipEffectActivateFunction()
         {
+            IList<ClientCard> cards = new List<ClientCard>();
             if (Card.Location == CardLocation.SpellZone && Card.Id == 43527730)
                 return !Card.EquipTarget.HasSetcode(0x18d);
+            if (Card.Location == CardLocation.SpellZone && Card.Id == 57736667)
+            {
+                cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && (card.HasType(CardType.Field) || card.HasType(CardType.Continuous) || card.HasType(CardType.Equip) || (card.HasType(CardType.Pendulum) && card.Location == CardLocation.SpellZone) || (card.IsFacedown() && card.Location == CardLocation.SpellZone) || card.Location == CardLocation.MonsterZone)).ToList();
+                if (cards.Count() > 0)
+                {
+                    AI.SelectCard(cards);
+                    return true;
+                }
+            }
             return false;
         }
 
@@ -671,7 +681,7 @@ namespace WindBot.Game.AI.Decks
         {
             if ((Card.HasType(CardType.Pendulum) && Card.Location == CardLocation.Hand && ActivateDescription == 1160)
                 || (Card.HasType(CardType.Equip) && Card.Location == CardLocation.Hand)
-                || (Card.Id == 43527730 && Card.Location == CardLocation.SpellZone)
+                || ((Card.Id == 43527730 || Card.Id == 57736667) && Card.Location == CardLocation.SpellZone)
             )
                 return false;
 
@@ -754,21 +764,13 @@ namespace WindBot.Game.AI.Decks
 
                 return false;
             }
-            else if (Card.Id == 84815190)
+            else if (ActivateDescription == Util.GetStringId(84815190, 1))
             {
-                if (ActivateDescription == Util.GetStringId(84815190, 0))
-                {
-                    cards = GetZoneCards(CardLocation.Onfield, Enemy);
-                    cards = cards.Where(tcard => tcard != null && !tcard.IsShouldNotBeTarget()).ToList();
-                    if (cards.Count <= 0) return false;
-                    //AI.SelectCard(cards);
-                    return true;
-                }
-                else if (ActivateDescription == Util.GetStringId(84815190, 1))
-                {
-                    return Duel.LastChainPlayer == 1;
-                }
-                return false;
+                return Duel.LastChainPlayer == 1;
+            }
+            else if (ActivateDescription == Util.GetStringId(63014935, 0))
+            {
+                return Enemy.LifePoints <= 1000;
             }
             return DefaultDontChainMyself();
         }
@@ -853,6 +855,12 @@ namespace WindBot.Game.AI.Decks
             return true;
         }
 
+        public override bool OnSelectYesNo(int desc)
+        {
+            if (desc == Util.GetStringId(63014935, 2))
+                return Bot.LifePoints <= 1000;
+            return true;
+        }
         public override IList<ClientCard> OnSelectCard(IList<ClientCard> _cards, int min, int max, int hint, bool cancelable)
         {
             if (Duel.Phase == DuelPhase.BattleStart)
@@ -910,6 +918,7 @@ namespace WindBot.Game.AI.Decks
                 }
                 if (scards.Count() >= min)
                     return Util.CheckSelectCount(scards,cards,min,max);
+                return scards;
             }
 
             if ((hint == 503 || hint == 507) && cards.Any(card => card != null && card.Controller == 1) && cards.Any(card => card != null && card.Controller == 0) && cards.Count(card => card != null && (card.Location == CardLocation.Grave || card.Location == CardLocation.Onfield)) == cards.Count())
