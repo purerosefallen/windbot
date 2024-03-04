@@ -840,8 +840,6 @@ namespace WindBot.Game.AI.Decks
                 }
                 return false;
             }
-            else if (ActivateDescription == Util.GetStringId(84815190, 1))
-                return Duel.LastChainPlayer == 1;
             else if (ActivateDescription == Util.GetStringId(63014935, 0))
                 return Enemy.LifePoints <= 1000;
             return false;
