@@ -515,6 +515,7 @@ namespace WindBot.Game.AI.Decks
                 || (card.Id == 75147529 && ActivateDescription == Util.GetStringId(75147529, 0))
                 || (card.Id == 53184342 && ActivateDescription == Util.GetStringId(53184342, 1))
                 || (card.Id == 21250202 && card.Location == CardLocation.MonsterZone)
+                || (card.Id == 93713837 && card.Location == CardLocation.MonsterZone)
                 || (card.Id == 50275295 && card.Location == CardLocation.SpellZone)
                 || (card.Id == 55623480 && card.Location == CardLocation.Grave)
             )
@@ -561,6 +562,44 @@ namespace WindBot.Game.AI.Decks
                 || (card.Id == 61529473 && card.Location == CardLocation.Grave)
                 || (card.Id == 36553319 && card.Location == CardLocation.Grave)
                 || (card.Id == 87327776 && card.Location == CardLocation.Grave)
+            )
+                return true;
+            return false;
+        }
+
+        private bool EnemyCardUnTargetMonster(ClientCard card)
+        {
+            int[] cardsname = new[] {10000090, 41685633, 17494901, 32180819, 44009443, 44424095, 50501121, 52875873, 58873391, 62188962, 66789970, 76203291
+            , 85893201
+            };
+            foreach(int cardname in cardsname)
+            {
+                if (card.Id == cardname) return true;
+            }
+            if ((card.Id == 67725394 && ActivateDescription == Util.GetStringId(67725394, 2))
+                || (card.Id == 83414006 && ActivateDescription == Util.GetStringId(83414006, 2))
+                || (card.Id == 75775867 && ActivateDescription == Util.GetStringId(75775867, 0))
+                || (card.Id == 77656797 && ActivateDescription == Util.GetStringId(77656797, 0))
+                || (card.Id == 51316684 && ActivateDescription == Util.GetStringId(51316684, 0))
+                || (card.Id == 83550869 && ActivateDescription == Util.GetStringId(83550869, 0))
+                || (card.Id == 99726621 && ActivateDescription == Util.GetStringId(99726621, 0))
+                || (card.Id == 20665527 && ActivateDescription == Util.GetStringId(20665527, 1))
+                || (card.Id == 24070330 && ActivateDescription == Util.GetStringId(24070330, 1))
+                || (card.Id == 40221691 && ActivateDescription == Util.GetStringId(40221691, 1))
+                || (card.Id == 84425220 && ActivateDescription == Util.GetStringId(84425220, 1))
+                || (card.Id == 34446231 && ActivateDescription == Util.GetStringId(34446231, 1))
+                || (card.Id == 70636044 && ActivateDescription == Util.GetStringId(70636044, 2))
+                || (card.Id == 92650749 && ActivateDescription == Util.GetStringId(92650749, 3))
+                || (card.Id == 50687050 && ActivateDescription == Util.GetStringId(50687050, 4))
+                || (card.Id == 26655293 && card.Location == CardLocation.MonsterZone)
+                || (card.Id == 44146295 && card.Location == CardLocation.MonsterZone)
+                || (card.Id == 84941194 && card.Location == CardLocation.MonsterZone)
+                || (card.Id == 99307040 && card.Location == CardLocation.MonsterZone)
+                || (card.Id == 47132793 && card.Location == CardLocation.MonsterZone)
+                || (card.Id == 66947913 && !card.Location == CardLocation.Hand)
+                || (card.Id == 99414629 && !card.Location == CardLocation.Grave)
+                || (card.Id == 42620460 && card.Location == CardLocation.Grave)
+                || (card.Id == 86509711 && card.Location == CardLocation.Grave)
             )
                 return true;
             return false;
@@ -827,9 +866,7 @@ namespace WindBot.Game.AI.Decks
             else if (Card.Id == 60461804)
             {
                 if (Card.Location == CardLocation.Grave)
-                {
                     return true;
-                }
 
                 ClientCard target = Util.GetProblematicEnemyCard(2500);
                 if (target != null && !Util.ChainContainPlayer(0))
