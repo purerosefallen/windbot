@@ -19,6 +19,7 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.Activate, PendulumActivateFunction);
             AddExecutor(ExecutorType.Activate, EquipEffectActivateFunction);
             AddExecutor(ExecutorType.Activate, EquipActivateFunction);
+            AddExecutor(ExecutorType.Activate, SelectOnfieldCardActivateFunction);
             AddExecutor(ExecutorType.Activate, ActivateFunction);
 
             AddExecutor(ExecutorType.Summon, MonsterSummon);
@@ -110,6 +111,8 @@ namespace WindBot.Game.AI.Decks
                     FilpMonster(ClientCard card)
                 装备检测
                     EquipForEnemy(ClientCard card)
+                发动检测
+                    OtherActivate(ClientCard card)
                 卡片选择检测
                     “以场上1张表侧表示的魔法卡为对象”的记述相关卡
                         EnemyCardTargetSpellFaceUp(ClientCard card)
@@ -144,6 +147,8 @@ namespace WindBot.Game.AI.Decks
                     EquipActivateFunction()
                 装备卡的效果的发动
                     EquipEffectActivateFunction()
+                选择场上卡片的效果的发动
+                    SelectOnfieldCardActivateFunction()
                 其他
                     ActivateFunction()
             怪兽相关函数
@@ -266,6 +271,27 @@ namespace WindBot.Game.AI.Decks
                 if (card.Id == cardname) return true;
             }
 
+            return false;
+        }
+
+        private bool OtherActivate(ClientCard card)
+        {
+            if ((card.HasType(CardType.Pendulum) && card.Location == CardLocation.Hand && ActivateDescription == 1160)
+                || (card.HasType(CardType.Equip) && card.Location == CardLocation.Hand)
+                || (card.Id == 43527730 && card.Location == CardLocation.SpellZone)
+                || EnemyCardTargetSpellFaceUp(card)
+                || EnemyCardTargetTrapFaceUp(card)
+                || EnemyCardTargetSpellAndTrap(card)
+                || EnemyCardTargetSpellAndTrapFaceUp(card)
+                || EnemyCardTargetSpellAndTrapFaceDown(card)
+                || EnemyCardTargetMonster(card)
+                || EnemyCardTargetMonsterFaceUp(card)
+                || EnemyCardTargetMonsterFaceDown(card)
+                || EnemyCardTargetFaceDown(card)
+                || EnemyCardTargetFaceUp(card)
+                || EnemyCardTarget(card)
+            )
+                return true;
             return false;
         }
 
@@ -665,82 +691,133 @@ namespace WindBot.Game.AI.Decks
             IList<ClientCard> cards = new List<ClientCard>();
             if (Card.Location == CardLocation.SpellZone && Card.Id == 43527730)
                 return !Card.EquipTarget.HasSetcode(0x18d);
-            if (Card.Location == CardLocation.SpellZone && Card.Id == 57736667)
-            {
-                cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && (card.HasType(CardType.Field) || card.HasType(CardType.Continuous) || card.HasType(CardType.Equip) || (card.HasType(CardType.Pendulum) && card.Location == CardLocation.SpellZone) || (card.IsFacedown() && card.Location == CardLocation.SpellZone) || card.Location == CardLocation.MonsterZone)).ToList();
-                if (cards.Count() > 0)
-                {
-                    AI.SelectCard(cards);
-                    return true;
-                }
-            }
             return false;
         }
 
-        private bool ActivateFunction()
+        private bool SelectOnfieldCardActivateFunction()
         {
-            if ((Card.HasType(CardType.Pendulum) && Card.Location == CardLocation.Hand && ActivateDescription == 1160)
-                || (Card.HasType(CardType.Equip) && Card.Location == CardLocation.Hand)
-                || ((Card.Id == 43527730 || Card.Id == 57736667) && Card.Location == CardLocation.SpellZone)
-            )
-                return false;
-
             IList<ClientCard> cards = new List<ClientCard>();
             
             if (EnemyCardTargetSpellFaceUp(Card))
             {
                 cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && card.IsFaceup() && ((card.HasType(CardType.Spell) && (card.HasType(CardType.Field) || card.HasType(CardType.Continuous) || card.HasType(CardType.Equip))) || (card.HasType(CardType.Pendulum) && card.Location == CardLocation.SpellZone))).ToList();
-                return cards.Count() > 0;
+                if (cards.Count() > 0)
+                {
+                    AI.SelectCard(cards);
+                    AI.SelectNextCard(cards);
+                    return true;
+                }
+                return false;
             }
             else if (EnemyCardTargetTrapFaceUp(Card))
             {
                 cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && (card.HasType(CardType.Trap) && card.IsFaceup()) && (card.HasType(CardType.Continuous))).ToList();
-                return cards.Count() > 0;
+                if (cards.Count() > 0)
+                {
+                    AI.SelectCard(cards);
+                    AI.SelectNextCard(cards);
+                    return true;
+                }
+                return false;
             }
             else if (EnemyCardTargetSpellAndTrapFaceUp(Card))
             {
                 cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && card.IsFaceup() && (card.HasType(CardType.Field) || card.HasType(CardType.Continuous) || card.HasType(CardType.Equip) || (card.HasType(CardType.Pendulum) && card.Location == CardLocation.SpellZone))).ToList();
-                return cards.Count() > 0;
+                if (cards.Count() > 0)
+                {
+                    AI.SelectCard(cards);
+                    AI.SelectNextCard(cards);
+                    return true;
+                }
+                return false;
             }
             else if (EnemyCardTargetSpellAndTrapFaceDown(Card))
             {
                 cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && card.IsFacedown()).ToList();
-                return cards.Count() > 0;
+                if (cards.Count() > 0)
+                {
+                    AI.SelectCard(cards);
+                    AI.SelectNextCard(cards);
+                    return true;
+                }
+                return false;
             }
             else if (EnemyCardTargetSpellAndTrap(Card))
             {
                 cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && (card.HasType(CardType.Field) || card.HasType(CardType.Continuous) || card.HasType(CardType.Equip) || (card.IsFacedown() && card.Location == CardLocation.SpellZone) || (card.HasType(CardType.Pendulum) && card.Location == CardLocation.SpellZone))).ToList();
-                return cards.Count() > 0;
+                if (cards.Count() > 0)
+                {
+                    AI.SelectCard(cards);
+                    AI.SelectNextCard(cards);
+                    return true;
+                }
+                return false;
             }
             else if (EnemyCardTargetFaceUp(Card))
             {
                 cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && card.IsFaceup() && (card.HasType(CardType.Field) || card.HasType(CardType.Continuous) || card.HasType(CardType.Equip) || (card.HasType(CardType.Pendulum) && card.Location == CardLocation.SpellZone) || card.Location == CardLocation.MonsterZone)).ToList();
-                return cards.Count() > 0;
+                if (cards.Count() > 0)
+                {
+                    AI.SelectCard(cards);
+                    AI.SelectNextCard(cards);
+                    return true;
+                }
+                return false;
             }
             else if (EnemyCardTargetFaceDown(Card))
             {
                 cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && card.IsFacedown()).ToList();
-                return cards.Count() > 0;
+                if (cards.Count() > 0)
+                {
+                    AI.SelectCard(cards);
+                    AI.SelectNextCard(cards);
+                    return true;
+                }
+                return false;
             }
             else if (EnemyCardTarget(Card))
             {
                 cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && (card.HasType(CardType.Field) || card.HasType(CardType.Continuous) || card.HasType(CardType.Equip) || (card.HasType(CardType.Pendulum) && card.Location == CardLocation.SpellZone) || (card.IsFacedown() && card.Location == CardLocation.SpellZone) || card.Location == CardLocation.MonsterZone)).ToList();
-                return cards.Count() > 0;
+                if (cards.Count() > 0)
+                {
+                    AI.SelectCard(cards);
+                    AI.SelectNextCard(cards);
+                    return true;
+                }
+                return false;
             }
             else if (EnemyCardTargetMonsterFaceUp(Card))
             {
                 cards = GetZoneCards(CardLocation.MonsterZone, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && card.IsFaceup()).ToList();
-                return cards.Count() > 0;
+                if (cards.Count() > 0)
+                {
+                    AI.SelectCard(cards);
+                    AI.SelectNextCard(cards);
+                    return true;
+                }
+                return false;
             }
             else if (EnemyCardTargetMonsterFaceDown(Card))
             {
                 cards = GetZoneCards(CardLocation.MonsterZone, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && card.IsFacedown()).ToList();
-                return cards.Count() > 0;
+                if (cards.Count() > 0)
+                {
+                    AI.SelectCard(cards);
+                    AI.SelectNextCard(cards);
+                    return true;
+                }
+                return false;
             }
             else if (EnemyCardTargetMonster(Card))
             {
                 cards = GetZoneCards(CardLocation.MonsterZone, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget()).ToList();
-                return cards.Count() > 0;
+                if (cards.Count() > 0)
+                {
+                    AI.SelectCard(cards);
+                    AI.SelectNextCard(cards);
+                    return true;
+                }
+                return false;
             }
             else if (Card.Id == 43898403)
             {
@@ -761,17 +838,18 @@ namespace WindBot.Game.AI.Decks
                     AI.SelectNextCard(target);
                     return true;
                 }
-
                 return false;
             }
             else if (ActivateDescription == Util.GetStringId(84815190, 1))
-            {
                 return Duel.LastChainPlayer == 1;
-            }
             else if (ActivateDescription == Util.GetStringId(63014935, 0))
-            {
                 return Enemy.LifePoints <= 1000;
-            }
+            return false;
+        }
+        private bool ActivateFunction()
+        {
+            if (OtherActivate(Card))
+                return false;
             return DefaultDontChainMyself();
         }
         private bool MonsterRepos()
@@ -881,13 +959,12 @@ namespace WindBot.Game.AI.Decks
                 if (scards.Count > 0) return Util.CheckSelectCount(result, scards, 1, 1);
                 else if (min == 0) return result;
             }
-
-            if (HintFunction(hint, 13, new[]{506}) && !cards.Any(card => card != null && card.Controller == 1) && !cards.Any(card => card != null && card.Location != CardLocation.Hand))
+            if (HintFunction(hint, 13, new[]{506}) && !cards.Any(card => card != null && card.Controller == 1) && cards.Any(card => card != null && card.Location == CardLocation.Hand))
             {
-                IList<ClientCard> scards = cards.Where(card => card != null && !card.HasSetcode(0x40)).ToList();
+                IList<ClientCard> scards = cards.Where(card => card != null && (!card.HasSetcode(0x40) || card.Location != CardLocation.Hand)).ToList();
                 if (scards.Count() < min)
                 {
-                    IList<ClientCard> scards2 = cards.Where(card => card != null && card.HasSetcode(0x40)).ToList();
+                    IList<ClientCard> scards2 = cards.Where(card => card != null && card.HasSetcode(0x40) && card.Location == CardLocation.Hand).ToList();
                     if (scards2.Count() > 0)
                     {
                         foreach (ClientCard card in scards2)
@@ -895,102 +972,6 @@ namespace WindBot.Game.AI.Decks
                             if (scards.Count() < min)
                                 scards.Add(card);
                         }
-                    }
-                }
-                if (scards.Count() >= min)
-                    return Util.CheckSelectCount(scards,cards,min,max);
-            }
-
-            if ((HintFunction(hint, 13, new[]{501, 506, 508, 509}) || hint == 573) && cards.Any(card => card != null && card.Controller == 1) && cards.Any(card => card != null && card.Controller == 0) && !cards.Any(card => card != null && card.Location != CardLocation.Onfield))
-            {
-                IList<ClientCard> scards = cards.Where(card => card != null && card.Controller == 1).ToList();
-                if (scards.Count() < min)
-                {
-                    IList<ClientCard> scards2 = cards.Where(card => card != null && card.Controller == 0).ToList();
-                    if (scards2.Count() > 0)
-                    {
-                        foreach (ClientCard card in scards2)
-                        {
-                            if (scards.Count() < min)
-                                scards.Add(card);
-                        }
-                    }
-                }
-                if (scards.Count() >= min)
-                    return Util.CheckSelectCount(scards,cards,min,max);
-                return scards;
-            }
-
-            if ((hint == 503 || hint == 507) && cards.Any(card => card != null && card.Controller == 1) && cards.Any(card => card != null && card.Controller == 0) && cards.Count(card => card != null && (card.Location == CardLocation.Grave || card.Location == CardLocation.Onfield)) == cards.Count())
-            {
-                IList<ClientCard> scards = cards.Where(card => card != null && card.Controller == 1).ToList();
-                if (scards.Count() < min)
-                {
-                    IList<ClientCard> scards2 = cards.Where(card => card != null && card.Controller == 0).ToList();
-                    if (scards2.Count() > 0)
-                    {
-                        foreach (ClientCard card in scards2)
-                        {
-                            if (scards.Count() < min)
-                                scards.Add(card);
-                        }
-                    }
-                }
-                if (scards.Count() >= min)
-                    return Util.CheckSelectCount(scards,cards,min,max);
-            }
-
-            if (HintFunction(hint, 13, new[]{500, 501, 502, 506}) && !cards.Any(card => card != null && card.Controller == 1) && cards.Count(card => card.Location == CardLocation.Grave || card.Location == CardLocation.Onfield || card.Location == CardLocation.Removed || card.Location == CardLocation.Hand || card.Location == CardLocation.Deck) == cards.Count())
-            {
-                IList<ClientCard> scards = new List<ClientCard>();
-                IList<ClientCard> scards1 = cards.Where(card => card != null && card.Location == CardLocation.Deck).ToList();
-                IList<ClientCard> scards2 = cards.Where(card => card != null && card.Location == CardLocation.Removed).ToList();
-                IList<ClientCard> scards3 = cards.Where(card => card != null && card.Location == CardLocation.Grave).ToList();
-                IList<ClientCard> scards4 = cards.Where(card => card != null && card.Location == CardLocation.Hand).ToList();
-                IList<ClientCard> scards5 = cards.Where(card => card != null && card.Location == CardLocation.Onfield).ToList();
-
-                if (scards1.Count() > 0)
-                {
-                    foreach (ClientCard card in scards1)
-                    {
-                        if (scards.Count() < min)
-                            scards.Add(card);
-                    }
-                }
-
-                if (scards2.Count() > 0)
-                {
-                    foreach (ClientCard card in scards2)
-                    {
-                        if (scards.Count() < min)
-                            scards.Add(card);
-                    }
-                }
-
-                if (scards3.Count() > 0)
-                {
-                    foreach (ClientCard card in scards3)
-                    {
-                        if (scards.Count() < min)
-                            scards.Add(card);
-                    }
-                }
-
-                if (scards4.Count() > 0)
-                {
-                    foreach (ClientCard card in scards4)
-                    {
-                        if (scards.Count() < min)
-                            scards.Add(card);
-                    }
-                }
-
-                if (scards5.Count() > 0)
-                {
-                    foreach (ClientCard card in scards5)
-                    {
-                        if (scards.Count() < min)
-                            scards.Add(card);
                     }
                 }
                 if (scards.Count() >= min)
@@ -1079,8 +1060,9 @@ namespace WindBot.Game.AI.Decks
                         return new List<ClientCard>(new[] { card });
                 }
             }
-
-            return selected;
+            if (selected.Count() > 0)
+                return selected;
+            return base.OnSelectCard(_cards, min, max, hint, cancelable);
         }
 
         public override int OnSelectOption(IList<int> options)
