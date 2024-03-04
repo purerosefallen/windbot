@@ -142,8 +142,6 @@ namespace WindBot.Game.AI.Decks
                         EnemyCardUnTargetMonster(ClientCard card)
                 得到某个位置的卡片的函数（从神数不神那借来的）
                     GetZoneCards(CardLocation loc, ClientField player)
-                系统提示检测
-                    HintFunction(int hint, int last, int[] except)
             卡片发动过滤函数
                 灵摆刻度设置
                     PendulumActivateFunction()
@@ -635,21 +633,6 @@ namespace WindBot.Game.AI.Decks
             return res;
         }
 
-        private bool HintFunction(int hint, int last, int[] except)
-        {
-            for (int i = 500; i <= 500 + last; i++)
-            {
-                foreach (int ex in except)
-                {
-                    if (i == ex)
-                        i++;
-                }
-                if (hint == i)
-                    return true;
-            }
-            return false;
-        }
-
         private bool PendulumActivateFunction()
         {
             if (Card.HasType(CardType.Pendulum) && Card.Location == CardLocation.Hand && ActivateDescription == 1160)
@@ -1032,24 +1015,6 @@ namespace WindBot.Game.AI.Decks
                 p_summoning = false;
                 if (scards.Count > 0) return Util.CheckSelectCount(result, scards, 1, 1);
                 else if (min == 0) return result;
-            }
-            if (HintFunction(hint, 13, new[]{506}) && !cards.Any(card => card != null && card.Controller == 1) && cards.Any(card => card != null && card.Location == CardLocation.Hand))
-            {
-                IList<ClientCard> scards = cards.Where(card => card != null && (!card.HasSetcode(0x40) || card.Location != CardLocation.Hand)).ToList();
-                if (scards.Count() < min)
-                {
-                    IList<ClientCard> scards2 = cards.Where(card => card != null && card.HasSetcode(0x40) && card.Location == CardLocation.Hand).ToList();
-                    if (scards2.Count() > 0)
-                    {
-                        foreach (ClientCard card in scards2)
-                        {
-                            if (scards.Count() < min)
-                                scards.Add(card);
-                        }
-                    }
-                }
-                if (scards.Count() >= min)
-                    return Util.CheckSelectCount(scards,cards,min,max);
             }
 
             if (HintMsgForEnemy.Contains(hint))
