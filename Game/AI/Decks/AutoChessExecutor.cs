@@ -136,6 +136,10 @@ namespace WindBot.Game.AI.Decks
                         EnemyCardTargetMonsterFaceDown(ClientCard card)
                     “以场上1只怪兽为对象”的记述相关卡
                         EnemyCardTargetMonster(ClientCard card)
+                    “选场上1张卡”的记述相关卡
+                        EnemyCardUnTarget(ClientCard card)
+                    “选场上1只怪兽”的记述相关卡
+                        EnemyCardUnTargetMonster(ClientCard card)
                 得到某个位置的卡片的函数（从神数不神那借来的）
                     GetZoneCards(CardLocation loc, ClientField player)
                 系统提示检测
@@ -567,18 +571,16 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
-        private bool EnemyCardUnTargetMonster(ClientCard card)
+        private bool EnemyCardUnTarge(ClientCard card)
         {
-            int[] cardsname = new[] {10000090, 41685633, 17494901, 32180819, 44009443, 44424095, 50501121, 52875873, 58873391, 62188962, 66789970, 76203291
+            int[] cardsname = new[] {41685633, 17494901, 32180819, 44009443, 44424095, 50501121, 52875873, 58873391, 62188962, 66789970, 76203291
             , 85893201
             };
             foreach(int cardname in cardsname)
             {
                 if (card.Id == cardname) return true;
             }
-            if ((card.Id == 67725394 && ActivateDescription == Util.GetStringId(67725394, 2))
-                || (card.Id == 83414006 && ActivateDescription == Util.GetStringId(83414006, 2))
-                || (card.Id == 75775867 && ActivateDescription == Util.GetStringId(75775867, 0))
+            if ((card.Id == 75775867 && ActivateDescription == Util.GetStringId(75775867, 0))
                 || (card.Id == 77656797 && ActivateDescription == Util.GetStringId(77656797, 0))
                 || (card.Id == 51316684 && ActivateDescription == Util.GetStringId(51316684, 0))
                 || (card.Id == 83550869 && ActivateDescription == Util.GetStringId(83550869, 0))
@@ -591,15 +593,30 @@ namespace WindBot.Game.AI.Decks
                 || (card.Id == 70636044 && ActivateDescription == Util.GetStringId(70636044, 2))
                 || (card.Id == 92650749 && ActivateDescription == Util.GetStringId(92650749, 3))
                 || (card.Id == 50687050 && ActivateDescription == Util.GetStringId(50687050, 4))
-                || (card.Id == 26655293 && card.Location == CardLocation.MonsterZone)
-                || (card.Id == 44146295 && card.Location == CardLocation.MonsterZone)
                 || (card.Id == 84941194 && card.Location == CardLocation.MonsterZone)
                 || (card.Id == 99307040 && card.Location == CardLocation.MonsterZone)
-                || (card.Id == 47132793 && card.Location == CardLocation.MonsterZone)
-                || (card.Id == 66947913 && !card.Location == CardLocation.Hand)
                 || (card.Id == 99414629 && !card.Location == CardLocation.Grave)
                 || (card.Id == 42620460 && card.Location == CardLocation.Grave)
                 || (card.Id == 86509711 && card.Location == CardLocation.Grave)
+            )
+                return true;
+            return false;
+        }
+
+        private bool EnemyCardUnTargetMonster(ClientCard card)
+        {
+            int[] cardsname = new[] {10000090, 41685633, 17494901, 32180819, 44009443, 44424095, 50501121, 52875873, 58873391, 62188962, 66789970, 76203291
+            , 85893201
+            };
+            foreach(int cardname in cardsname)
+            {
+                if (card.Id == cardname) return true;
+            }
+            if ((card.Id == 44146295 && card.Location == CardLocation.MonsterZone)
+                || (card.Id == 26655293 && card.Location == CardLocation.MonsterZone)
+                || (card.Id == 66947913 && !card.Location == CardLocation.Hand)
+                || card.Id == 67725394 && ActivateDescription == Util.GetStringId(67725394, 2)
+                || card.Id == 83414006 && ActivateDescription == Util.GetStringId(83414006, 2)
             )
                 return true;
             return false;
@@ -850,6 +867,28 @@ namespace WindBot.Game.AI.Decks
             else if (EnemyCardTargetMonster(Card))
             {
                 cards = GetZoneCards(CardLocation.MonsterZone, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget()).ToList();
+                if (cards.Count() > 0)
+                {
+                    AI.SelectCard(cards);
+                    AI.SelectNextCard(cards);
+                    return true;
+                }
+                return false;
+            }
+            else if (EnemyCardUnTarget(Card))
+            {
+                cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && (card.HasType(CardType.Field) || card.HasType(CardType.Continuous) || card.HasType(CardType.Equip) || (card.HasType(CardType.Pendulum) && card.Location == CardLocation.SpellZone) || (card.IsFacedown() && card.Location == CardLocation.SpellZone) || card.Location == CardLocation.MonsterZone)).ToList();
+                if (cards.Count() > 0)
+                {
+                    AI.SelectCard(cards);
+                    AI.SelectNextCard(cards);
+                    return true;
+                }
+                return false;
+            }
+            else if (EnemyCardUnTargetMonster(Card))
+            {
+                cards = GetZoneCards(CardLocation.MonsterZone, Enemy);
                 if (cards.Count() > 0)
                 {
                     AI.SelectCard(cards);
