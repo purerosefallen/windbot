@@ -583,7 +583,7 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
-        private bool EnemyCardUnTarge(ClientCard card)
+        private bool EnemyCardUnTarget(ClientCard card)
         {
             int[] cardsname = new[] {41685633, 17494901, 32180819, 44009443, 44424095, 50501121, 52875873, 58873391, 62188962, 66789970, 76203291
             , 85893201
@@ -592,7 +592,7 @@ namespace WindBot.Game.AI.Decks
             {
                 if (card.Id == cardname) return true;
             }
-            if (ActivateDescription == Util.GetStringId(75775867, 0))
+            if (ActivateDescription == Util.GetStringId(75775867, 0)
                 || ActivateDescription == Util.GetStringId(77656797, 0)
                 || ActivateDescription == Util.GetStringId(51316684, 0)
                 || ActivateDescription == Util.GetStringId(83550869, 0)
@@ -607,7 +607,7 @@ namespace WindBot.Game.AI.Decks
                 || ActivateDescription == Util.GetStringId(50687050, 4)
                 || (card.Id == 84941194 && card.Location == CardLocation.MonsterZone)
                 || (card.Id == 99307040 && card.Location == CardLocation.MonsterZone)
-                || (card.Id == 99414629 && !card.Location == CardLocation.Grave)
+                || (card.Id == 99414629 && card.Location != CardLocation.Grave)
                 || (card.Id == 42620460 && card.Location == CardLocation.Grave)
                 || (card.Id == 86509711 && card.Location == CardLocation.Grave)
             )
@@ -626,7 +626,7 @@ namespace WindBot.Game.AI.Decks
             }
             if ((card.Id == 44146295 && card.Location == CardLocation.MonsterZone)
                 || (card.Id == 26655293 && card.Location == CardLocation.MonsterZone)
-                || (card.Id == 66947913 && !card.Location == CardLocation.Hand)
+                || (card.Id == 66947913 && card.Location != CardLocation.Hand)
                 || ActivateDescription == Util.GetStringId(67725394, 2)
                 || ActivateDescription == Util.GetStringId(83414006, 2)
             )
