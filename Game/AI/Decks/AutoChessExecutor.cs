@@ -113,6 +113,8 @@ namespace WindBot.Game.AI.Decks
                     EquipForEnemy(ClientCard card)
                 发动检测
                     OtherActivate(ClientCard card)
+                素材检测
+                    NotLinkMaterialCard(ClientCard card)
                 卡片选择检测
                     “以场上1张表侧表示的魔法卡为对象”的记述相关卡
                         EnemyCardTargetSpellFaceUp(ClientCard card)
@@ -142,7 +144,7 @@ namespace WindBot.Game.AI.Decks
                         EnemyCardUnTargetMonster(ClientCard card)
                 得到某个位置的卡片的函数（从神数不神那借来的）
                     GetZoneCards(CardLocation loc, ClientField player)
-                系统提示检测	
+                系统提示检测
                     HintFunction(int hint, int last, int[] except)
             卡片发动过滤函数
                 灵摆刻度设置
@@ -297,6 +299,20 @@ namespace WindBot.Game.AI.Decks
             )
                 return true;
             return false;
+        }
+
+        private bool NotLinkMaterialCard(ClientCard card, ClientCard lcard)
+        {
+            if (card.IsFacedown() || !IsAvailableLinkZone())
+                return false;
+
+            if ((card.HasType(CardType.Fusion) && card.Level >= 7)
+            || (card.HasType(CardType.Synchro) && (card.Level >= 7 || card.Id == 2956282 || card.Id == 33198837 || card.Id == 43932460 || card.Id == 29981921))
+            || card.HasType(CardType.Xyz)
+            || card.LinkCount >= lcard.LinkCount
+            )
+                return false;
+            return true;
         }
 
         private bool EnemyCardTargetSpellFaceUp(ClientCard card)
@@ -645,6 +661,80 @@ namespace WindBot.Game.AI.Decks
             if ((loc & CardLocation.Removed) > 0) { temp = player.Banished.Where(card => card != null).ToList(); if (temp.Count() > 0) res.AddRange(temp); }
             if ((loc & CardLocation.Extra) > 0) { temp = player.ExtraDeck.Where(card => card != null).ToList(); if (temp.Count() > 0) res.AddRange(temp); }
             return res;
+        }
+
+        private bool IsAvailableZone(int seq)
+        {
+            ClientCard card = Bot.MonsterZone[seq];
+            if (seq == 5 && Bot.MonsterZone[6] != null && Bot.MonsterZone[6].Controller == 0) return false;
+            if (seq == 6 && Bot.MonsterZone[5] != null && Bot.MonsterZone[5].Controller == 0) return false;
+            if (card == null) return true;
+            if (card.Controller != 0) return false;
+            if (card.IsFacedown()) return false;
+            if (card.IsDisabled()) return true;
+            return true;
+        }
+        private bool IsAvailableLinkZone()
+        {
+            int zones = 0;
+            List<ClientCard> cards = Bot.GetMonstersInMainZone().Where(card => card != null && card.IsFaceup()).ToList();
+            foreach (var card in cards)
+            {
+                zones |= card.GetLinkedZones();
+            }
+            ClientCard e_card = Bot.MonsterZone[5];
+            if (e_card != null && e_card.IsFaceup() && e_card.HasType(CardType.Link))
+            {
+                if (e_card.Controller == 0)
+                {
+                    if (e_card.HasLinkMarker(CardLinkMarker.BottomLeft))
+                        zones |= 1 << 0;
+                    if (e_card.HasLinkMarker(CardLinkMarker.Bottom))
+                        zones |= 1 << 1;
+                    if (e_card.HasLinkMarker(CardLinkMarker.BottomRight))
+                        zones |= 1 << 2;
+                }
+                if (e_card.Controller == 1)
+                {
+                    if (e_card.HasLinkMarker(CardLinkMarker.TopLeft))
+                        zones |= 1 << 2;
+                    if (e_card.HasLinkMarker(CardLinkMarker.Top))
+                        zones |= 1 << 1;
+                    if (e_card.HasLinkMarker(CardLinkMarker.TopRight))
+                        zones |= 1 << 0;
+                }
+            }
+            e_card = Bot.MonsterZone[6];
+            if (e_card != null && e_card.IsFaceup() && e_card.HasType(CardType.Link))
+            {
+                if (e_card.Controller == 0)
+                {
+                    if (e_card.HasLinkMarker(CardLinkMarker.BottomLeft))
+                        zones |= 1 << 2;
+                    if (e_card.HasLinkMarker(CardLinkMarker.Bottom))
+                        zones |= 1 << 3;
+                    if (e_card.HasLinkMarker(CardLinkMarker.BottomRight))
+                        zones |= 1 << 4;
+                }
+                if (e_card.Controller == 1)
+                {
+                    if (e_card.HasLinkMarker(CardLinkMarker.TopLeft))
+                        zones |= 1 << 4;
+                    if (e_card.HasLinkMarker(CardLinkMarker.Top))
+                        zones |= 1 << 3;
+                    if (e_card.HasLinkMarker(CardLinkMarker.TopRight))
+                        zones |= 1 << 2;
+                }
+            }
+            zones &= 0x7f;
+            if ((zones & Zones.z0) > 0 && IsAvailableZone(0)) return true;
+            if ((zones & Zones.z1) > 0 && IsAvailableZone(1)) return true;
+            if ((zones & Zones.z2) > 0 && IsAvailableZone(2)) return true;
+            if ((zones & Zones.z3) > 0 && IsAvailableZone(3)) return true;
+            if ((zones & Zones.z4) > 0 && IsAvailableZone(4)) return true;
+            if (IsAvailableZone(5)) return true;
+            if (IsAvailableZone(6)) return true;
+            return false;
         }
 
         private bool PendulumActivateFunction()
@@ -1000,6 +1090,69 @@ namespace WindBot.Game.AI.Decks
                 List<ClientCard> cards = GetZoneCards(CardLocation.Hand, Bot).Where(card => card != null && !DontSummon(card) && card.Level > lowscales && card.Level < highscales).ToList();
                 p_summoning = true;
                 return cards.Count() > 0;
+            }
+            if (Card.HasType(CardType.Link))
+            {
+                List<ClientCard> cards = GetZoneCards(CardLocation.MonsterZone, Bot).Where(card => card != null && NotLinkMaterialCard(card, Card)).ToList();
+                IList<ClientCard> lcards1 = new List<ClientCard>();
+                IList<ClientCard> lcards2 = new List<ClientCard>();
+                IList<ClientCard> scards = new List<ClientCard>();
+                if (cards.Count() < Card.LinkCount) return false;
+                if (Card.LinkCount == 98127549)
+                    return false;
+                if (Card.LinkCount > 4)
+                {
+                    lcards1 = cards.Where(card => card.LinkCount == 2).ToList();
+                    lcards2 = cards.Where(card => card.LinkCount < 2 || card.LinkCount == 0).ToList();
+                    if (lcards1.Count() > 0)
+                    {
+                        foreach (ClientCard card in lcards1)
+                        {
+                            if (scards.Count() >= Card.LinkCount) break;
+                            scards.Add(card);
+                        }
+                    }
+                    if (lcards2.Count() > 0)
+                    {
+                        foreach (ClientCard card in lcards1)
+                        {
+                            if (scards.Count() >= Card.LinkCount) break;
+                            scards.Add(card);
+                        }
+                    }
+                    AI.SelectMaterials(scards);
+                    return true;
+                }
+                else if (Card.LinkCount > 2)
+                {
+                    lcards1 = cards.Where(card => card.LinkCount == 3).ToList();
+                    lcards2 = cards.Where(card => card.LinkCount < 2 || card.LinkCount == 0).ToList();
+                    if (lcards1.Count() == 0)
+                        lcards1 = cards.Where(card => card.LinkCount == 2).ToList();
+                    if (lcards2.Count() == 0)
+                        lcards2 = cards.Where(card => card.LinkCount == 2).ToList();
+                    if (lcards1.Count() > 0)
+                    {
+                        foreach (ClientCard card in lcards1)
+                        {
+                            if (scards.Count() >= Card.LinkCount) break;
+                            scards.Add(card);
+                        }
+                    }
+                    if (lcards2.Count() > 0)
+                    {
+                        foreach (ClientCard card in lcards2)
+                        {
+                            if (scards.Count() >= Card.LinkCount) break;
+                            scards.Add(card);
+                        }
+                    }
+                    AI.SelectMaterials(scards);
+                    return true;
+                }
+                else
+                    AI.SelectMaterials(cards);
+                    return true;
             }
             return true;
         }
