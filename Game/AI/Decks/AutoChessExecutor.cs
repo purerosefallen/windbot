@@ -295,7 +295,7 @@ namespace WindBot.Game.AI.Decks
                 || EnemyCardTargetMonsterFaceDown(card)
                 || EnemyCardTargetFaceDown(card)
                 || EnemyCardTargetFaceUp(card)
-                || EnemyCardTarget(card)
+                || EnemyCardTarget(card, ActivateDescription)
             )
                 return true;
             return false;
@@ -303,7 +303,7 @@ namespace WindBot.Game.AI.Decks
 
         private bool NotLinkMaterialCard(ClientCard card, ClientCard lcard)
         {
-            if (card.IsFacedown() || !IsAvailableLinkZone())
+            if (card.IsFacedown() || !IsAvailableLinkZone(lcard))
                 return false;
 
             if ((card.HasType(CardType.Fusion) && card.Level >= 7)
@@ -663,7 +663,7 @@ namespace WindBot.Game.AI.Decks
             return res;
         }
 
-        private bool IsAvailableZone(int seq)
+        private bool IsAvailableZone(int seq, ClientCard lcard)
         {
             ClientCard card = Bot.MonsterZone[seq];
             if (seq == 5 && Bot.MonsterZone[6] != null && Bot.MonsterZone[6].Controller == 0) return false;
@@ -671,10 +671,15 @@ namespace WindBot.Game.AI.Decks
             if (card == null) return true;
             if (card.Controller != 0) return false;
             if (card.IsFacedown()) return false;
-            if (card.IsDisabled()) return true;
+            if ((card.HasType(CardType.Fusion) && card.Level >= 7)
+            || (card.HasType(CardType.Synchro) && (card.Level >= 7 || card.Id == 2956282 || card.Id == 33198837 || card.Id == 43932460 || card.Id == 29981921))
+            || card.HasType(CardType.Xyz)
+            || card.LinkCount >= lcard.LinkCount
+            )
+                return false;
             return true;
         }
-        private bool IsAvailableLinkZone()
+        private bool IsAvailableLinkZone(ClientCard lcard)
         {
             int zones = 0;
             List<ClientCard> cards = Bot.GetMonstersInMainZone().Where(card => card != null && card.IsFaceup()).ToList();
@@ -727,13 +732,13 @@ namespace WindBot.Game.AI.Decks
                 }
             }
             zones &= 0x7f;
-            if ((zones & Zones.z0) > 0 && IsAvailableZone(0)) return true;
-            if ((zones & Zones.z1) > 0 && IsAvailableZone(1)) return true;
-            if ((zones & Zones.z2) > 0 && IsAvailableZone(2)) return true;
-            if ((zones & Zones.z3) > 0 && IsAvailableZone(3)) return true;
-            if ((zones & Zones.z4) > 0 && IsAvailableZone(4)) return true;
-            if (IsAvailableZone(5)) return true;
-            if (IsAvailableZone(6)) return true;
+            if ((zones & Zones.z0) > 0 && IsAvailableZone(0, lcard)) return true;
+            if ((zones & Zones.z1) > 0 && IsAvailableZone(1, lcard)) return true;
+            if ((zones & Zones.z2) > 0 && IsAvailableZone(2, lcard)) return true;
+            if ((zones & Zones.z3) > 0 && IsAvailableZone(3, lcard)) return true;
+            if ((zones & Zones.z4) > 0 && IsAvailableZone(4, lcard)) return true;
+            if (IsAvailableZone(5, lcard)) return true;
+            if (IsAvailableZone(6, lcard)) return true;
             return false;
         }
 
@@ -918,7 +923,7 @@ namespace WindBot.Game.AI.Decks
                 }
                 return false;
             }
-            else if (EnemyCardTarget(Card))
+            else if (EnemyCardTarget(Card, ActivateDescription))
             {
                 cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && (card.HasType(CardType.Field) || card.HasType(CardType.Continuous) || card.HasType(CardType.Equip) || (card.HasType(CardType.Pendulum) && card.Location == CardLocation.SpellZone) || (card.IsFacedown() && card.Location == CardLocation.SpellZone) || card.Location == CardLocation.MonsterZone)).ToList();
                 if (cards.Count() > 0)
@@ -1094,65 +1099,10 @@ namespace WindBot.Game.AI.Decks
             if (Card.HasType(CardType.Link))
             {
                 List<ClientCard> cards = GetZoneCards(CardLocation.MonsterZone, Bot).Where(card => card != null && NotLinkMaterialCard(card, Card)).ToList();
-                IList<ClientCard> lcards1 = new List<ClientCard>();
-                IList<ClientCard> lcards2 = new List<ClientCard>();
-                IList<ClientCard> scards = new List<ClientCard>();
                 if (cards.Count() < Card.LinkCount) return false;
-                if (Card.LinkCount == 98127549)
+                if (Card.Id == 98127549)
                     return false;
-                if (Card.LinkCount > 4)
-                {
-                    lcards1 = cards.Where(card => card.LinkCount == 2).ToList();
-                    lcards2 = cards.Where(card => card.LinkCount < 2 || card.LinkCount == 0).ToList();
-                    if (lcards1.Count() > 0)
-                    {
-                        foreach (ClientCard card in lcards1)
-                        {
-                            if (scards.Count() >= Card.LinkCount) break;
-                            scards.Add(card);
-                        }
-                    }
-                    if (lcards2.Count() > 0)
-                    {
-                        foreach (ClientCard card in lcards1)
-                        {
-                            if (scards.Count() >= Card.LinkCount) break;
-                            scards.Add(card);
-                        }
-                    }
-                    AI.SelectMaterials(scards);
-                    return true;
-                }
-                else if (Card.LinkCount > 2)
-                {
-                    lcards1 = cards.Where(card => card.LinkCount == 3).ToList();
-                    lcards2 = cards.Where(card => card.LinkCount < 2 || card.LinkCount == 0).ToList();
-                    if (lcards1.Count() == 0)
-                        lcards1 = cards.Where(card => card.LinkCount == 2).ToList();
-                    if (lcards2.Count() == 0)
-                        lcards2 = cards.Where(card => card.LinkCount == 2).ToList();
-                    if (lcards1.Count() > 0)
-                    {
-                        foreach (ClientCard card in lcards1)
-                        {
-                            if (scards.Count() >= Card.LinkCount) break;
-                            scards.Add(card);
-                        }
-                    }
-                    if (lcards2.Count() > 0)
-                    {
-                        foreach (ClientCard card in lcards2)
-                        {
-                            if (scards.Count() >= Card.LinkCount) break;
-                            scards.Add(card);
-                        }
-                    }
-                    AI.SelectMaterials(scards);
-                    return true;
-                }
-                else
-                    AI.SelectMaterials(cards);
-                    return true;
+                return true;
             }
             return true;
         }
@@ -1182,6 +1132,66 @@ namespace WindBot.Game.AI.Decks
                 p_summoning = false;
                 if (scards.Count > 0) return Util.CheckSelectCount(result, scards, 1, 1);
                 else if (min == 0) return result;
+            }
+            
+            if (hint == 533 && Card.HasType(CardType.Link) && Card.Location == CardLocation.Extra)
+            {
+                IList<ClientCard> lcards = cards.Where(card => NotLinkMaterialCard(card, Card)).ToList();
+                IList<ClientCard> lcards1 = new List<ClientCard>();
+                IList<ClientCard> lcards2 = new List<ClientCard>();
+                IList<ClientCard> scards = new List<ClientCard>();
+                if (Card.LinkCount > 4)
+                {
+                    lcards1 = lcards.Where(card => card.LinkCount == 2).ToList();
+                    lcards2 = lcards.Where(card => card.LinkCount < 2 || card.LinkCount == 0).ToList();
+                    if (lcards1.Count() > 0)
+                    {
+                        foreach (ClientCard card in lcards1)
+                        {
+                            if (scards.Count() >= Card.LinkCount) break;
+                            scards.Add(card);
+                        }
+                    }
+                    if (lcards2.Count() > 0)
+                    {
+                        foreach (ClientCard card in lcards1)
+                        {
+                            if (scards.Count() >= Card.LinkCount) break;
+                            scards.Add(card);
+                        }
+                    }
+                }
+                else if (Card.LinkCount > 2)
+                {
+                    int a = 0;
+                    lcards1 = lcards.Where(card => card.LinkCount == 3).ToList();
+                    lcards2 = lcards.Where(card => card.LinkCount < 2 || card.LinkCount == 0).ToList();
+                    if (lcards1.Count() == 0)
+                        lcards1 = lcards.Where(card => card.LinkCount == 2).ToList();
+                    if (lcards2.Count() == 0 && lcards1.Any(card => card.LinkCount == 3))
+                        lcards2 = lcards.Where(card => card.LinkCount == 2).ToList();
+                    if (lcards1.Count() > 0)
+                    {
+                        foreach (ClientCard card in lcards1)
+                        {
+                            if (scards.Count() >= Card.LinkCount) break;
+                            scards.Add(card);
+                            if (lcards2.Count() > 0 && a == 0)
+                            {
+                                a++;
+                                foreach (ClientCard card2 in lcards2)
+                                {
+                                    if (scards.Count() >= Card.LinkCount) break;
+                                    scards.Add(card2);
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                    scards = lcards;
+
+                return Util.CheckSelectCount(scards,cards,min,min);
             }
 
             if (HintFunction(hint, 13, new[]{506}) && !cards.Any(card => card != null && card.Controller == 1) && cards.Any(card => card != null && card.Location == CardLocation.Hand))	
