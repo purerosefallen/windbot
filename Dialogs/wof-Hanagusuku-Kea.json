@@ -1,0 +1,46 @@
+{
+  "welcome": [
+    "唔……想吃布丁nano……"
+  ],
+  "deckerror": [
+    "{0}被一月前辈偷走了nano！"
+  ],
+  "duelstart": [
+    "走了好久，肚子饿了nano……",
+    "你看起来很弱啊nano……",
+    "有一花前辈在一起的话nano……"
+  ],
+  "newturn": [
+    "到我了nano！"
+  ],
+  "endturn": [
+    "想喝饮料了nano。",
+    "布丁吃完了nano。",
+    "什么时候开店nano？"
+  ],
+  "directattack": [
+    "{0}，直接攻击nano！",
+    "把我的布丁还给我nano！"
+  ],
+  "attack": [
+    "用{0}攻击{1}nano！",
+    "可恶的攻击{1}，把我的布丁还给我nano！"
+  ],
+  "ondirectattack": [
+    "好饿nano……",
+  ],
+  "facedownmonstername": "怪兽",
+  "activate": [
+    "发动{0}的效果nano！"
+  ],
+  "summon": [
+    "{0}nano！"
+  ],
+  "setmonster": [
+    "nano……"
+  ],
+  "chaining": [
+    "发动{0}的效果nano！",
+    "{0}nano！"
+  ]
+}
