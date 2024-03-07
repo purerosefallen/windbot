@@ -295,7 +295,9 @@ namespace WindBot.Game.AI.Decks
                 || EnemyCardTargetMonsterFaceDown(card)
                 || EnemyCardTargetFaceDown(card)
                 || EnemyCardTargetFaceUp(card)
-                || EnemyCardTarget(card, ActivateDescription)
+                || EnemyCardTarget(card)
+                || EnemyCardUnTarget(card)
+                || EnemyCardUnTargetMonster(ClientCard card)
             )
                 return true;
             return false;
@@ -469,7 +471,7 @@ namespace WindBot.Game.AI.Decks
                 || ActivateDescription == Util.GetStringId(20563387, 1)
                 || ActivateDescription == Util.GetStringId(21113684, 1)
                 || ActivateDescription == Util.GetStringId(22110647, 1)
-                || ActivateDescription == Util.GetStringId(22908820, 1)
+                || (ActivateDescription != Util.GetStringId(22908820, 0) && Card.Id == 22908820)
                 || ActivateDescription == Util.GetStringId(28373620, 1)
                 || ActivateDescription == Util.GetStringId(34481518, 1)
                 || ActivateDescription == Util.GetStringId(40732515, 1)
@@ -602,7 +604,7 @@ namespace WindBot.Game.AI.Decks
         private bool EnemyCardUnTarget(ClientCard card)
         {
             int[] cardsname = new[] {41685633, 17494901, 32180819, 44009443, 44424095, 50501121, 52875873, 58873391, 62188962, 66789970, 76203291
-            , 85893201
+            , 85893201, 70636044
             };
             foreach(int cardname in cardsname)
             {
@@ -618,7 +620,6 @@ namespace WindBot.Game.AI.Decks
                 || ActivateDescription == Util.GetStringId(40221691, 1)
                 || ActivateDescription == Util.GetStringId(84425220, 1)
                 || ActivateDescription == Util.GetStringId(34446231, 1)
-                || ActivateDescription == Util.GetStringId(70636044, 2)
                 || ActivateDescription == Util.GetStringId(92650749, 3)
                 || ActivateDescription == Util.GetStringId(50687050, 4)
                 || (card.Id == 84941194 && card.Location == CardLocation.MonsterZone)
@@ -923,7 +924,7 @@ namespace WindBot.Game.AI.Decks
                 }
                 return false;
             }
-            else if (EnemyCardTarget(Card, ActivateDescription))
+            else if (EnemyCardTarget(Card))
             {
                 cards = GetZoneCards(CardLocation.Onfield, Enemy).Where(card => card != null && !card.IsShouldNotBeTarget() && (card.HasType(CardType.Field) || card.HasType(CardType.Continuous) || card.HasType(CardType.Equip) || (card.HasType(CardType.Pendulum) && card.Location == CardLocation.SpellZone) || (card.IsFacedown() && card.Location == CardLocation.SpellZone) || card.Location == CardLocation.MonsterZone)).ToList();
                 if (cards.Count() > 0)
