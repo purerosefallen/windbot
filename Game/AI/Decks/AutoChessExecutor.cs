@@ -297,7 +297,7 @@ namespace WindBot.Game.AI.Decks
                 || EnemyCardTargetFaceUp(card)
                 || EnemyCardTarget(card)
                 || EnemyCardUnTarget(card)
-                || EnemyCardUnTargetMonster(ClientCard card)
+                || EnemyCardUnTargetMonster(card)
             )
                 return true;
             return false;
