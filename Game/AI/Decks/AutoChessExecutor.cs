@@ -113,6 +113,8 @@ namespace WindBot.Game.AI.Decks
                     EquipForEnemy(ClientCard card)
                 发动检测
                     OtherActivate(ClientCard card)
+                素材检测
+                    NotLinkMaterialCard(ClientCard card)
                 卡片选择检测
                     “以场上1张表侧表示的魔法卡为对象”的记述相关卡
                         EnemyCardTargetSpellFaceUp(ClientCard card)
@@ -294,9 +296,25 @@ namespace WindBot.Game.AI.Decks
                 || EnemyCardTargetFaceDown(card)
                 || EnemyCardTargetFaceUp(card)
                 || EnemyCardTarget(card)
+                || EnemyCardUnTarget(card)
+                || EnemyCardUnTargetMonster(card)
             )
                 return true;
             return false;
+        }
+
+        private bool NotLinkMaterialCard(ClientCard card, ClientCard lcard)
+        {
+            if (card.IsFacedown() || !IsAvailableLinkZone(lcard))
+                return false;
+
+            if ((card.HasType(CardType.Fusion) && card.Level >= 7)
+            || (card.HasType(CardType.Synchro) && (card.Level >= 7 || card.Id == 2956282 || card.Id == 33198837 || card.Id == 43932460 || card.Id == 29981921))
+            || card.HasType(CardType.Xyz)
+            || card.LinkCount >= lcard.LinkCount
+            )
+                return false;
+            return true;
         }
 
         private bool EnemyCardTargetSpellFaceUp(ClientCard card)
@@ -308,7 +326,7 @@ namespace WindBot.Game.AI.Decks
 
         private bool EnemyCardTargetTrapFaceUp(ClientCard card)
         {
-            if (card.Id == 5640330 && ActivateDescription == Util.GetStringId(5640330, 1))
+            if (ActivateDescription == Util.GetStringId(5640330, 1))
                 return true;
             return false;
         }
@@ -321,8 +339,8 @@ namespace WindBot.Game.AI.Decks
             {
                 if (card.Id == cardname) return true;
             }
-            if ((card.Id == 5133471 && ActivateDescription == Util.GetStringId(5133471, 1))
-                || (card.Id == 17241941 && ActivateDescription == Util.GetStringId(17241941, 2)))
+            if (ActivateDescription == Util.GetStringId(5133471, 1)
+                || ActivateDescription == Util.GetStringId(17241941, 2))
                 return true;
             return false;
         }
@@ -335,9 +353,9 @@ namespace WindBot.Game.AI.Decks
             {
                 if (card.Id == cardname) return true;
             }
-            if ((card.Id == 5133471 && ActivateDescription == Util.GetStringId(5133471, 0))
-                || (card.Id == 64398890 && ActivateDescription == Util.GetStringId(64398890, 0))
-                || (card.Id == 73213494 && ActivateDescription == Util.GetStringId(73213494, 1))
+            if (ActivateDescription == Util.GetStringId(5133471, 0)
+                || ActivateDescription == Util.GetStringId(64398890, 0)
+                || ActivateDescription == Util.GetStringId(73213494, 1)
             )
                 return true;
             return false;
@@ -351,16 +369,16 @@ namespace WindBot.Game.AI.Decks
             {
                 if (card.Id == cardname) return true;
             }
-            if ((card.Id == 41470137 && ActivateDescription == Util.GetStringId(41470137, 0))
-                || (card.Id == 98558751 && ActivateDescription == Util.GetStringId(98558751, 0))
-                || (card.Id == 49456901 && ActivateDescription == Util.GetStringId(49456901, 0))
-                || (card.Id == 53618197 && ActivateDescription == Util.GetStringId(53618197, 0))
-                || (card.Id == 71100270 && ActivateDescription == Util.GetStringId(71100270, 0))
-                || (card.Id == 85252081 && ActivateDescription == Util.GetStringId(85252081, 0))
-                || (card.Id == 89423971 && ActivateDescription == Util.GetStringId(89423971, 0))
-                || (card.Id == 19025379 && ActivateDescription == Util.GetStringId(19025379, 1))
-                || (card.Id == 64182380 && ActivateDescription == Util.GetStringId(64182380, 1))
-                || (card.Id == 75425320 && ActivateDescription == Util.GetStringId(75425320, 2))
+            if (ActivateDescription == Util.GetStringId(41470137, 0)
+                || ActivateDescription == Util.GetStringId(98558751, 0)
+                || ActivateDescription == Util.GetStringId(49456901, 0)
+                || ActivateDescription == Util.GetStringId(53618197, 0)
+                || ActivateDescription == Util.GetStringId(71100270, 0)
+                || ActivateDescription == Util.GetStringId(85252081, 0)
+                || ActivateDescription == Util.GetStringId(89423971, 0)
+                || ActivateDescription == Util.GetStringId(19025379, 1)
+                || ActivateDescription == Util.GetStringId(64182380, 1)
+                || ActivateDescription == Util.GetStringId(75425320, 2)
                 || (card.Id == 10117149 && card.Location == CardLocation.MonsterZone)
                 || (card.Id == 15710054 && card.Location == CardLocation.MonsterZone)
                 || (card.Id == 37991342 && card.Location == CardLocation.MonsterZone)
@@ -388,15 +406,15 @@ namespace WindBot.Game.AI.Decks
             {
                 if (card.Id == cardname) return true;
             }
-            if ((card.Id == 5795980 && card.Location == CardLocation.SpellZone)
-                || (card.Id == 9940036 && ActivateDescription == Util.GetStringId(9940036, 2))
-                || (card.Id == 13364097 && ActivateDescription == Util.GetStringId(13364097, 0))
-                || (card.Id == 50078320 && ActivateDescription == Util.GetStringId(50078320, 0))
-                || (card.Id == 50907446 && ActivateDescription == Util.GetStringId(50907446, 0))
-                || (card.Id == 65398390 && ActivateDescription == Util.GetStringId(65398390, 0))
-                || (card.Id == 29601381 && ActivateDescription == Util.GetStringId(29601381, 1))
-                || (card.Id == 48461764 && ActivateDescription == Util.GetStringId(48461764, 1))
-                || (card.Id == 94073244 && ActivateDescription == Util.GetStringId(94073244, 1))
+            if (ActivateDescription == Util.GetStringId(9940036, 2)
+                || ActivateDescription == Util.GetStringId(13364097, 0)
+                || ActivateDescription == Util.GetStringId(50078320, 0)
+                || ActivateDescription == Util.GetStringId(50907446, 0)
+                || ActivateDescription == Util.GetStringId(65398390, 0)
+                || ActivateDescription == Util.GetStringId(29601381, 1)
+                || ActivateDescription == Util.GetStringId(48461764, 1)
+                || ActivateDescription == Util.GetStringId(94073244, 1)
+                || (card.Id == 5795980 && card.Location == CardLocation.SpellZone)
                 || (card.Id == 13317419 && card.Location == CardLocation.SpellZone && card.IsFaceup())
                 || (card.Id == 37491810 && card.Location == CardLocation.SpellZone && card.IsFaceup())
                 || (card.Id == 38761908 && card.Location == CardLocation.SpellZone)
@@ -413,9 +431,9 @@ namespace WindBot.Game.AI.Decks
             {
                 if (card.Id == cardname) return true;
             }
-            if ((card.Id == 20281581 && ActivateDescription == Util.GetStringId(20281581, 1))
-                || (card.Id == 31467949 && ActivateDescription == Util.GetStringId(31467949, 1))
-                || (card.Id == 32912040 && ActivateDescription == Util.GetStringId(32912040, 0))
+            if (ActivateDescription == Util.GetStringId(20281581, 1)
+                || ActivateDescription == Util.GetStringId(31467949, 1)
+                || ActivateDescription == Util.GetStringId(32912040, 0)
             )
                 return true;
             return false;
@@ -431,48 +449,48 @@ namespace WindBot.Game.AI.Decks
             {
                 if (card.Id == cardname) return true;
             }
-            if (card.Id == 1561110 && ActivateDescription == Util.GetStringId(1561110, 0)
-                || (card.Id == 4779823 && ActivateDescription == Util.GetStringId(4779823, 0))
-                || (card.Id == 23626223 && ActivateDescription == Util.GetStringId(23626223, 0))
-                || (card.Id == 26692769 && ActivateDescription == Util.GetStringId(26692769, 0))
-                || (card.Id == 32617464 && ActivateDescription == Util.GetStringId(32617464, 0))
-                || (card.Id == 32939238 && ActivateDescription == Util.GetStringId(32939238, 0))
-                || (card.Id == 36609518 && ActivateDescription == Util.GetStringId(36609518, 0))
-                || (card.Id == 38267552 && ActivateDescription == Util.GetStringId(38267552, 0))
-                || (card.Id == 50056656 && ActivateDescription == Util.GetStringId(50056656, 0))
-                || (card.Id == 79194594 && ActivateDescription == Util.GetStringId(79194594, 0))
-                || (card.Id == 84815190 && ActivateDescription == Util.GetStringId(84815190, 0))
-                || (card.Id == 90835938 && ActivateDescription == Util.GetStringId(90835938, 0))
-                || (card.Id == 98462037 && ActivateDescription == Util.GetStringId(98462037, 0))
-                || (card.Id == 43227 && ActivateDescription == Util.GetStringId(43227, 1))
-                || (card.Id == 2530830 && ActivateDescription == Util.GetStringId(2530830, 1))
-                || (card.Id == 6764709 && ActivateDescription == Util.GetStringId(6764709, 1))
-                || (card.Id == 12444060 && ActivateDescription == Util.GetStringId(12444060, 1))
-                || (card.Id == 10406322 && ActivateDescription == Util.GetStringId(10406322, 1))
-                || (card.Id == 13482262 && ActivateDescription == Util.GetStringId(13482262, 1))
-                || (card.Id == 20563387 && ActivateDescription == Util.GetStringId(20563387, 1))
-                || (card.Id == 21113684 && ActivateDescription == Util.GetStringId(21113684, 1))
-                || (card.Id == 22110647 && ActivateDescription == Util.GetStringId(22110647, 1))
-                || (card.Id == 22908820 && ActivateDescription == Util.GetStringId(22908820, 1))
-                || (card.Id == 28373620 && ActivateDescription == Util.GetStringId(28373620, 1))
-                || (card.Id == 34481518 && ActivateDescription == Util.GetStringId(34481518, 1))
-                || (card.Id == 40732515 && ActivateDescription == Util.GetStringId(40732515, 1))
-                || (card.Id == 46294982 && ActivateDescription == Util.GetStringId(46294982, 1))
-                || (card.Id == 61307542 && ActivateDescription == Util.GetStringId(61307542, 1))
-                || (card.Id == 63101468 && ActivateDescription == Util.GetStringId(63101468, 1))
-                || (card.Id == 73667937 && ActivateDescription == Util.GetStringId(73667937, 1))
-                || (card.Id == 81055000 && ActivateDescription == Util.GetStringId(81055000, 1))
-                || (card.Id == 83533296 && ActivateDescription == Util.GetStringId(83533296, 1))
-                || (card.Id == 87188910 && ActivateDescription == Util.GetStringId(87188910, 1))
-                || (card.Id == 90579153 && ActivateDescription == Util.GetStringId(90579153, 1))
-                || (card.Id == 95207988 && ActivateDescription == Util.GetStringId(95207988, 1))
-                || (card.Id == 5973663 && ActivateDescription == Util.GetStringId(5973663, 1))
-                || (card.Id == 11132674 && ActivateDescription == Util.GetStringId(11132674, 2))
-                || (card.Id == 28798938 && ActivateDescription == Util.GetStringId(28798938, 2))
-                || (card.Id == 30989084 && ActivateDescription == Util.GetStringId(30989084, 2))
-                || (card.Id == 37495766 && ActivateDescription == Util.GetStringId(37495766, 2))
-                || (card.Id == 91336701 && ActivateDescription == Util.GetStringId(91336701, 2))
-                || (card.Id == 73734821 && ActivateDescription == Util.GetStringId(73734821, 3))
+            if (ActivateDescription == Util.GetStringId(1561110, 0)
+                || ActivateDescription == Util.GetStringId(4779823, 0)
+                || ActivateDescription == Util.GetStringId(23626223, 0)
+                || ActivateDescription == Util.GetStringId(26692769, 0)
+                || ActivateDescription == Util.GetStringId(32617464, 0)
+                || ActivateDescription == Util.GetStringId(32939238, 0)
+                || ActivateDescription == Util.GetStringId(36609518, 0)
+                || ActivateDescription == Util.GetStringId(38267552, 0)
+                || ActivateDescription == Util.GetStringId(50056656, 0)
+                || ActivateDescription == Util.GetStringId(79194594, 0)
+                || ActivateDescription == Util.GetStringId(84815190, 0)
+                || ActivateDescription == Util.GetStringId(90835938, 0)
+                || ActivateDescription == Util.GetStringId(98462037, 0)
+                || ActivateDescription == Util.GetStringId(43227, 1)
+                || ActivateDescription == Util.GetStringId(2530830, 1)
+                || ActivateDescription == Util.GetStringId(6764709, 1)
+                || ActivateDescription == Util.GetStringId(12444060, 1)
+                || ActivateDescription == Util.GetStringId(10406322, 1)
+                || ActivateDescription == Util.GetStringId(13482262, 1)
+                || ActivateDescription == Util.GetStringId(20563387, 1)
+                || ActivateDescription == Util.GetStringId(21113684, 1)
+                || ActivateDescription == Util.GetStringId(22110647, 1)
+                || (ActivateDescription != Util.GetStringId(22908820, 0) && Card.Id == 22908820)
+                || ActivateDescription == Util.GetStringId(28373620, 1)
+                || ActivateDescription == Util.GetStringId(34481518, 1)
+                || ActivateDescription == Util.GetStringId(40732515, 1)
+                || ActivateDescription == Util.GetStringId(46294982, 1)
+                || ActivateDescription == Util.GetStringId(61307542, 1)
+                || ActivateDescription == Util.GetStringId(63101468, 1)
+                || ActivateDescription == Util.GetStringId(73667937, 1)
+                || ActivateDescription == Util.GetStringId(81055000, 1)
+                || ActivateDescription == Util.GetStringId(83533296, 1)
+                || ActivateDescription == Util.GetStringId(87188910, 1)
+                || ActivateDescription == Util.GetStringId(90579153, 1)
+                || ActivateDescription == Util.GetStringId(95207988, 1)
+                || ActivateDescription == Util.GetStringId(5973663, 1)
+                || ActivateDescription == Util.GetStringId(11132674, 2)
+                || ActivateDescription == Util.GetStringId(28798938, 2)
+                || ActivateDescription == Util.GetStringId(30989084, 2)
+                || ActivateDescription == Util.GetStringId(37495766, 2)
+                || ActivateDescription == Util.GetStringId(91336701, 2)
+                || ActivateDescription == Util.GetStringId(73734821, 3)
                 || (card.Id == 13073850 && card.Location == CardLocation.MonsterZone)
                 || (card.Id == 15130912 && card.Location == CardLocation.MonsterZone)
                 || (card.Id == 35187185 && card.Location == CardLocation.MonsterZone)
@@ -512,12 +530,12 @@ namespace WindBot.Game.AI.Decks
             {
                 if (card.Id == cardname) return true;
             }
-            if ((card.Id == 47728740 && ActivateDescription == Util.GetStringId(47728740, 1))
-                || (card.Id == 67037924 && ActivateDescription == Util.GetStringId(67037924, 0))
-                || (card.Id == 74003290 && ActivateDescription == Util.GetStringId(74003290, 0))
-                || (card.Id == 91706817 && ActivateDescription == Util.GetStringId(91706817, 0))
-                || (card.Id == 75147529 && ActivateDescription == Util.GetStringId(75147529, 0))
-                || (card.Id == 53184342 && ActivateDescription == Util.GetStringId(53184342, 1))
+            if (ActivateDescription == Util.GetStringId(47728740, 1)
+                || ActivateDescription == Util.GetStringId(67037924, 0)
+                || ActivateDescription == Util.GetStringId(74003290, 0)
+                || ActivateDescription == Util.GetStringId(91706817, 0)
+                || ActivateDescription == Util.GetStringId(75147529, 0)
+                || ActivateDescription == Util.GetStringId(53184342, 1)
                 || (card.Id == 21250202 && card.Location == CardLocation.MonsterZone)
                 || (card.Id == 93713837 && card.Location == CardLocation.MonsterZone)
                 || (card.Id == 50275295 && card.Location == CardLocation.SpellZone)
@@ -534,6 +552,20 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
+        private bool HintFunction(int hint, int last, int[] except)	
+        {	
+            for (int i = 500; i <= 500 + last; i++)	
+            {	
+                foreach (int ex in except)	
+                {	
+                    if (i == ex)	
+                        i++;	
+                }	
+                if (hint == i)	
+                    return true;	
+            }	
+            return false;	
+        }
         private bool EnemyCardTargetMonster(ClientCard card)
         {
             int[] cardsname = new[] {4335645, 7089711, 7852509, 7852510, 21947653, 25847467, 37580756, 41440817, 51945556, 52824910, 94192409, 85034450, 79759861, 74131780, 72427512
@@ -542,18 +574,16 @@ namespace WindBot.Game.AI.Decks
             {
                 if (card.Id == cardname) return true;
             }
-            if ((card.Id == 20281581 && ActivateDescription == Util.GetStringId(20281581, 1))
-                || (card.Id == 10000010 && ActivateDescription == Util.GetStringId(10000010, 1))
-                || (card.Id == 10000011 && ActivateDescription == Util.GetStringId(10000010, 1))
-                || (card.Id == 10000012 && ActivateDescription == Util.GetStringId(10000010, 1))
-                || (card.Id == 95486586 && ActivateDescription == Util.GetStringId(95486586, 1))
-                || (card.Id == 91907707 && ActivateDescription == Util.GetStringId(91907707, 1))
-                || (card.Id == 72989439 && ActivateDescription == Util.GetStringId(72989439, 1))
-                || (card.Id == 72329844 && ActivateDescription == Util.GetStringId(72329844, 1))
-                || (card.Id == 57031794 && ActivateDescription == Util.GetStringId(57031794, 0))
-                || (card.Id == 52038272 && ActivateDescription == Util.GetStringId(52038272, 0))
-                || (card.Id == 19025379 && ActivateDescription == Util.GetStringId(19025379, 0))
-                || (card.Id == 35125879 && ActivateDescription == Util.GetStringId(35125879, 2))
+            if (ActivateDescription == Util.GetStringId(20281581, 1)
+                || ActivateDescription == Util.GetStringId(10000010, 1)
+                || ActivateDescription == Util.GetStringId(95486586, 1)
+                || ActivateDescription == Util.GetStringId(91907707, 1)
+                || ActivateDescription == Util.GetStringId(72989439, 1)
+                || ActivateDescription == Util.GetStringId(72329844, 1)
+                || ActivateDescription == Util.GetStringId(57031794, 0)
+                || ActivateDescription == Util.GetStringId(52038272, 0)
+                || ActivateDescription == Util.GetStringId(19025379, 0)
+                || ActivateDescription == Util.GetStringId(35125879, 2)
                 || (card.Id == 30328508 && card.Location == CardLocation.MonsterZone)
                 || (card.Id == 7459919 && card.Location == CardLocation.MonsterZone)
                 || (card.Id == 7574904 && card.Location == CardLocation.MonsterZone)
@@ -571,31 +601,30 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
-        private bool EnemyCardUnTarge(ClientCard card)
+        private bool EnemyCardUnTarget(ClientCard card)
         {
             int[] cardsname = new[] {41685633, 17494901, 32180819, 44009443, 44424095, 50501121, 52875873, 58873391, 62188962, 66789970, 76203291
-            , 85893201
+            , 85893201, 70636044
             };
             foreach(int cardname in cardsname)
             {
                 if (card.Id == cardname) return true;
             }
-            if ((card.Id == 75775867 && ActivateDescription == Util.GetStringId(75775867, 0))
-                || (card.Id == 77656797 && ActivateDescription == Util.GetStringId(77656797, 0))
-                || (card.Id == 51316684 && ActivateDescription == Util.GetStringId(51316684, 0))
-                || (card.Id == 83550869 && ActivateDescription == Util.GetStringId(83550869, 0))
-                || (card.Id == 99726621 && ActivateDescription == Util.GetStringId(99726621, 0))
-                || (card.Id == 20665527 && ActivateDescription == Util.GetStringId(20665527, 1))
-                || (card.Id == 24070330 && ActivateDescription == Util.GetStringId(24070330, 1))
-                || (card.Id == 40221691 && ActivateDescription == Util.GetStringId(40221691, 1))
-                || (card.Id == 84425220 && ActivateDescription == Util.GetStringId(84425220, 1))
-                || (card.Id == 34446231 && ActivateDescription == Util.GetStringId(34446231, 1))
-                || (card.Id == 70636044 && ActivateDescription == Util.GetStringId(70636044, 2))
-                || (card.Id == 92650749 && ActivateDescription == Util.GetStringId(92650749, 3))
-                || (card.Id == 50687050 && ActivateDescription == Util.GetStringId(50687050, 4))
+            if (ActivateDescription == Util.GetStringId(75775867, 0)
+                || ActivateDescription == Util.GetStringId(77656797, 0)
+                || ActivateDescription == Util.GetStringId(51316684, 0)
+                || ActivateDescription == Util.GetStringId(83550869, 0)
+                || ActivateDescription == Util.GetStringId(99726621, 0)
+                || ActivateDescription == Util.GetStringId(20665527, 1)
+                || ActivateDescription == Util.GetStringId(24070330, 1)
+                || ActivateDescription == Util.GetStringId(40221691, 1)
+                || ActivateDescription == Util.GetStringId(84425220, 1)
+                || ActivateDescription == Util.GetStringId(34446231, 1)
+                || ActivateDescription == Util.GetStringId(92650749, 3)
+                || ActivateDescription == Util.GetStringId(50687050, 4)
                 || (card.Id == 84941194 && card.Location == CardLocation.MonsterZone)
                 || (card.Id == 99307040 && card.Location == CardLocation.MonsterZone)
-                || (card.Id == 99414629 && !card.Location == CardLocation.Grave)
+                || (card.Id == 99414629 && card.Location != CardLocation.Grave)
                 || (card.Id == 42620460 && card.Location == CardLocation.Grave)
                 || (card.Id == 86509711 && card.Location == CardLocation.Grave)
             )
@@ -614,9 +643,9 @@ namespace WindBot.Game.AI.Decks
             }
             if ((card.Id == 44146295 && card.Location == CardLocation.MonsterZone)
                 || (card.Id == 26655293 && card.Location == CardLocation.MonsterZone)
-                || (card.Id == 66947913 && !card.Location == CardLocation.Hand)
-                || card.Id == 67725394 && ActivateDescription == Util.GetStringId(67725394, 2)
-                || card.Id == 83414006 && ActivateDescription == Util.GetStringId(83414006, 2)
+                || (card.Id == 66947913 && card.Location != CardLocation.Hand)
+                || ActivateDescription == Util.GetStringId(67725394, 2)
+                || ActivateDescription == Util.GetStringId(83414006, 2)
             )
                 return true;
             return false;
@@ -635,18 +664,82 @@ namespace WindBot.Game.AI.Decks
             return res;
         }
 
-        private bool HintFunction(int hint, int last, int[] except)
+        private bool IsAvailableZone(int seq, ClientCard lcard)
         {
-            for (int i = 500; i <= 500 + last; i++)
+            ClientCard card = Bot.MonsterZone[seq];
+            if (seq == 5 && Bot.MonsterZone[6] != null && Bot.MonsterZone[6].Controller == 0) return false;
+            if (seq == 6 && Bot.MonsterZone[5] != null && Bot.MonsterZone[5].Controller == 0) return false;
+            if (card == null) return true;
+            if (card.Controller != 0) return false;
+            if (card.IsFacedown()) return false;
+            if ((card.HasType(CardType.Fusion) && card.Level >= 7)
+            || (card.HasType(CardType.Synchro) && (card.Level >= 7 || card.Id == 2956282 || card.Id == 33198837 || card.Id == 43932460 || card.Id == 29981921))
+            || card.HasType(CardType.Xyz)
+            || card.LinkCount >= lcard.LinkCount
+            )
+                return false;
+            return true;
+        }
+        private bool IsAvailableLinkZone(ClientCard lcard)
+        {
+            int zones = 0;
+            List<ClientCard> cards = Bot.GetMonstersInMainZone().Where(card => card != null && card.IsFaceup()).ToList();
+            foreach (var card in cards)
             {
-                foreach (int ex in except)
-                {
-                    if (i == ex)
-                        i++;
-                }
-                if (hint == i)
-                    return true;
+                zones |= card.GetLinkedZones();
             }
+            ClientCard e_card = Bot.MonsterZone[5];
+            if (e_card != null && e_card.IsFaceup() && e_card.HasType(CardType.Link))
+            {
+                if (e_card.Controller == 0)
+                {
+                    if (e_card.HasLinkMarker(CardLinkMarker.BottomLeft))
+                        zones |= 1 << 0;
+                    if (e_card.HasLinkMarker(CardLinkMarker.Bottom))
+                        zones |= 1 << 1;
+                    if (e_card.HasLinkMarker(CardLinkMarker.BottomRight))
+                        zones |= 1 << 2;
+                }
+                if (e_card.Controller == 1)
+                {
+                    if (e_card.HasLinkMarker(CardLinkMarker.TopLeft))
+                        zones |= 1 << 2;
+                    if (e_card.HasLinkMarker(CardLinkMarker.Top))
+                        zones |= 1 << 1;
+                    if (e_card.HasLinkMarker(CardLinkMarker.TopRight))
+                        zones |= 1 << 0;
+                }
+            }
+            e_card = Bot.MonsterZone[6];
+            if (e_card != null && e_card.IsFaceup() && e_card.HasType(CardType.Link))
+            {
+                if (e_card.Controller == 0)
+                {
+                    if (e_card.HasLinkMarker(CardLinkMarker.BottomLeft))
+                        zones |= 1 << 2;
+                    if (e_card.HasLinkMarker(CardLinkMarker.Bottom))
+                        zones |= 1 << 3;
+                    if (e_card.HasLinkMarker(CardLinkMarker.BottomRight))
+                        zones |= 1 << 4;
+                }
+                if (e_card.Controller == 1)
+                {
+                    if (e_card.HasLinkMarker(CardLinkMarker.TopLeft))
+                        zones |= 1 << 4;
+                    if (e_card.HasLinkMarker(CardLinkMarker.Top))
+                        zones |= 1 << 3;
+                    if (e_card.HasLinkMarker(CardLinkMarker.TopRight))
+                        zones |= 1 << 2;
+                }
+            }
+            zones &= 0x7f;
+            if ((zones & Zones.z0) > 0 && IsAvailableZone(0, lcard)) return true;
+            if ((zones & Zones.z1) > 0 && IsAvailableZone(1, lcard)) return true;
+            if ((zones & Zones.z2) > 0 && IsAvailableZone(2, lcard)) return true;
+            if ((zones & Zones.z3) > 0 && IsAvailableZone(3, lcard)) return true;
+            if ((zones & Zones.z4) > 0 && IsAvailableZone(4, lcard)) return true;
+            if (IsAvailableZone(5, lcard)) return true;
+            if (IsAvailableZone(6, lcard)) return true;
             return false;
         }
 
@@ -1004,6 +1097,14 @@ namespace WindBot.Game.AI.Decks
                 p_summoning = true;
                 return cards.Count() > 0;
             }
+            if (Card.HasType(CardType.Link))
+            {
+                List<ClientCard> cards = GetZoneCards(CardLocation.MonsterZone, Bot).Where(card => card != null && NotLinkMaterialCard(card, Card)).ToList();
+                if (cards.Count() < Card.LinkCount) return false;
+                if (Card.Id == 98127549)
+                    return false;
+                return true;
+            }
             return true;
         }
 
@@ -1033,23 +1134,84 @@ namespace WindBot.Game.AI.Decks
                 if (scards.Count > 0) return Util.CheckSelectCount(result, scards, 1, 1);
                 else if (min == 0) return result;
             }
-            if (HintFunction(hint, 13, new[]{506}) && !cards.Any(card => card != null && card.Controller == 1) && cards.Any(card => card != null && card.Location == CardLocation.Hand))
+            
+            if (hint == 533 && Card.HasType(CardType.Link) && Card.Location == CardLocation.Extra)
             {
-                IList<ClientCard> scards = cards.Where(card => card != null && (!card.HasSetcode(0x40) || card.Location != CardLocation.Hand)).ToList();
-                if (scards.Count() < min)
+                IList<ClientCard> lcards = cards.Where(card => NotLinkMaterialCard(card, Card)).ToList();
+                IList<ClientCard> lcards1 = new List<ClientCard>();
+                IList<ClientCard> lcards2 = new List<ClientCard>();
+                IList<ClientCard> scards = new List<ClientCard>();
+                if (Card.LinkCount > 4)
                 {
-                    IList<ClientCard> scards2 = cards.Where(card => card != null && card.HasSetcode(0x40) && card.Location == CardLocation.Hand).ToList();
-                    if (scards2.Count() > 0)
+                    lcards1 = lcards.Where(card => card.LinkCount == 2).ToList();
+                    lcards2 = lcards.Where(card => card.LinkCount < 2 || card.LinkCount == 0).ToList();
+                    if (lcards1.Count() > 0)
                     {
-                        foreach (ClientCard card in scards2)
+                        foreach (ClientCard card in lcards1)
                         {
-                            if (scards.Count() < min)
-                                scards.Add(card);
+                            if (scards.Count() >= Card.LinkCount) break;
+                            scards.Add(card);
+                        }
+                    }
+                    if (lcards2.Count() > 0)
+                    {
+                        foreach (ClientCard card in lcards1)
+                        {
+                            if (scards.Count() >= Card.LinkCount) break;
+                            scards.Add(card);
                         }
                     }
                 }
-                if (scards.Count() >= min)
-                    return Util.CheckSelectCount(scards,cards,min,max);
+                else if (Card.LinkCount > 2)
+                {
+                    int a = 0;
+                    lcards1 = lcards.Where(card => card.LinkCount == 3).ToList();
+                    lcards2 = lcards.Where(card => card.LinkCount < 2 || card.LinkCount == 0).ToList();
+                    if (lcards1.Count() == 0)
+                        lcards1 = lcards.Where(card => card.LinkCount == 2).ToList();
+                    if (lcards2.Count() == 0 && lcards1.Any(card => card.LinkCount == 3))
+                        lcards2 = lcards.Where(card => card.LinkCount == 2).ToList();
+                    if (lcards1.Count() > 0)
+                    {
+                        foreach (ClientCard card in lcards1)
+                        {
+                            if (scards.Count() >= Card.LinkCount) break;
+                            scards.Add(card);
+                            if (lcards2.Count() > 0 && a == 0)
+                            {
+                                a++;
+                                foreach (ClientCard card2 in lcards2)
+                                {
+                                    if (scards.Count() >= Card.LinkCount) break;
+                                    scards.Add(card2);
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                    scards = lcards;
+
+                return Util.CheckSelectCount(scards,cards,min,min);
+            }
+
+            if (HintFunction(hint, 13, new[]{506}) && !cards.Any(card => card != null && card.Controller == 1) && cards.Any(card => card != null && card.Location == CardLocation.Hand))	
+            {	
+                IList<ClientCard> scards = cards.Where(card => card != null && (!card.HasSetcode(0x40) || card.Location != CardLocation.Hand)).ToList();	
+                if (scards.Count() < min)	
+                {	
+                    IList<ClientCard> scards2 = cards.Where(card => card != null && card.HasSetcode(0x40) && card.Location == CardLocation.Hand).ToList();	
+                    if (scards2.Count() > 0)	
+                    {	
+                        foreach (ClientCard card in scards2)	
+                        {	
+                            if (scards.Count() < min)	
+                                scards.Add(card);	
+                        }	
+                    }	
+                }	
+                if (scards.Count() >= min)	
+                    return Util.CheckSelectCount(scards,cards,min,max);	
             }
 
             if (HintMsgForEnemy.Contains(hint))
