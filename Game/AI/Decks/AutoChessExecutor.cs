@@ -282,6 +282,8 @@ namespace WindBot.Game.AI.Decks
 
         private bool OtherActivate(ClientCard card)
         {
+            if (card.Id == 84815190 && ActivateDescription != Util.GetStringId(84815190, 0) && ActivateDescription != Util.GetStringId(84815190, 1))
+                return true;
             if ((card.HasType(CardType.Pendulum) && card.Location == CardLocation.Hand && ActivateDescription == 1160)
                 || (card.HasType(CardType.Equip) && card.Location == CardLocation.Hand)
                 || (card.Id == 43527730 && card.Location == CardLocation.SpellZone)
