@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using WindBot.Game.AI;
 using YGOSharp.Network;
 using YGOSharp.Network.Enums;
@@ -284,6 +285,7 @@ namespace WindBot.Game
         
         private void OnDuelEnd(BinaryReader packet)
         {
+            Thread.Sleep(500);
             Connection.Close();
         }
 
@@ -376,15 +378,10 @@ namespace WindBot.Game
             _duel.Fields[GetLocalPlayer(1)].Init(deck, extra);
 
             // in case of ending duel in chain's solving
-            _duel.LastChainPlayer = -1;
-            _duel.LastChainLocation = 0;
             _duel.CurrentChain.Clear();
             _duel.ChainTargets.Clear();
-            _duel.LastChainTargets.Clear();
             _duel.ChainTargetOnly.Clear();
-            _duel.LastSummonPlayer = -1;
             _duel.SummoningCards.Clear();
-            _duel.LastSummonedCards.Clear();
             _duel.SolvingChainIndex = 0;
             _duel.NegatedChainIndexList.Clear();
 
@@ -615,6 +612,10 @@ namespace WindBot.Game
             packet.ReadInt32(); // reason
 
             ClientCard card = _duel.GetCard(previousControler, (CardLocation)previousLocation, previousSequence);
+            if (card != null)
+            {
+                card.LastLocation = (CardLocation)previousLocation;
+            }
             if ((previousLocation & (int)CardLocation.Overlay) != 0)
             {
                 previousLocation = previousLocation & 0x7f;
@@ -803,6 +804,7 @@ namespace WindBot.Game
             _duel.ChainTargetOnly.Clear();
             _duel.SolvingChainIndex = 0;
             _duel.NegatedChainIndexList.Clear();
+            _duel.SummoningCards.Clear();
         }
 
         private void OnCardSorting(BinaryReader packet)
