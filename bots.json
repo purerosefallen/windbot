@@ -1,290 +1,254 @@
 {
     "windbots": [
       {
-        "name": "琪露诺",
+        "name": "伊芙·墨菲",
         "deck": "Toadally Awesome",
-        "dialog": "cirno.zh-CN"
+        "dialog": "wof-Eve-Murphy"
       },
       {
-        "name": "琪露诺",
-        "deck": "Toadally Awesome",
-        "dialog": "cirno.zh-CN"
+        "name": "梦前菜菜",
+        "deck": "Rainbow",
+        "dialog": "wof-Yumesaki-Nana"
       },
       {
-        "name": "谜之剑士LV4",
+        "name": "石砂原奈绪",
         "deck": "Dragunity",
-        "dialog": "swordsman.zh-CN"
+        "dialog": "wof-Isagohara-Nao"
       },
       {
-        "name": "谜之剑士LV4",
+        "name": "鸣野凪子",
         "deck": "Rank V",
-        "dialog": "swordsman.zh-CN"
+        "dialog": "wof-Shigino-Nagiko"
       },
       {
-        "name": "谜之剑士LV4",
+        "name": "绫濑亚梦",
         "deck": "Zexal Weapons",
-        "dialog": "swordsman.zh-CN"
+        "dialog": "wof-Ayase-Amu"
       },
       {
-        "name": "谜之剑士LV4",
+        "name": "埃莉丝·科菲",
         "deck": "Level VIII",
-        "dialog": "swordsman.zh-CN"
+        "dialog": "wof-Elyse-Coffey"
       },
       {
-        "name": "我太帅了",
-        "deck": "Dragun",
-        "dialog": "smart.zh-CN"
-      },
-      {
-        "name": "我太帅了",
-        "deck": "Brave",
-        "dialog": "smart.zh-CN"
-      },
-      {
-        "name": "玻璃女巫",
-        "deck": "Witchcraft",
-        "dialog": "verre.zh-CN"
-      },
-      {
-        "name": "玻璃女巫",
-        "deck": "Exosister",
-        "dialog": "verre.zh-CN"
-      },
-      {
-        "name": "复制植物",
-        "deck": "Blue-Eyes",
-        "dialog": "copy.zh-CN"
-      },
-      {
-        "name": "复制植物",
+        "name": "城崎千夏",
         "deck": "Zoodiac",
-        "dialog": "copy.zh-CN"
+        "dialog": "wof-Jougasaki-Chinatsu"
       },
       {
-        "name": "复制植物",
+        "name": "下垣鸣海凛央奈",
         "deck": "Blue-Eyes",
-        "dialog": "copy.zh-CN"
+        "dialog": "wof-Shimogakinarumi-Riona"
       },
       {
-        "name": "尼亚",
+        "name": "鹭泽由依",
         "deck": "Yosenju",
-        "dialog": "near.zh-CN"
+        "dialog": "wof-Sagisawa-Yui"
       },
       {
-        "name": "尼亚",
+        "name": "十十六木花奏子",
         "deck": "Qliphort",
-        "dialog": "near.zh-CN"
+        "dialog": "wof-Todoroki-Kanako"
       },
       {
-        "name": "尼亚",
+        "name": "七草一花",
         "deck": "Trickstar",
-        "dialog": "near.zh-CN"
+        "dialog": "wof-Nanakusa-Ichika"
       },
       {
-        "name": "尼亚",
+        "name": "凯瑟琳·罗森塔尔",
         "deck": "Altergeist",
-        "dialog": "near.zh-CN"
+        "dialog": "wof-Catherine-Rosenthal"
       },
       {
-        "name": "尼亚",
-        "deck": "Labrynth",
-        "dialog": "near.zh-CN"
-      },
-      {
-        "name": "千奈",
+        "name": "白石唯",
         "deck": "Nekroz",
-        "dialog": "sennai.zh-CN"
+        "dialog": "wof-Shiraishi-Yui"
       },
       {
-        "name": "千奈",
+        "name": "水晶艾蕾娜",
         "deck": "ST1732",
-        "dialog": "sennai.zh-CN"
+        "dialog": "wof-Suisho-Erena"
       },
       {
-        "name": "千奈",
+        "name": "音羽真寻",
         "deck": "Lightsworn",
-        "dialog": "sennai.zh-CN"
+        "dialog": "wof-Otoha-Mahiro"
       },
       {
-        "name": "弥音",
+        "name": "神崎春瑚",
         "deck": "Blackwing",
-        "dialog": "meon.zh-CN"
+        "dialog": "wof-Kanzaki-Haruko"
       },
       {
-        "name": "弥音",
+        "name": "樱庭小梅",
         "deck": "CyberDragon",
-        "dialog": "meon.zh-CN"
+        "dialog": "wof-Sakuraba-Koume"
       },
       {
-        "name": "弥音",
+        "name": "淡野美妙子",
         "deck": "Evilswarm",
-        "dialog": "meon.zh-CN"
+        "dialog": "wof-Awaya-Mieko"
       },
       {
-        "name": "早苗",
+        "name": "璃池樱空",
         "deck": "Gravekeeper",
-        "dialog": "sanae.zh-CN"
+        "dialog": "wof-Akiike-Sara"
       },
       {
-        "name": "早苗",
+        "name": "月白五十铃",
         "deck": "Graydle",
-        "dialog": "sanae.zh-CN"
+        "dialog": "wof-Tsukishiro-Isuzu"
       },
       {
-        "name": "早苗",
+        "name": "晴海夏佳",
         "deck": "OldSchool",
-        "dialog": "sanae.zh-CN"
+        "dialog": "wof-Harumi-Natsuka"
       },
       {
-        "name": "彩音",
-        "deck": "SkyStriker",
-        "dialog": "ayane.zh-CN"
-      },
-      {
-        "name": "彩音",
-        "deck": "DarkMagician",
-        "dialog": "ayane.zh-CN"
-      },
-      {
-        "name": "朱露咲浅羽",
-        "deck": "Orcust",
-        "dialog": "nlch.zh-CN"
-      },
-      {
-        "name": "朱露咲浅羽",
-        "deck": "Salamangreat",
-        "dialog": "nlch.zh-CN"
-      },
-      {
-        "name": "朱露咲浅羽",
-        "deck": "Dragun",
-        "dialog": "nlch.zh-CN"
-      },
-      {
-        "name": "兔明",
-        "deck": "MathMech",
-        "dialog": "zh-CN"
-      },
-      {
-        "name": "兔明",
-        "deck": "TimeThief",
-        "dialog": "zh-CN"
-      },
-      {
-        "name": "兔明",
-        "deck": "PureWinds",
-        "dialog": "zh-CN"
-      },
-      {
-        "name": "姬城碧海",
-        "deck": "Witchcraft",
-        "dialog": "zh-CN"
-      },
-      {
-        "name": "永远之魂",
-        "deck": "Burn",
-        "dialog": "soul.zh-CN",
-        "hidden": true
-      },
-      {
-        "name": "永远之魂",
-        "deck": "Frog",
-        "dialog": "soul.zh-CN",
-        "hidden": true
-      },
-      {
-        "name": "永远之魂",
-        "deck": "Horus",
-        "dialog": "soul.zh-CN",
-        "hidden": true
-      },
-      {
-        "name": "MAX龍果",
-        "deck": "BlueEyesMaxDragon",
-        "dialog": "kiwi.zh-TW"
-      },
-      {
-        "name": "MAX龍果",
-        "deck": "BlueEyesMaxDragon",
-        "dialog": "kiwi.zh-TW"
-      },
-      {
-        "name": "幻煌果",
-        "deck": "Phantasm",
-        "dialog": "kiwi.zh-TW"
-      },
-      {
-        "name": "報社鬥士",
-        "deck": "GrenMajuThunderBoarder",
-        "dialog": "kiwi.zh-TW",
-        "hidden": true
-      },
-      {
-        "name": "燃血鬥士",
-        "deck": "ChainBurn",
-        "dialog": "kiwi.zh-TW",
-        "hidden": true
-      },
-      {
-        "name": "源千雪",
-        "deck": "FamiliarPossessed",
-        "dialog": "default"
-      },
-      {
-        "name": "璃璃子",
-        "deck": "TimeThief",
-        "dialog": "default"
+        "name": "晴海夏佳",
+        "deck": "LightswornShaddoldinosour",
+        "dialog": "wof-Harumi-Natsuka"
       },
       {
         "name": "濑名歌铃",
-        "deck": "Brave",
+        "deck": "SkyStriker",
         "dialog": "wof-Sena-Karin"
       },
       {
-        "name": "神数不神",
+        "name": "椎名咪玉",
+        "deck": "DarkMagician",
+        "dialog": "wof-Shiina-Miu"
+      },
+      {
+        "name": "薇薇安·伊文捷琳",
+        "deck": "Orcust",
+        "dialog": "wof-Vivian-Evangeline"
+      },
+      {
+        "name": "海伦·薇萨拉兹",
+        "deck": "Salamangreat",
+        "dialog": "wof-Helen-Virsaladze"
+      },
+      {
+        "name": "蓝叶雾叶",
+        "deck": "Dragun",
+        "dialog": "wof-Aiha-Kiriha"
+      },
+      {
+        "name": "诺玛·林斯科特",
+        "deck": "MathMech",
+        "dialog": "wof-Norma-Linscott"
+      },
+      {
+        "name": "砂冢明音",
+        "deck": "TimeThief",
+        "dialog": "wof-Sunazuka-Akane"
+      },
+      {
+        "name": "早见虹羽",
+        "deck": "PureWinds",
+        "dialog": "wof-Hayami-Nijiha"
+      },
+      {
+        "name": "白雪安娜",
+        "deck": "Witchcraft",
+        "dialog": "wof-Shirayuki-Anna"
+      },
+      {
+        "name": "星希花音",
+        "deck": "Burn",
+        "dialog": "wof-Hoshiki-Kanon"
+      },
+      {
+        "name": "浅见空子",
+        "deck": "Frog",
+        "dialog": "wof-Asami-Sorako"
+      },
+      {
+        "name": "佐佐木茜",
+        "deck": "Horus",
+        "dialog": "wof-Sasaki-Akane"
+      },
+      {
+        "name": "克里斯汀·罗森塔尔",
+        "deck": "BlueEyesMaxDragon",
+        "dialog": "wof-Christine-Rosenthal"
+      },
+      {
+        "name": "白鸟芽衣",
+        "deck": "Phantasm",
+        "dialog": "wof-Shiratori-Mei"
+      },
+      {
+        "name": "八宫一月",
+        "deck": "GrenMajuThunderBoarder",
+        "dialog": "wof-Hachimiya-Kaduki"
+      },
+      {
+        "name": "浅仓纱花",
+        "deck": "ChainBurn",
+        "dialog": "wof-Asukura-Sayaka"
+      },
+      {
+        "name": "黑崎智秋",
+        "deck": "FamiliarPossessed",
+        "dialog": "wof-Kurosaki-Chiaki"
+      },
+      {
+        "name": "神代心春",
+        "deck": "Brave",
+        "dialog": "wof-Kamishiro-Koharu"
+      },
+      {
+        "name": "玻名城夏爱",
+        "deck": "Exosister",
+        "dialog": "wof-Hanagusuku-Kea"
+      },
+      {
+        "name": "珠洲岛拓海",
+        "deck": "Labrynth",
+        "dialog": "wof-Suzujima-Takumi"
+      },
+      {
+        "name": "空鸽子",
         "deck": "ThunderDragon",
-        "dialog": "Zefra.zh-CN",
-        "hidden": true
+        "dialog": "wof-Empty-Pigeon"
       },
       {
-        "name": "神数不神",
+        "name": "朝比奈千夜",
         "deck": "Kashtira",
-        "dialog": "Zefra.zh-CN"
+        "dialog": "wof-Asabina-Chiya"
       },
       {
-        "name": "神数不神",
+        "name": "露卡希娅",
         "deck": "Tearlaments",
-        "dialog": "Zefra.zh-CN"
+        "dialog": "wof-Rukahira"
       },
       {
-        "name": "神数不神",
+        "name": "二宫爱丽丝",
         "deck": "Zefra",
-        "dialog": "Zefra.zh-CN"
+        "dialog": "wof-Ninomiya-Arisu"
       },
       {
-        "name": "艾克莉西娅",
+        "name": "时谷彼方",
         "deck": "Swordsoul",
-        "dialog": "ecclesia.zh-CN"
+        "dialog": "wof-Tokitani-Kanata"
       },
       {
-        "name": "艾克莉西娅",
+        "name": "三水小雪",
         "deck": "Dogmatika",
-        "dialog": "ecclesia.zh-CN"
+        "dialog": "wof-Samisui-Koyuki"
       },
       {
-        "name": "今晚有宵夜吗",
-        "deck": "SuperheavySamurai",
-        "dialog": "superheavysamurai.zh-CN"
+        "name": "有栖川蓝子",
+        "deck": "MokeyMokeyKing",
+        "dialog": "wof-Arisugawa-Aiko"
       },
       {
-        "name": "今晚有宵夜吗",
+        "name": "宫水静香",
         "deck": "SuperheavySamurai",
-        "dialog": "superheavysamurai.zh-CN"
-      },
-      {
-        "name": "今晚有宵夜吗",
-        "deck": "SuperheavySamurai",
-        "dialog": "superheavysamurai.zh-CN"
+        "dialog": "wof-Miyamizu-Shizuka"
       }
     ]
 }
