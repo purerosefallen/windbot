@@ -15,12 +15,12 @@ namespace WindBot.Game.AI.Decks
             : base(ai, duel)
         {
 
+            AddExecutor(ExecutorType.Activate, SelectOnfieldCardActivateFunction);
+            AddExecutor(ExecutorType.Activate, ActivateFunction);
             AddExecutor(ExecutorType.SpSummon, SPSummonFunction); 
             AddExecutor(ExecutorType.Activate, PendulumActivateFunction);
             AddExecutor(ExecutorType.Activate, EquipEffectActivateFunction);
             AddExecutor(ExecutorType.Activate, EquipActivateFunction);
-            AddExecutor(ExecutorType.Activate, SelectOnfieldCardActivateFunction);
-            AddExecutor(ExecutorType.Activate, ActivateFunction);
 
             AddExecutor(ExecutorType.Summon, MonsterSummon);
             AddExecutor(ExecutorType.MonsterSet, MonsterSet);
@@ -97,7 +97,6 @@ namespace WindBot.Game.AI.Decks
         };
 
         private bool p_summoning = false;
-
         /*
         函数目录    Function Catalogue
             卡片过滤函数
@@ -114,7 +113,9 @@ namespace WindBot.Game.AI.Decks
                 发动检测
                     OtherActivate(ClientCard card)
                 素材检测
-                    NotLinkMaterialCard(ClientCard card)
+                    IsLinkMaterialCard(ClientCard card)
+                    不能作为link素材的卡
+                    NotLinkMaterialsCard(ClientCard card)
                 卡片选择检测
                     “以场上1张表侧表示的魔法卡为对象”的记述相关卡
                         EnemyCardTargetSpellFaceUp(ClientCard card)
@@ -177,6 +178,14 @@ namespace WindBot.Game.AI.Decks
                     OnSelectAttackTarget(ClientCard attacker, IList<ClientCard> defenders)
         */
 
+        private bool NotLinkMaterialsCard(ClientCard card)//不能作为link素材的怪
+        {
+            int[] NotLinkMaterials_ = { 146746/*钩舌*/,2220237/*安全守卫者*/,17217034,26692769,28168628,33918636,
+                36768783,57282724,59900656,66023650,71095768,72330894};
+            int[] NotLinkMaterialsThisTurn = {3507053,4729591,23656668, 27381364, 30118200,
+                40216089, 71607202,72329844,77102944,81769387,82184400,83152482/*同盟运输车*/,85243785/*连接十字的token*/};//当回合不能作为link素材的怪（反正是先单列了，之后能处理再说）
+            return NotLinkMaterials_.Any(ID => ID == card.Id) || NotLinkMaterialsThisTurn.Any(ID => ID == card.Id);
+        }
         private bool BlackmailAttackerSunmmon(ClientCard card)
         {
             int[] cardsname = new[] {34031284, 35494087, 54366836, 94004268, 97403510, 59627393, 93730230, 69058960, 95442074, 24874631};
@@ -282,6 +291,8 @@ namespace WindBot.Game.AI.Decks
 
         private bool OtherActivate(ClientCard card)
         {
+            if (card.Id == 84815190 && ActivateDescription != Util.GetStringId(84815190, 0) && ActivateDescription != Util.GetStringId(84815190, 1))
+                return true;
             if ((card.HasType(CardType.Pendulum) && card.Location == CardLocation.Hand && ActivateDescription == 1160)
                 || (card.HasType(CardType.Equip) && card.Location == CardLocation.Hand)
                 || (card.Id == 43527730 && card.Location == CardLocation.SpellZone)
@@ -303,17 +314,33 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
-        private bool NotLinkMaterialCard(ClientCard card, ClientCard lcard)
+        private bool IsLinkMaterialCard(ClientCard card, ClientCard lcard)
         {
             if (card.IsFacedown() || !IsAvailableLinkZone(lcard))
                 return false;
 
             if ((card.HasType(CardType.Fusion) && card.Level >= 7)
             || (card.HasType(CardType.Synchro) && (card.Level >= 7 || card.Id == 2956282 || card.Id == 33198837 || card.Id == 43932460 || card.Id == 29981921))
-            || card.HasType(CardType.Xyz)
             || card.LinkCount >= lcard.LinkCount
             )
                 return false;
+            if (NotLinkMaterialsCard(card))//不能成link素材不要啦
+                return false;
+            int[] XyzHasEffectWithoutMaterials = { 2609443/*先史遗产 维摩那*/,6165656/*混沌No.88 机关傀儡-灾厄狮子*/, 6387204/*混沌No.6 先史遗产 混沌大西洲巨人*/,
+            7020743/*怒小儿*/,8165596/*No.90 银河眼光子卿*/,8387138/*No.27 重型战舰-准无畏舰*/,9349094/*神树兽 许珀利冬*/,10406322/*森罗的守神 森精*/,
+            10443957/*电子龙·无限*/,10666000/*No.1 感染蝇王 巴力·西卜*/,10678778/*魔海城 埃该翁*/,11522979/*混沌No.69 纹章死神 沌徽*/,12744567/*混沌No.101 寂静荣誉暗黑骑士*/,
+            15862758/*混沌虚数No.1000 梦幻虚光神 原数天灵·原数天地*/,18897163/*DDD 超死伟王 黑地狱终末神*/,20248754/*海造贼-静寂之暗夜号*/,
+            20343502/*魔偶甜点教师·眼镜蛋奶酥*/,23848752/*英豪冠军 铁手套王*/,23998625/*No.53 伪骸神 心地心*/,26973555/*未来No.0 未来龙皇 霍普*/,65305468/*未来No.0 未来皇 霍普*/,
+            32453837/*No.2 蚊学忍者 影蚊*/,34001672/*百鬼罗刹 巨魁加邦加*/,42160203/*霸王眷龙 暗叛逆*/,45935145/*死祖之隶龙 沃洛*/,47017574/*混沌No.92 伪骸虚龙 心地心混沌龙*/,
+            48285768/*护宝炮妖欢乐制造机*/,48626373/*俱舍怒威族·阿莱斯哈特*/,49202331/*混沌超量 超巨大空中要塞 宝比伦号*/,51543904/*No.99 希望皇龙 霍普德拉古恩*/,
+            54191698/*No.29 招财猫人偶*/,55285840/*时间潜行者·表盘修复师*/,63767246/*No.38 希望魁龙 银河巨神*/,67557908/*No.4 猛毒刺胞 隐形水母怪*/,67630394/*重铠装-暗黑骑士枪兵*/,
+            68679595/*兽装合体 狮子霍普雷*/,71222868/*急袭猛禽-起翼叛逆猎鹰*/,73542331/*俱舍怒威族的香格里拉茧*/,75402014/*龙装合体 龙王霍普雷*/,81927732/*急袭猛禽-革命猎鹰*/,
+            90809975/*饼蛙*/,93039339/*灾厄之星 提·丰*/,95474755/*No.89 电脑兽 系统破坏神*/,86221741/*急袭猛禽-究极猎鹰*/};//没素材也有效果的超量怪（不是很肯定,有争议再修改）
+            if(card.HasType(CardType.Xyz))//没素材没效果就会做成link哦
+            {
+                if (card.Overlays.Count() > 0 || XyzHasEffectWithoutMaterials.Any(ID => card.Id == ID))
+                    return false;
+            }
             return true;
         }
 
@@ -1099,11 +1126,60 @@ namespace WindBot.Game.AI.Decks
             }
             if (Card.HasType(CardType.Link))
             {
-                List<ClientCard> cards = GetZoneCards(CardLocation.MonsterZone, Bot).Where(card => card != null && NotLinkMaterialCard(card, Card)).ToList();
-                if (cards.Count() < Card.LinkCount) return false;
-                if (Card.Id == 98127549)
-                    return false;
-                return true;
+                List<ClientCard> cards = GetZoneCards(CardLocation.MonsterZone, Bot).Where(card => card != null && IsLinkMaterialCard(card, Card)).ToList();
+                List<ClientCard> materials = new List<ClientCard>();
+                if (Card.Id == 98127549)//是可爱的冥神哒
+                {
+                    List<ClientCard> Enemycards= GetZoneCards(CardLocation.MonsterZone, Enemy).Where(card => card != null && !NotLinkMaterialsCard(card)).ToList();
+                        return ((Enemycards.Any(card => card.LinkCount == 2) || (cards.Any(card => card.LinkCount == 2) && Enemycards.Count()>0)) && cards.Count(card=>card.LinkCount<=2) > 2 || (cards.Count(card => card.LinkCount <= 2) >3 && Enemycards.Count() > 0));
+                        //如果我们场上有四个怪或者有link2，或者对面有link2就出冥神吧。
+                }
+                int[] Link4_1 = { 45112597 };//一只以上的素材link4
+                int[] Link4_2 = { 2411269, 2645637/*神弓*/,3134857,4280258,5043010,5821478,
+                    6908161,11516241,12081875,20665527,20934852,21887175,22593417,23530726,23790299,
+                    31313405,31833038,34446231,38030232,38030232,41302052,47910940,30286474,29479265,
+                    50546029,57134592,60025883,61470213,65330383,66403530,68295149,70875686,73345237,
+                    79266769,86066372,88000953,88406570,92770064,93672138,94207108,99726621};//两只以上的素材link4
+                int[] Link4_3 = { 47946130, 68987122, 74997493/*锁龙蛇*/ , 85289965/*刺刀*/ , 96113307 };//三只以上的素材link4
+                int[] Link3_2 = { 1487805,1861629,2772337 /*咎姬*/,3792766,5402805,5524387,6622715,13452889,13536606,17739335,
+                22510667,23935886,24151924,24487411,24882256,26692769,30010480,30163008,30194529,30822527,30989084,32617464,33897356,
+                36114945,38342335/*幻崩独角兽*/,38502358,40669071,41463181,44097050,44478599,45002991,45819647,46947713,48183890,48589580,
+                48736598,49105782,49725936,50750868,52331012,56741506,56818742,58036229,60279710,61245672,61665245,61665245,65285459,
+                66023650,67288539,67598234,70514456,72330894,72529749,72860663,76145142,77967790,78437364,82566662,84521924,84546257,
+                85216896,86750474,86926989,87054946,89238128,91140491,92812851,93084621,93503294,95372220,95493471,95515058};//2只以上的素材link3
+                if (Card.LinkCount==4)//link4的怪兽
+                {
+                    if (Link4_1.Any(ID => Card.Id == ID))//一只(用一个link4当素材）
+                    {
+                        List<ClientCard> Link4 = GetZoneCards(CardLocation.MonsterZone, Bot).Where(card => card != null && card.LinkCount==4 && IsAvailableLinkZone(card)).ToList();
+                        return (Link4.Count() > 0);
+                    }
+                    if (Link4_2.Any(ID => Card.Id == ID))//两只以上（用3+1或2+2当素材）
+                    {
+                        foreach (var card in cards) if (card.LinkCount < 4) materials.Add(card);
+                        return ((materials.Any(card => card.LinkCount == 3) && materials.Count() > 1) || materials.Count(card => card.LinkCount == 2) >= 2);
+                    }
+                    if (Link4_3.Any(ID => Card.Id == ID))//三只以上（用2+1+1当素材）
+                    {
+                        foreach (var card in cards) if (card.LinkCount < 3) materials.Add(card);
+                        return (materials.Any(card => card.LinkCount == 2) && materials.Count() > 2);
+                    }
+                }
+                if (Card.LinkCount == 3)//link3的怪兽
+                {
+                    if(Link3_2.Any(ID => Card.Id == ID))//两只以上（用2+1当素材）
+                    {
+                        foreach (var card in cards) if (card.LinkCount < 3) materials.Add(card);
+                        return ((materials.Any(card => card.LinkCount == 2) && materials.Count() > 1));
+
+                    }
+                }
+                if (Card.LinkCount == 2)//link2的怪兽
+                {
+                    foreach (var card in cards) if (card.LinkCount < 2) materials.Add(card);
+                    return (materials.Count()) > 0;
+                }
+                    return true;
             }
             return true;
         }
@@ -1137,14 +1213,58 @@ namespace WindBot.Game.AI.Decks
             
             if (hint == 533 && Card.HasType(CardType.Link) && Card.Location == CardLocation.Extra)
             {
-                IList<ClientCard> lcards = cards.Where(card => NotLinkMaterialCard(card, Card)).ToList();
+                IList<ClientCard> lcards = cards.Where(card => IsLinkMaterialCard(card, Card)).ToList();
                 IList<ClientCard> lcards1 = new List<ClientCard>();
                 IList<ClientCard> lcards2 = new List<ClientCard>();
+                IList<ClientCard> lcards3 = new List<ClientCard>();
                 IList<ClientCard> scards = new List<ClientCard>();
-                if (Card.LinkCount > 4)
+                if(Card.Id == 98127549)//是冥神捏
                 {
-                    lcards1 = lcards.Where(card => card.LinkCount == 2).ToList();
-                    lcards2 = lcards.Where(card => card.LinkCount < 2 || card.LinkCount == 0).ToList();
+                    lcards1 = lcards.Where(card => card.Controller==1).ToList();//对方场上的怪
+                    lcards2 = lcards.Where(card => card.Controller == 0 && card.LinkCount==2).ToList();//自己场上的link2
+                    lcards3 = lcards.Where(card => card.Controller == 0 && card.LinkCount<2).ToList();//自己场上的别的东西
+                    if (lcards1.Count() > 0)
+                    {
+                        foreach (ClientCard card in lcards1)
+                        {
+                            if (card.LinkCount == 2)
+                            {
+                                scards.Add(card);
+                                break;
+                            }
+                        }
+                        if(scards.Count()==0)
+                        {
+                            foreach (ClientCard card in lcards1)
+                            {
+                                if (!lcards.Any(ecard=>ecard.Attack>card.Attack))
+                                {
+                                    scards.Add(card);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (lcards2.Count() > 0)
+                    {
+                        foreach (ClientCard card in lcards2)
+                        {
+                            scards.Add(card);
+                        }
+                    }
+                    if (lcards3.Count() > 0)
+                    {
+                        foreach (ClientCard card in lcards3)
+                        {
+                            if (scards.Count() >= Card.LinkCount) break;
+                            scards.Add(card);
+                        }
+                    }
+                }
+                else if (Card.LinkCount > 4)
+                {
+                    lcards1 = lcards.Where(card => card.LinkCount >= 2).ToList();
+                    lcards2 = lcards.Where(card => card.LinkCount < 2).ToList();
                     if (lcards1.Count() > 0)
                     {
                         foreach (ClientCard card in lcards1)
@@ -1155,7 +1275,7 @@ namespace WindBot.Game.AI.Decks
                     }
                     if (lcards2.Count() > 0)
                     {
-                        foreach (ClientCard card in lcards1)
+                        foreach (ClientCard card in lcards2)
                         {
                             if (scards.Count() >= Card.LinkCount) break;
                             scards.Add(card);
@@ -1166,7 +1286,7 @@ namespace WindBot.Game.AI.Decks
                 {
                     int a = 0;
                     lcards1 = lcards.Where(card => card.LinkCount == 3).ToList();
-                    lcards2 = lcards.Where(card => card.LinkCount < 2 || card.LinkCount == 0).ToList();
+                    lcards2 = lcards.Where(card => card.LinkCount < 2).ToList();
                     if (lcards1.Count() == 0)
                         lcards1 = lcards.Where(card => card.LinkCount == 2).ToList();
                     if (lcards2.Count() == 0 && lcards1.Any(card => card.LinkCount == 3))
