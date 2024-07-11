@@ -1,49 +1,44 @@
 {
   "windbots": [
     {
-      "name": "神数不神",
+      "name": "卡片精灵",
       "deck": "ThunderDragon",
       "dialog": "Zefra.zh-CN"
     },
     {
-      "name": "神数不神",
+      "name": "卡片精灵",
       "deck": "Kashtira",
       "dialog": "Zefra.zh-CN"
     },
     {
-      "name": "神数不神",
+      "name": "卡片精灵",
       "deck": "Zefra",
       "dialog": "Zefra.zh-CN"
     },
     {
-      "name": "神数不神",
+      "name": "卡片精灵",
       "deck": "Tearlaments",
       "dialog": "Zefra.zh-CN"
     },
     {
-      "name": "玻璃女巫",
+      "name": "卡片精灵",
       "deck": "Witchcraft",
       "dialog": "verre.zh-CN"
     },
     {
-      "name": "我太帅了",
+      "name": "卡片精灵",
       "deck": "Dragun",
       "dialog": "smart.zh-CN"
     },
     {
-      "name": "我太帅了",
+      "name": "卡片精灵",
       "deck": "Brave",
       "dialog": "smart.zh-CN"
     },
     {
-      "name": "复制梁龙",
+      "name": "卡片精灵",
       "deck": "SkyStriker",
       "dialog": "anothercopy.zh-CN"
-    },
-    {
-      "name": "发牌姬",
-      "deck": "Lucky",
-      "dialog": "fapaiji.zh-CN"
     }
   ]
 }
