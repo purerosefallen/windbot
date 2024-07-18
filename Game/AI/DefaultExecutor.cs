@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using YGOSharp.OCGWrapper.Enums;
@@ -742,6 +742,8 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultSpellSet()
         {
+            if (Card.Id == 15693423) return false;
+            if (Card.Id == 9373534) return true;
             return (Card.IsTrap() || Card.HasType(CardType.QuickPlay) || DefaultSpellMustSetFirst()) && Bot.GetSpellCountWithoutField() < 4;
         }
 
@@ -755,6 +757,10 @@ namespace WindBot.Game.AI
 
             if (!UniqueFaceupMonster())
                 return false;
+
+            if (DontSummon(Card))
+                return false;
+
             int tributecount = (int)Math.Ceiling((Card.Level - 4.0d) / 2.0d);
             for (int j = 0; j < 7; ++j)
             {
@@ -764,6 +770,26 @@ namespace WindBot.Game.AI
                     tributecount--;
             }
             return tributecount <= 0;
+        }
+
+        /// <summary>
+        /// Dont summon cards'id in the following list
+        /// </summary>
+        private bool DontSummon(ClientCard card)
+        {
+            if (card.HasSetcode(0x40) || card.HasSetcode(0xa4) || card.HasSetcode(0xd3)) return true;
+            int[] cardsname = new[] {74762582, 90179822, 16759958, 26964762, 42352091, 2511, 74018812, 76214441, 62886670, 69105797, 32391566, 94076521, 73625877, 1980574, 42090294, 68823957, 34976176, 89785779, 76133574, 3248469, 87102774
+            , 57647597, 37961969, 51993760, 87988305, 38339996, 37629703, 58131925, 71133680, 42790071, 34475451, 63009228, 24725825, 48427163, 86028783, 51852507, 29280589, 87462901, 73640163, 68120130, 84813516, 55461064, 59042331, 26775203, 89169343
+            , 67750322, 68819554, 26084285, 15613529, 19096726, 59546797, 12235475, 38695361, 37742478, 26914168, 43534808, 13313278, 99581584, 04192696, 89662736, 81109178, 18444902, 04807253, 12423762, 72318602, 86613346, 82489470, 16223761, 08152834/*像是手坑的时尚小垃圾*/
+            , 97268402/*效果遮蒙者*/, 24508238/*D.D.乌鸦*/, 94145021/*锁鸟*/
+            , 14558127, 14558128, 52038441, 52038442, 59438930, 59438931, 60643553, 60643554, 62015408, 62015409, 73642296, 73642297/*手坑六姐妹*/
+            , 15721123, 23434538, 25137581, 46502744, 80978111, 87170768, 94081496/*xx的G*/
+            , 17266660, 21074344, 94689635/*宣告者*/
+            , 18964575, 20450925, 19665973, 28427869, 27352108/*攻宣坑*/
+            };
+            foreach(int cardname in cardsname)
+                if (card.Id == cardname) return true;
+            return false;
         }
 
         /// <summary>
