@@ -141,6 +141,7 @@ namespace WindBot.Game.AI
             AddExecutor(ExecutorType.Activate, _CardId.VaylantzWorld_ShinraBansho, DefaultVaylantzWorld_ShinraBansho);
             AddExecutor(ExecutorType.Activate, _CardId.VaylantzWorld_KonigWissen, DefaultVaylantzWorld_KonigWissen);
             AddExecutor(ExecutorType.Activate, _CardId.SantaClaws);
+            AddExecutor(ExecutorType.Activate, DefaultGambleCard);
         }
 
         /// <summary>
@@ -1307,6 +1308,14 @@ namespace WindBot.Game.AI
                 return true;
             }
 
+            return false;
+        }
+        protected bool DefaultGambleCard()
+        {
+            int[] cardsname = new[] {3280747, 37812118, 50470982, 43061293, 37313786, 3493058, 38299233, 25173686, 71625222, 36562627, 19162134, 81172176, 21598948, 39537362, 36378044, 38143903, 96012004, 62784717, 84290642, 3549275, 41139112, 36708764, 74137509, 126218, 93078761, 76895648, 22802010, 83241722, 84397023, 31863912, 39454112, 59905358, 5990062, 9373534, 58577036
+            };
+            foreach(int cardname in cardsname)
+                if (Card.Id == cardname) return true;
             return false;
         }
     }
