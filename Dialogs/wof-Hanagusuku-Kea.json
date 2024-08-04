@@ -42,5 +42,8 @@
   "chaining": [
     "发动{0}的效果nano！",
     "{0}nano！"
+  ],
+  "surrender": [
+    "nano……"
   ]
 }
