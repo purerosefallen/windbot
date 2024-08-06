@@ -5,6 +5,10 @@ using YGOSharp.OCGWrapper.Enums;
 using WindBot;
 using WindBot.Game;
 using WindBot.Game.AI;
+using System.Runtime.Remoting.Messaging;
+using System.Web.UI;
+using static WindBot.Game.AI.Decks.TimeThiefExecutor;
+using System.IO;
 
 namespace WindBot.Game.AI
 {
@@ -137,26 +141,85 @@ namespace WindBot.Game.AI
         protected DefaultExecutor(GameAI ai, Duel duel)
             : base(ai, duel)
         {
-            AddExecutor(ExecutorType.Activate, _CardId.ChickenGame, DefaultChickenGame);
+			AddExecutor(ExecutorType.Activate, _CardId.ChickenGame, DefaultChickenGame);
             AddExecutor(ExecutorType.Activate, _CardId.VaylantzWorld_ShinraBansho, DefaultVaylantzWorld_ShinraBansho);
             AddExecutor(ExecutorType.Activate, _CardId.VaylantzWorld_KonigWissen, DefaultVaylantzWorld_KonigWissen);
             AddExecutor(ExecutorType.Activate, _CardId.SantaClaws);
-            AddExecutor(ExecutorType.Activate, DefaultGambleCard);
-        }
+			DealerMaidenModeAddCardExecutor();//发牌姬行为放到单独函数统一管理
+		}
+		void DealerMaidenModeAddCardExecutor()
+		{
+            SetFuncFilter(ExecutorType.Activate,()=> {
+                if (Card.IsCode(5990062)) return Bot.HasInSpellZone(9373534); //[大逆转谜题]只有在自己场上有手里剑覆盖的场合才发动
+                if(Card.IsCode(3493058)) return Bot.GetSpellCount() + Enemy.GetSpellCount() > 0; //[骰子旋风]玩家场上有魔陷才发动
+				if(Card.IsCode(22802010)) return Bot.GetMonsterCount() < Enemy.GetMonsterCount(); //[无差别崩坏]自己场上怪兽少于对方才发动
+				return false;
+			});
+            SetFuncFilter(ExecutorType.SummonOrSet, () => {
+				if (Card.IsCode(71625222)) return Enemy.GetMonsterCount() > 0; //[时间魔术师]对方场上有怪兽存在才召唤
+				int[] codes = new[] {23434538, 46502744, 87170768, 25137581,14558127,60643553,27204311,
+					94145021,59438930,2830693,19665973,18964575,34267821,24508238,78661338,84192580,
+					52038441,62015408
+				};
+				foreach (int code in codes)
+					if (Card.IsCode(code)) return false;//过滤手坑
+				return true;
+			});
+            SetFuncFilter(ExecutorType.SpSummon,() => {
+                if (Card.HasType(CardType.Link)) //链接怪兽特殊召唤前过滤
+                {
+                    List<ClientCard> cards = Bot.GetMonsters();
+                    List<ClientCard> noLinkCards = Bot.GetMonsters().Where(card =>
+                    card == null || card.IsFacedown() || card.Level >= 8 || card.LinkCount >= 4 ||
+                    card.Rank >= 8 || card.Attack >= 3000).ToList();
+                    foreach (var card in noLinkCards) cards.Remove(card);
+					int link_count = 0;
+					foreach (var card in cards)
+                    {
+						link_count += (card.HasType(CardType.Link)) ? card.LinkCount : 1;
+						if (link_count >= Card.LinkCount) return true;
+					}
 
-        /// <summary>
-        /// Decide which card should the attacker attack.
-        /// </summary>
-        /// <param name="attacker">Card that attack.</param>
-        /// <param name="defenders">Cards that defend.</param>
-        /// <returns>BattlePhaseAction including the target, or null (in this situation, GameAI will check the next attacker)</returns>
-        public override BattlePhaseAction OnSelectAttackTarget(ClientCard attacker, IList<ClientCard> defenders)
+				}
+				return false;
+			});
+			AddExecutor(ExecutorType.Activate, DefaultGambleCard);//默认发动的赌博卡
+			AddExecutor(ExecutorType.SpellSet, 9373534);//[封魔手里剑]始终盖放
+
+		}
+        BattlePhaseAction DealerMaidenModeOnSelectAttackTarget(ClientCard attacker, IList<ClientCard> defenders) 
         {
-            foreach (ClientCard defender in defenders)
+            if (attacker.IsCode(1102515)) //暗黑之宝箱怪 LV3
+			{
+				List<ClientCard> attakposCards = defenders.Where(card => card != null && card.IsAttack()).ToList();
+                attakposCards.Sort(CardContainer.CompareCardAttack);
+				if (attakposCards.Count() <= 0) return null;
+				foreach (ClientCard defender in attakposCards)
+                {
+					attacker.RealPower = attacker.Attack;
+					defender.RealPower = defender.Attack;
+                    if (!OnPreBattleBetween(attacker, defender)) continue;
+                    if ((defender.RealPower - attacker.RealPower > Bot.LifePoints) || attacker.RealPower > defender.RealPower) continue;
+					return AI.Attack(attacker, defender);
+				}
+			}
+			return null;
+        }
+		/// <summary>
+		/// Decide which card should the attacker attack.
+		/// </summary>
+		/// <param name="attacker">Card that attack.</param>
+		/// <param name="defenders">Cards that defend.</param>
+		/// <returns>BattlePhaseAction including the target, or null (in this situation, GameAI will check the next attacker)</returns>
+		public override BattlePhaseAction OnSelectAttackTarget(ClientCard attacker, IList<ClientCard> defenders)
+        {
+            var action = DealerMaidenModeOnSelectAttackTarget(attacker, defenders);
+            if(action != null) return action;
+			foreach (ClientCard defender in defenders)
             {
                 attacker.RealPower = attacker.Attack;
                 defender.RealPower = defender.GetDefensePower();
-                if (!OnPreBattleBetween(attacker, defender))
+                if (!OnPreBattleBetween(attacker, defender))//对这个逻辑进行修改
                     continue;
 
                 if (attacker.RealPower > defender.RealPower || (attacker.RealPower >= defender.RealPower && attacker.IsLastAttacker && defender.IsAttack()))
@@ -322,10 +385,10 @@ namespace WindBot.Game.AI
             return false;
         }
 
-        /// <summary>
-        /// Set when this card can't beat the enemies
-        /// </summary>
-        public override bool OnSelectMonsterSummonOrSet(ClientCard card)
+		/// <summary>
+		/// Set when this card can't beat the enemies
+		/// </summary>
+		public override bool OnSelectMonsterSummonOrSet(ClientCard card)
         {
             return card.Level <= 4 && Bot.GetMonsters().Count(m => m.IsFaceup()) == 0 && Util.IsAllEnemyBetterThanValue(card.Attack, true);
         }
@@ -360,6 +423,24 @@ namespace WindBot.Game.AI
                 
                 return Util.CheckSelectCount(extraDeck, cards, min, max);
             }
+            if (hint == HintMsg.LinkMaterial) 
+            {
+				if (AI.HaveSelectedCards()) return null;
+                List<ClientCard> result = new List<ClientCard>(cards);
+                List<ClientCard> powerfulMonsters = new List<ClientCard>();
+				List<ClientCard> lowMonsters = new List<ClientCard>();
+				foreach (ClientCard card in result)
+                {
+                    if (card.Level >= 8 || card.LinkCount >= 4 ||
+                    card.Rank >= 8 || card.Attack >= 3000) powerfulMonsters.Add(card);
+                    else lowMonsters.Add(card);
+				}
+                lowMonsters.Sort(CardContainer.CompareCardAttack);
+                powerfulMonsters.Sort(CardContainer.CompareCardAttack);
+                powerfulMonsters.Reverse();
+                lowMonsters.AddRange(powerfulMonsters);
+				return Util.CheckSelectCount(lowMonsters, cards, min, max);
+			}
 
             return null;
         }
@@ -1315,7 +1396,7 @@ namespace WindBot.Game.AI
             int[] cardsname = new[] {3280747, 37812118, 50470982, 43061293, 37313786, 3493058, 38299233, 25173686, 71625222, 36562627, 19162134, 81172176, 21598948, 39537362, 36378044, 38143903, 96012004, 62784717, 84290642, 3549275, 41139112, 36708764, 74137509, 126218, 93078761, 76895648, 22802010, 83241722, 84397023, 31863912, 39454112, 59905358, 5990062, 9373534, 58577036
             };
             foreach(int cardname in cardsname)
-                if (Card.Id == cardname) return true;
+                if (Card.IsCode(cardname)) return true;
             return false;
         }
     }
