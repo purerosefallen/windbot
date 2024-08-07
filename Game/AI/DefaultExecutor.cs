@@ -233,22 +233,25 @@ namespace WindBot.Game.AI
 		}
 		void DealerMaidenModeAddCardExecutor()
 		{
-            SetFuncFilter(ExecutorType.Activate,()=> {
+            SetFuncFilter(ExecutorType.Activate, () => {
                 if (Card.IsCode(5990062)) return Bot.HasInSpellZone(9373534); //[大逆转谜题]只有在自己场上有手里剑覆盖的场合才发动
-                if(Card.IsCode(3493058)) return Bot.GetSpellCount() + Enemy.GetSpellCount() > 0; //[骰子旋风]玩家场上有魔陷才发动
-				if(Card.IsCode(22802010)) return Bot.GetMonsterCount() < Enemy.GetMonsterCount(); //[无差别崩坏]自己场上怪兽少于对方才发动
+                if (Card.IsCode(3493058)) return Bot.GetSpellCount() + Enemy.GetSpellCount() > 0; //[骰子旋风]玩家场上有魔陷才发动
+				if (Card.IsCode(22802010)) //[无差别崩坏]自己场上怪兽少于对方才发动
+                    return Bot.MonsterZone.Count(c => c != null && c.IsFaceup() && !c.HasType(CardType.Link)) < Enemy.MonsterZone.Count(c => c != null && c.IsFaceup() && !c.HasType(CardType.Link));
 				return false;
 			});
+
             SetFuncFilter(ExecutorType.SummonOrSet, () => {
 				if (Card.IsCode(71625222)) return Enemy.GetMonsterCount() > 0; //[时间魔术师]对方场上有怪兽存在才召唤
 				int[] codes = new[] {23434538, 46502744, 87170768, 25137581,14558127,60643553,27204311,
 					94145021,59438930,2830693,19665973,18964575,34267821,24508238,78661338,84192580,
 					52038441,62015408
 				};
-				foreach (int code in codes)
-					if (Card.IsCode(code)) return false;//过滤手坑
+
+				if (Card.IsCode(codes)) return false;//过滤手坑
 				return true;
 			});
+
             SetFuncFilter(ExecutorType.SpSummon,() => {
                 if (Card.HasType(CardType.Link)) //链接怪兽特殊召唤前过滤
                 {
@@ -267,10 +270,11 @@ namespace WindBot.Game.AI
 				}
 				return false;
 			});
+
 			AddExecutor(ExecutorType.Activate, DefaultGambleCard);//默认发动的赌博卡
 			AddExecutor(ExecutorType.SpellSet, 9373534);//[封魔手里剑]始终盖放
-
 		}
+
         BattlePhaseAction DealerMaidenModeOnSelectAttackTarget(ClientCard attacker, IList<ClientCard> defenders) 
         {
             if (attacker.IsCode(1102515)) //暗黑之宝箱怪 LV3
@@ -1146,8 +1150,8 @@ namespace WindBot.Game.AI
             , 17266660, 21074344, 94689635/*宣告者*/
             , 18964575, 20450925, 19665973, 28427869, 27352108/*攻宣坑*/
             };
-            foreach(int cardname in cardsname)
-                if (card.Id == cardname) return true;
+
+            if (card.IsCode(cardsname)) return true;
             return false;
         }
 
@@ -1732,8 +1736,8 @@ namespace WindBot.Game.AI
         {
             int[] cardsname = new[] {3280747, 37812118, 50470982, 43061293, 37313786, 3493058, 38299233, 25173686, 71625222, 36562627, 19162134, 81172176, 21598948, 39537362, 36378044, 38143903, 96012004, 62784717, 84290642, 3549275, 41139112, 36708764, 74137509, 126218, 93078761, 76895648, 22802010, 83241722, 84397023, 31863912, 39454112, 59905358, 5990062, 9373534, 58577036
             };
-            foreach(int cardname in cardsname)
-                if (Card.IsCode(cardname)) return true;
+
+            if (Card.IsCode(cardsname)) return true;
             return false;
         }
     }
