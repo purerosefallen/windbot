@@ -71,6 +71,7 @@
         ElShaddollConstruct = 20366274,
         ElShaddollGrysra = 48424886,
         ElShaddollWinda = 94977269,
+        HotRedDragonArchfiendAbyss = 9753964,
         UltimateConductorTytanno = 18940556,
         OvertexCoatls = 41782653,
         FirePrison = 269510,
@@ -210,6 +211,18 @@
         TGGlaiveBlaster = 95973569,
         StellarNemesisTPHON_DoomsdayStar = 93039339,
         SPLittleKnight = 29301450,
-        AngelRing = 40678060
+        AngelRing = 40678060,
+        SkullGuardianProtectorOfTheVoicelessVoice = 10774240,
+        FloweringEtoileTheMelodiousMagnificat = 83793721,
+        EnlightenmentDragon = 46186135,
+        GoldPrideEradicator = 45464587,
+        VarudrasTheFinalBringerOfTheEndTimes = 70636044,
+        RagnaraikaStagSovereign = 42307760,
+        DrytronMeteonisAlphaDraconids = 56863746,
+        TheUnstoppableExodiaIncarnate = 83257450,
+        LightAndDarknessDragonLord = 19652159,
+        FiendsmithDiesIrae = 82135803,
+        MementomictlanTecuhtlicaCombinedConqueror = 14529511,
+        MadolcheQueenTiaraalaFraise = 49689480
     }
 }

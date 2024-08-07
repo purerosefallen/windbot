@@ -109,6 +109,20 @@
         NightmareMagician = 40221691,
         ArahimetheManifestedMikanko = 75771170,
         UFOLight = 9275482,
-        TaotheGreatChanter = 34541543
+        TaotheGreatChanter = 34541543,
+        SpiritOfYubel = 90829280,
+        DarkGuardian = 26746975,
+        EnvoyOfTheWaxState = 87462901,
+        Fluffyfluff = 85401123,
+        YubelDasEwigLiebeWachter = 47172959,
+        TenpaiDragonFadra = 65326118,
+        GolgoilTheSteelSeismicSmasher = 59369430,
+        TalonsOfShurilane = 74150658,
+        NightmareApprentice = 58143852,
+        MillenniumoonMaiden = 37552929,
+        MillenniumFiendReflection = 63947968,
+        HereticalPhoboscobos = 76078185,
+        TopHatHareTheSilhouetteMagician = 1528054,
+        Silhouhatte = 24440742
     }
 }

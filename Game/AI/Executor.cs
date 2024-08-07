@@ -103,10 +103,21 @@ namespace WindBot.Game.AI
             // For overriding
         }
 
+        public virtual void OnChainSolved(int chainIndex)
+        {
+            // For overriding
+        }
+
         public virtual void OnChainEnd()
         {
             // For overriding
         }
+
+        public virtual void OnReceivingAnnouce(int player, int data)
+        {
+            // For overriding
+        }
+
         public virtual void OnNewPhase()
         {
             // Some AI need do something on new phase
@@ -121,7 +132,7 @@ namespace WindBot.Game.AI
             // Some AI need do something on draw
         }
 
-        public virtual void OnMove(int cardId, int previousControler, int previousLocation, int currentControler, int currentLocation)
+        public virtual void OnMove(ClientCard card, int previousControler, int previousLocation, int currentControler, int currentLocation)
         {
             // Some AI need do something on card's moving
         }

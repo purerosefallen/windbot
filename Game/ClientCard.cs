@@ -15,6 +15,7 @@ namespace WindBot.Game
         public int Position { get; set; }
         public int Sequence { get; set; }
         public CardLocation Location { get; set; }
+        public CardLocation LastLocation { get; set; }
         public int Alias { get; private set; }
         public int Level { get; private set; }
         public int Rank { get; private set; }
@@ -70,6 +71,7 @@ namespace WindBot.Game
             ActionIndex = new int[16];
             ActionActivateIndex = new Dictionary<int, int>();
             Location = loc;
+            LastLocation = 0;
         }
 
         public void SetId(int id)
@@ -80,8 +82,7 @@ namespace WindBot.Game
             if (Data != null)
             {
                 Name = Data.Name;
-                if (Data.Alias != 0)
-                    Alias = Data.Alias;
+                Alias = Data.Alias;
             } else {
                 Name = null;
                 Alias = 0;
@@ -346,7 +347,7 @@ namespace WindBot.Game
 
         public bool IsOriginalCode(int id)
         {
-            return Id == id || Alias - Id < 10 && Alias == id;
+            return Id == id || Alias - Id < 20 && Alias == id;
         }
 
         public bool HasXyzMaterial()
@@ -367,6 +368,17 @@ namespace WindBot.Game
         public int GetDefensePower()
         {
             return IsAttack() ? Attack : Defense;
+        }
+
+        public int GetOriginCode()
+        {
+            int code = Id;
+            if (Data != null)
+            {
+                if (Data.Alias > 0) code = Data.Alias;
+                else code = Data.Id;
+            }
+            return code;
         }
 
         public bool Equals(ClientCard card)

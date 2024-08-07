@@ -67,6 +67,7 @@
         FaceCardFusion = 29062925,
         MyutantFusion = 42577802,
         MyutantCry = 31855260,
+        FallenOfAlbaz = 68468459,
         GreaterPolymerization = 7614732,
         UltimateFusion = 71143015,
         BrandedFusion = 44362883,
@@ -85,6 +86,8 @@
         FusionReproduction = 43331750,
         ChimeraFusion = 63136489,
         HarmonicSynchroFusion = 7473735,
-        SouloftheSupremeCelestialKing = 76840111
+        SouloftheSupremeCelestialKing = 76840111,
+        MelodiousConcerto = 31458630,
+        MementotlanFusion = 66518509
     }
 }
