@@ -1073,7 +1073,7 @@ namespace WindBot.Game
                     card.Controller = player;
                 }
                 if (card == null) continue;
-                if (card.Id == 0)
+                if (card.Id == 0 || card.Location == CardLocation.Deck)
                     card.SetId(id);
                 cards.Add(card);
             }
@@ -1139,7 +1139,7 @@ namespace WindBot.Game
                 else
                     card = _duel.GetCard(player, loc, seq);
                 if (card == null) continue;
-                if (card.Id == 0)
+                if (card.Id == 0 || card.Location == CardLocation.Deck)
                     card.SetId(id);
                 cards.Add(card);
             }
@@ -1151,6 +1151,14 @@ namespace WindBot.Game
                 CardLocation loc = (CardLocation)packet.ReadByte();
                 int seq = packet.ReadByte();
                 packet.ReadByte(); // pos
+                ClientCard card;
+                if (((int)loc & (int)CardLocation.Overlay) != 0)
+                    card = new ClientCard(id, CardLocation.Overlay, -1);
+                else
+                    card = _duel.GetCard(player, loc, seq);
+                if (card == null) continue;
+                if (card.Id == 0 || card.Location == CardLocation.Deck)
+                    card.SetId(id);
             }
             if (count2 == 0) cancelable = false;
 
