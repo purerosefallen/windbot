@@ -233,6 +233,11 @@ namespace WindBot.Game.AI
 		}
 		void DealerMaidenModeAddCardExecutor()
 		{
+		    SetFuncFilter(ExecutorType.Repos, () => {
+            	if (Card.IsCode(1102515)) return false;
+            	return true;
+            });
+            
             SetFuncFilter(ExecutorType.Activate, () => {
                 if (Card.IsCode(5990062)) return Bot.HasInSpellZone(9373534); //[大逆转谜题]只有在自己场上有手里剑覆盖的场合才发动
                 if (Card.IsCode(3493058)) return Bot.GetSpellCount() + Enemy.GetSpellCount() > 0; //[骰子旋风]玩家场上有魔陷才发动
