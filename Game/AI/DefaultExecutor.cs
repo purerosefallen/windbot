@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using YGOSharp.OCGWrapper.Enums;
@@ -229,8 +229,75 @@ namespace WindBot.Game.AI
             AddExecutor(ExecutorType.Activate, _CardId.VaylantzWorld_KonigWissen, DefaultVaylantzWorld_KonigWissen);
             AddExecutor(ExecutorType.Activate, _CardId.SantaClaws);
             AddExecutor(ExecutorType.SpellSet, DefaultSetForDiabellze);
-        }
+			DealerMaidenModeAddCardExecutor();//发牌姬行为放到单独函数统一管理
+		}
+		void DealerMaidenModeAddCardExecutor()
+		{
+		    SetFuncFilter(ExecutorType.Repos, () => {
+            	if (Card.IsCode(1102515)) return false;
+            	return true;
+            });
+            
+            SetFuncFilter(ExecutorType.Activate, () => {
+				if (Card.IsCode(5990062)) return Bot.HasInSpellZone(9373534); //[大逆转谜题]只有在自己场上有手里剑覆盖的场合才发动
+                if (Card.IsCode(3493058)) return Enemy.GetSpellCount() > 0; //[骰子旋风]对方玩家场上有魔陷才发动
+				if (Card.IsCode(22802010)) //[无差别崩坏]自己场上怪兽少于对方才发动
+                    return Bot.MonsterZone.Count(c => c != null && c.IsFaceup() && !c.HasType(CardType.Link)) < Enemy.MonsterZone.Count(c => c != null && c.IsFaceup() && !c.HasType(CardType.Link));
+				return false;
+			});
 
+            SetFuncFilter(ExecutorType.SummonOrSet, () => {
+				if (Card.IsCode(71625222)) return Enemy.GetMonsterCount() > 0; //[时间魔术师]对方场上有怪兽存在才召唤
+				int[] codes = new[] {23434538, 46502744, 87170768, 25137581,14558127,60643553,27204311,
+					94145021,59438930,2830693,19665973,18964575,34267821,24508238,78661338,84192580,
+					52038441,62015408
+				};
+
+				if (Card.IsCode(codes)) return false;//过滤手坑
+				return true;
+			});
+
+            SetFuncFilter(ExecutorType.SpSummon,() => {
+                if (Card.HasType(CardType.Link)) //链接怪兽特殊召唤前过滤
+                {
+                    List<ClientCard> cards = Bot.GetMonsters();
+                    List<ClientCard> noLinkCards = Bot.GetMonsters().Where(card =>
+                    card == null || card.IsFacedown() || card.Level >= 8 || card.LinkCount >= 4 ||
+                    card.Rank >= 8 || card.Attack >= 3000).ToList();
+                    foreach (var card in noLinkCards) cards.Remove(card);
+					int link_count = 0;
+					foreach (var card in cards)
+                    {
+						link_count += (card.HasType(CardType.Link)) ? card.LinkCount : 1;
+						if (link_count >= Card.LinkCount) return true;
+					}
+
+				}
+				return false;
+			});
+
+			AddExecutor(ExecutorType.Activate, DefaultGambleCard);//默认发动的赌博卡
+			AddExecutor(ExecutorType.SpellSet, 9373534);//[封魔手里剑]始终盖放
+		}
+
+        BattlePhaseAction DealerMaidenModeOnSelectAttackTarget(ClientCard attacker, IList<ClientCard> defenders) 
+        {
+            if (attacker.IsCode(1102515)) //暗黑之宝箱怪 LV3
+			{
+				List<ClientCard> attakposCards = defenders.Where(card => card != null && card.IsAttack()).ToList();
+                attakposCards.Sort(CardContainer.CompareCardAttack);
+				if (attakposCards.Count() <= 0) return null;
+				foreach (ClientCard defender in attakposCards)
+                {
+					attacker.RealPower = attacker.Attack;
+					defender.RealPower = defender.Attack;
+                    if (!OnPreBattleBetween(attacker, defender)) continue;
+                    if ((defender.RealPower - attacker.RealPower > Bot.LifePoints) || attacker.RealPower > defender.RealPower) continue;
+					return AI.Attack(attacker, defender);
+				}
+			}
+			return null;
+        }
         protected int lightningStormOption = -1;
         Dictionary<int, int> calledbytheGraveIdCountMap = new Dictionary<int, int>();
         List<int> crossoutDesignatorIdList = new List<int>();
@@ -315,11 +382,13 @@ namespace WindBot.Game.AI
         /// <returns>BattlePhaseAction including the target, or null (in this situation, GameAI will check the next attacker)</returns>
         public override BattlePhaseAction OnSelectAttackTarget(ClientCard attacker, IList<ClientCard> defenders)
         {
-            foreach (ClientCard defender in defenders)
+            var action = DealerMaidenModeOnSelectAttackTarget(attacker, defenders);
+            if(action != null) return action;
+			foreach (ClientCard defender in defenders)
             {
                 attacker.RealPower = attacker.Attack;
                 defender.RealPower = defender.GetDefensePower();
-                if (!OnPreBattleBetween(attacker, defender))
+                if (!OnPreBattleBetween(attacker, defender))//对这个逻辑进行修改
                     continue;
 
                 if (attacker.RealPower > defender.RealPower || (attacker.RealPower >= defender.RealPower && attacker.IsLastAttacker && defender.IsAttack()))
@@ -512,10 +581,10 @@ namespace WindBot.Game.AI
             return false;
         }
 
-        /// <summary>
-        /// Set when this card can't beat the enemies
-        /// </summary>
-        public override bool OnSelectMonsterSummonOrSet(ClientCard card)
+		/// <summary>
+		/// Set when this card can't beat the enemies
+		/// </summary>
+		public override bool OnSelectMonsterSummonOrSet(ClientCard card)
         {
             return card.Level <= 4 && Bot.GetMonsters().Count(m => m.IsFaceup()) == 0 && Util.IsAllEnemyBetterThanValue(card.Attack, true);
         }
@@ -547,10 +616,52 @@ namespace WindBot.Game.AI
                     extraDeck[shuffleCount] = extraDeck[index];
                     extraDeck[index] = tempCard;
                 }
-
+                
                 return Util.CheckSelectCount(extraDeck, cards, min, max);
             }
-
+            if (hint == HintMsg.LinkMaterial) 
+            {
+				if (AI.HaveSelectedCards()) return null;
+                List<ClientCard> result = new List<ClientCard>(cards);
+                List<ClientCard> powerfulMonsters = new List<ClientCard>();
+				List<ClientCard> lowMonsters = new List<ClientCard>();
+				foreach (ClientCard card in result)
+                {
+                    if (card.Level >= 8 || card.LinkCount >= 4 ||
+                    card.Rank >= 8 || card.Attack >= 3000) powerfulMonsters.Add(card);
+                    else lowMonsters.Add(card);
+				}
+                lowMonsters.Sort(CardContainer.CompareCardAttack);
+                powerfulMonsters.Sort(CardContainer.CompareCardAttack);
+                powerfulMonsters.Reverse();
+                lowMonsters.AddRange(powerfulMonsters);
+				return Util.CheckSelectCount(lowMonsters, cards, min, max);
+			}
+            if (hint == HintMsg.Destroy)
+            {
+                if (AI.HaveSelectedCards()) return null;
+                //[骰子旋风]破坏对方场上的魔法陷阱
+                List<ClientCard> ccards = new List<ClientCard>(cards);
+                bool spellCard = true;
+                List<ClientCard> enemyCards = new List<ClientCard>();
+                List<ClientCard> botCards = new List<ClientCard>();
+                foreach (ClientCard card in ccards)
+                {
+                    if (card == null) continue;
+                    if (!card.HasType(CardType.Spell) && !card.HasType(CardType.Trap))
+                    {
+                        spellCard = false;
+                        break;
+                    }
+                    if (card.Controller == 1) enemyCards.Add(card);
+                    else botCards.Add(card);
+                }
+                if (spellCard)
+                {
+                    enemyCards.AddRange(botCards);
+                    return Util.CheckSelectCount(enemyCards, cards, min, max);
+                }
+            }
             return null;
         }
 
@@ -1023,6 +1134,8 @@ namespace WindBot.Game.AI
         /// </summary>
         protected bool DefaultSpellSet()
         {
+            if (Card.Id == 15693423) return false;
+            if (Card.Id == 9373534) return true;
             return (Card.IsTrap() || Card.HasType(CardType.QuickPlay) || DefaultSpellMustSetFirst()) && Bot.GetSpellCountWithoutField() < 4;
         }
 
@@ -1036,6 +1149,10 @@ namespace WindBot.Game.AI
 
             if (!UniqueFaceupMonster())
                 return false;
+
+            if (DontSummon(Card))
+                return false;
+
             int tributecount = (int)Math.Ceiling((Card.Level - 4.0d) / 2.0d);
             for (int j = 0; j < 7; ++j)
             {
@@ -1045,6 +1162,26 @@ namespace WindBot.Game.AI
                     tributecount--;
             }
             return tributecount <= 0;
+        }
+
+        /// <summary>
+        /// Dont summon cards'id in the following list
+        /// </summary>
+        private bool DontSummon(ClientCard card)
+        {
+            if (card.HasSetcode(0x40) || card.HasSetcode(0xa4) || card.HasSetcode(0xd3)) return true;
+            int[] cardsname = new[] {74762582, 90179822, 16759958, 26964762, 42352091, 2511, 74018812, 76214441, 62886670, 69105797, 32391566, 94076521, 73625877, 1980574, 42090294, 68823957, 34976176, 89785779, 76133574, 3248469, 87102774
+            , 57647597, 37961969, 51993760, 87988305, 38339996, 37629703, 58131925, 71133680, 42790071, 34475451, 63009228, 24725825, 48427163, 86028783, 51852507, 29280589, 87462901, 73640163, 68120130, 84813516, 55461064, 59042331, 26775203, 89169343
+            , 67750322, 68819554, 26084285, 15613529, 19096726, 59546797, 12235475, 38695361, 37742478, 26914168, 43534808, 13313278, 99581584, 04192696, 89662736, 81109178, 18444902, 04807253, 12423762, 72318602, 86613346, 82489470, 16223761, 08152834/*像是手坑的时尚小垃圾*/
+            , 97268402/*效果遮蒙者*/, 24508238/*D.D.乌鸦*/, 94145021/*锁鸟*/
+            , 14558127, 14558128, 52038441, 52038442, 59438930, 59438931, 60643553, 60643554, 62015408, 62015409, 73642296, 73642297/*手坑六姐妹*/
+            , 15721123, 23434538, 25137581, 46502744, 80978111, 87170768, 94081496/*xx的G*/
+            , 17266660, 21074344, 94689635/*宣告者*/
+            , 18964575, 20450925, 19665973, 28427869, 27352108/*攻宣坑*/
+            };
+
+            if (card.IsCode(cardsname)) return true;
+            return false;
         }
 
         /// <summary>
@@ -1621,6 +1758,15 @@ namespace WindBot.Game.AI
                     }
                 }
             }
+            return false;
+        }
+
+        protected bool DefaultGambleCard()
+        {
+            int[] cardsname = new[] {3280747, 37812118, 50470982, 43061293, 37313786, 3493058, 38299233, 25173686, 71625222, 36562627, 19162134, 81172176, 21598948, 39537362, 36378044, 38143903, 96012004, 62784717, 84290642, 3549275, 41139112, 36708764, 74137509, 126218, 93078761, 76895648, 22802010, 83241722, 84397023, 31863912, 39454112, 59905358, 5990062, 9373534, 58577036
+            };
+
+            if (Card.IsCode(cardsname)) return true;
             return false;
         }
     }
