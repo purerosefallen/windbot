@@ -1,9 +1,8 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 using WindBot.Game.AI;
 using YGOSharp.OCGWrapper.Enums;
-using System;
-using System.Threading;
 
 namespace WindBot.Game
 {
@@ -50,6 +49,9 @@ namespace WindBot.Game
         public void OnDeckError(string card)
         {
             _dialogs.SendDeckSorry(card);
+            Thread.Sleep(1000);
+            _dialogs.SendSurrender();
+            Game.Connection.Close();
         }
 
         /// <summary>
@@ -235,10 +237,10 @@ namespace WindBot.Game
             if (result != null)
                 return result;
 
-            if (attackers.Count == 0) //如果自己场上没有可以攻击的怪兽直接返回
+            if (attackers.Count == 0)
                 return ToMainPhase2();
 
-            if (defenders.Count == 0) //如果对方场上没有怪兽则直接攻击
+            if (defenders.Count == 0)
             {
                 // Attack with the monster with the lowest attack first
                 ClientCard attacker = attackers[attackers.Count - 1];
@@ -246,17 +248,17 @@ namespace WindBot.Game
             }
             else
             {
-                for (int k = 0; k < attackers.Count; ++k) //如果对方场上有怪兽
+                for (int k = 0; k < attackers.Count; ++k)
                 {
                     ClientCard attacker = attackers[k];
                     attacker.IsLastAttacker = (k == attackers.Count - 1);
-                    result = Executor.OnSelectAttackTarget(attacker, defenders);//这个函数决定是否要攻击
+                    result = Executor.OnSelectAttackTarget(attacker, defenders);
                     if (result != null)
                         return result;
                 }
             }
 
-            if (!battle.CanMainPhaseTwo) //如果不能进战阶强制攻击
+            if (!battle.CanMainPhaseTwo)
                 return Attack(attackers[0], (defenders.Count == 0) ? null : defenders[0]);
 
             return ToMainPhase2();
@@ -754,7 +756,7 @@ namespace WindBot.Game
             sorted.Sort(CardContainer.CompareCardAttack);
 
             IList<ClientCard> selected = new List<ClientCard>();
-            
+
             for (int i = 0; i < min && i < sorted.Count; ++i)
                 selected.Add(sorted[i]);
 
@@ -1172,15 +1174,10 @@ namespace WindBot.Game
                 if (!Executor.OnPreActivate(card))
                     return false;
             }
-			Func<bool> Func = () =>
-			{
-				if (Executor.FuncFilters.ContainsKey(exec.Type) && Executor.FuncFilters[exec.Type] != null
-				&& !Executor.FuncFilters[exec.Type]()) return false;
-				return exec.Func == null || exec.Func();
-			};
-			bool result = card != null && exec.Type == type &&
-				(exec.CardId == -1 || exec.CardId == card.Id) && Func();
-			if (card.Id != 0 && type == ExecutorType.Activate && result)
+            bool result = card != null && exec.Type == type &&
+                (exec.CardId == -1 || exec.CardId == card.Id) &&
+                (exec.Func == null || exec.Func());
+            if (card.Id != 0 && type == ExecutorType.Activate && result)
             {
                 int count = card.IsDisabled() ? 3 : 1;
                 if (!_activatedCards.ContainsKey(card.Id))
