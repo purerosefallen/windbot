@@ -239,8 +239,8 @@ namespace WindBot.Game.AI
             });
             
             SetFuncFilter(ExecutorType.Activate, () => {
-                if (Card.IsCode(5990062)) return Bot.HasInSpellZone(9373534); //[大逆转谜题]只有在自己场上有手里剑覆盖的场合才发动
-                if (Card.IsCode(3493058)) return Bot.GetSpellCount() + Enemy.GetSpellCount() > 0; //[骰子旋风]玩家场上有魔陷才发动
+				if (Card.IsCode(5990062)) return Bot.HasInSpellZone(9373534); //[大逆转谜题]只有在自己场上有手里剑覆盖的场合才发动
+                if (Card.IsCode(3493058)) return Enemy.GetSpellCount() > 0; //[骰子旋风]对方玩家场上有魔陷才发动
 				if (Card.IsCode(22802010)) //[无差别崩坏]自己场上怪兽少于对方才发动
                     return Bot.MonsterZone.Count(c => c != null && c.IsFaceup() && !c.HasType(CardType.Link)) < Enemy.MonsterZone.Count(c => c != null && c.IsFaceup() && !c.HasType(CardType.Link));
 				return false;
@@ -637,7 +637,31 @@ namespace WindBot.Game.AI
                 lowMonsters.AddRange(powerfulMonsters);
 				return Util.CheckSelectCount(lowMonsters, cards, min, max);
 			}
-
+            if (hint == HintMsg.Destroy)
+            {
+                if (AI.HaveSelectedCards()) return null;
+                //[骰子旋风]破坏对方场上的魔法陷阱
+                List<ClientCard> ccards = new List<ClientCard>(cards);
+                bool spellCard = true;
+                List<ClientCard> enemyCards = new List<ClientCard>();
+                List<ClientCard> botCards = new List<ClientCard>();
+                foreach (ClientCard card in ccards)
+                {
+                    if (card == null) continue;
+                    if (!card.HasType(CardType.Spell) && !card.HasType(CardType.Trap))
+                    {
+                        spellCard = false;
+                        break;
+                    }
+                    if (card.Controller == 1) enemyCards.Add(card);
+                    else botCards.Add(card);
+                }
+                if (spellCard)
+                {
+                    enemyCards.AddRange(botCards);
+                    return Util.CheckSelectCount(enemyCards, cards, min, max);
+                }
+            }
             return null;
         }
 

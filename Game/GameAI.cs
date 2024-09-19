@@ -1172,10 +1172,15 @@ namespace WindBot.Game
                 if (!Executor.OnPreActivate(card))
                     return false;
             }
-            bool result = card != null && exec.Type == type &&
-                (exec.CardId == -1 || exec.CardId == card.Id) &&
-                (exec.Func == null || exec.Func());
-            if (card.Id != 0 && type == ExecutorType.Activate && result)
+			Func<bool> Func = () =>
+			{
+				if (Executor.FuncFilters.ContainsKey(exec.Type) && Executor.FuncFilters[exec.Type] != null
+				&& !Executor.FuncFilters[exec.Type]()) return false;
+				return exec.Func == null || exec.Func();
+			};
+			bool result = card != null && exec.Type == type &&
+				(exec.CardId == -1 || exec.CardId == card.Id) && Func();
+			if (card.Id != 0 && type == ExecutorType.Activate && result)
             {
                 int count = card.IsDisabled() ? 3 : 1;
                 if (!_activatedCards.ContainsKey(card.Id))
