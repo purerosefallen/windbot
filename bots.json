@@ -39,6 +39,36 @@
       "name": "卡片精灵",
       "deck": "SkyStriker",
       "dialog": "anothercopy.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Albaz",
+      "dialog": "anothercopy.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Labyrnth",
+      "dialog": "anothercopy.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Blackwing",
+      "dialog": "anothercopy.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Exosister",
+      "dialog": "anothercopy.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Swordsoul",
+      "dialog": "anothercopy.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Zoodiac",
+      "dialog": "anothercopy.zh-CN"
     }
   ]
 }
