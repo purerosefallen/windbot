@@ -18,7 +18,27 @@
     {
       "name": "卡片精灵",
       "deck": "Tearlaments",
-      "dialog": "dealers2p1tear.zh-CN"
+      "dialog": "dealers2p1.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Witchcraft",
+      "dialog": "dealers2p1.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Dragun",
+      "dialog": "dealers2p1.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Brave",
+      "dialog": "dealers2p1.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "SkyStriker",
+      "dialog": "dealers2p1.zh-CN"
     },
     {
       "name": "卡片精灵",
@@ -28,6 +48,16 @@
     {
       "name": "卡片精灵",
       "deck": "Labrynth",
+      "dialog": "dealers2p1.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Blackwing",
+      "dialog": "dealers2p1.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Exosister",
       "dialog": "dealers2p1.zh-CN"
     },
     {
