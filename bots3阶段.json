@@ -1,0 +1,9 @@
+{
+  "windbots": [
+    {
+      "name": "素体",
+      "deck": "Lucky",
+      "dialog": "origin.zh-CN"
+    }
+  ]
+}
