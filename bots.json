@@ -2,72 +2,72 @@
   "windbots": [
     {
       "name": "卡片精灵",
-      "deck": "ThunderDragon",
+      "deck": "Lucky",
       "dialog": "dealers2p1.zh-CN"
     },
     {
       "name": "卡片精灵",
-      "deck": "Kashtira",
+      "deck": "Lucky",
       "dialog": "dealers2p1.zh-CN"
     },
     {
       "name": "卡片精灵",
-      "deck": "Zefra",
+      "deck": "Lucky",
       "dialog": "dealers2p1.zh-CN"
     },
     {
       "name": "卡片精灵",
-      "deck": "Tearlaments",
+      "deck": "Lucky",
       "dialog": "dealers2p1.zh-CN"
     },
     {
       "name": "卡片精灵",
-      "deck": "Witchcraft",
+      "deck": "Lucky",
       "dialog": "dealers2p1.zh-CN"
     },
     {
       "name": "卡片精灵",
-      "deck": "Dragun",
+      "deck": "Lucky",
       "dialog": "dealers2p1.zh-CN"
     },
     {
       "name": "卡片精灵",
-      "deck": "Brave",
+      "deck": "Lucky",
       "dialog": "dealers2p1.zh-CN"
     },
     {
       "name": "卡片精灵",
-      "deck": "SkyStriker",
+      "deck": "Lucky",
       "dialog": "dealers2p1.zh-CN"
     },
     {
       "name": "卡片精灵",
-      "deck": "Albaz",
+      "deck": "Lucky",
       "dialog": "dealers2p1.zh-CN"
     },
     {
       "name": "卡片精灵",
-      "deck": "Labrynth",
+      "deck": "Lucky",
       "dialog": "dealers2p1.zh-CN"
     },
     {
       "name": "卡片精灵",
-      "deck": "Blackwing",
+      "deck": "Lucky",
       "dialog": "dealers2p1.zh-CN"
     },
     {
       "name": "卡片精灵",
-      "deck": "Exosister",
+      "deck": "Lucky",
       "dialog": "dealers2p1.zh-CN"
     },
     {
       "name": "卡片精灵",
-      "deck": "Swordsoul",
+      "deck": "Lucky",
       "dialog": "dealers2p1.zh-CN"
     },
     {
       "name": "卡片精灵",
-      "deck": "Zoodiac",
+      "deck": "Lucky",
       "dialog": "dealers2p1.zh-CN"
     }
   ]
