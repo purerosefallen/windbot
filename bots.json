@@ -4,11 +4,6 @@
       "name": "卡片精灵",
       "deck": "Lucky",
       "dialog": "dealers2p1.zh-CN"
-    },
-    {
-      "name": "卡片精灵2",
-      "deck": "Lucky2",
-      "dialog": "dealers2p1.zh-CN"
     }
   ]
 }
