@@ -273,6 +273,7 @@ namespace WindBot.Game.AI
 			AddExecutor(ExecutorType.Activate, DefaultGambleCard);//默认发动的赌博卡
 			AddExecutor(ExecutorType.SpellSet, 9373534);//[封魔手里剑]始终盖放
 		}
+        
         /// <summary>
         /// Dont summon cards'id in the following list
         /// </summary>
