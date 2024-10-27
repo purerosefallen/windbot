@@ -31,7 +31,7 @@ namespace WindBot.Game
         {
             foreach (CardExecutor exec in Executor.Executors)
             {
-                if (exec.Type == ExecutorType.Surrender && exec.Func())
+                if (exec.Type == ExecutorType.Surrender && (exec.Func() == true))
                 {
                     _dialogs.SendSurrender();
                     Game.Surrender();
@@ -194,11 +194,11 @@ namespace WindBot.Game
             Executor.SetBattle(battle);
             foreach (CardExecutor exec in Executor.Executors)
             {
-                if (exec.Type == ExecutorType.GoToMainPhase2 && battle.CanMainPhaseTwo && exec.Func()) // check if should enter main phase 2 directly
+                if (exec.Type == ExecutorType.GoToMainPhase2 && battle.CanMainPhaseTwo && (exec.Func() == true)) // check if should enter main phase 2 directly
                 {
                     return ToMainPhase2();
                 }
-                if (exec.Type == ExecutorType.GoToEndPhase && battle.CanEndPhase && exec.Func()) // check if should enter end phase directly
+                if (exec.Type == ExecutorType.GoToEndPhase && battle.CanEndPhase && (exec.Func() == true)) // check if should enter end phase directly
                 {
                     return ToEndPhase();
                 }
@@ -442,12 +442,12 @@ namespace WindBot.Game
             CheckSurrender();
             foreach (CardExecutor exec in Executor.Executors)
             {
-            	if (exec.Type == ExecutorType.GoToEndPhase && main.CanEndPhase && exec.Func()) // check if should enter end phase directly
+                if (exec.Type == ExecutorType.GoToEndPhase && main.CanEndPhase && (exec.Func() == true)) // check if should enter end phase directly
                 {
                     _dialogs.SendEndTurn();
                     return new MainPhaseAction(MainPhaseAction.MainAction.ToEndPhase);
                 }
-                if (exec.Type==ExecutorType.GoToBattlePhase && main.CanBattlePhase && exec.Func()) // check if should enter battle phase directly
+                if (exec.Type==ExecutorType.GoToBattlePhase && main.CanBattlePhase && (exec.Func() == true)) // check if should enter battle phase directly
                 {
                     return new MainPhaseAction(MainPhaseAction.MainAction.ToBattlePhase);
                 }
@@ -1172,15 +1172,21 @@ namespace WindBot.Game
                 if (!Executor.OnPreActivate(card))
                     return false;
             }
-			Func<bool> Func = () =>
-			{
-				if (Executor.FuncFilters.ContainsKey(exec.Type) && Executor.FuncFilters[exec.Type] != null
-				&& !Executor.FuncFilters[exec.Type]()) return false;
-				return exec.Func == null || exec.Func();
-			};
-			bool result = card != null && exec.Type == type &&
-				(exec.CardId == -1 || exec.CardId == card.Id) && Func();
-			if (card.Id != 0 && type == ExecutorType.Activate && result)
+            Func<bool> Func = () =>
+            {
+                if (Executor.FuncFilters.ContainsKey(exec.Type) && Executor.FuncFilters[exec.Type] != null)
+                {
+                    foreach (Func<bool?> item in Executor.FuncFilters[exec.Type])
+                    {
+                        if (item() == true) return true;
+                        if (item() == false) return false;
+                    }
+                };
+                return exec.Func == null || (exec.Func() == true);
+            };
+            bool result = card != null && exec.Type == type &&
+                (exec.CardId == -1 || exec.CardId == card.Id) && Func();
+            if (card.Id != 0 && type == ExecutorType.Activate && result)
             {
                 int count = card.IsDisabled() ? 3 : 1;
                 if (!_activatedCards.ContainsKey(card.Id))

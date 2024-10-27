@@ -239,6 +239,8 @@ namespace WindBot.Game.AI
             });
             
             SetFuncFilter(ExecutorType.Activate, () => {
+                if (Card.IsMonster() || ((Card.Location & CardLocation.Onfield) > 0 && Card.IsFaceup())) return null;
+
 				if (Card.IsCode(5990062)) return Bot.HasInSpellZone(9373534); //[大逆转谜题]只有在自己场上有手里剑覆盖的场合才发动
                 if (Card.IsCode(3493058)) return Enemy.GetSpellCount() > 0; //[骰子旋风]对方玩家场上有魔陷才发动
 				if (Card.IsCode(22802010)) //[无差别崩坏]自己场上怪兽少于对方才发动
@@ -1745,7 +1747,7 @@ namespace WindBot.Game.AI
                 {
                     if (exec.Type == ExecutorType.Activate && exec.CardId == Card.Id)
                     {
-                        if (exec.Func == null || exec.Func())
+                        if (exec.Func == null || exec.Func() == true)
                         {
                             return true;
                         }
@@ -1755,13 +1757,13 @@ namespace WindBot.Game.AI
             return false;
         }
 
-        protected bool DefaultGambleCard()
+        protected bool? DefaultGambleCard()
         {
             int[] cardsname = new[] {3280747, 37812118, 50470982, 43061293, 37313786, 3493058, 38299233, 25173686, 71625222, 36562627, 19162134, 81172176, 21598948, 39537362, 36378044, 38143903, 96012004, 62784717, 84290642, 3549275, 41139112, 36708764, 74137509, 126218, 93078761, 76895648, 22802010, 83241722, 84397023, 31863912, 39454112, 59905358, 5990062, 9373534, 58577036
             };
 
             if (Card.IsCode(cardsname)) return true;
-            return false;
+            return null;
         }
     }
 }

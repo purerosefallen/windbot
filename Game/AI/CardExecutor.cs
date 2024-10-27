@@ -6,13 +6,25 @@ namespace WindBot.Game.AI
     {
         public int CardId { get; private set; }
         public ExecutorType Type { get; private set; }
-        public Func<bool> Func { get; private set; }
+        public Func<bool?> Func { get; private set; }
+
+        public CardExecutor(ExecutorType type, int cardId, Func<bool?> func)
+        {
+            CardId = cardId;
+            Type = type;
+            Func = func;
+        }
 
         public CardExecutor(ExecutorType type, int cardId, Func<bool> func)
         {
             CardId = cardId;
             Type = type;
-            Func = func;
+            Func = ConvertToNullableFunc(func);
+        }
+
+        public Func<bool?> ConvertToNullableFunc(Func<bool> func)
+        {
+            return () => func();
         }
     }
 }
