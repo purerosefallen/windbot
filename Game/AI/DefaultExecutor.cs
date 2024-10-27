@@ -255,16 +255,23 @@ namespace WindBot.Game.AI
             SetFuncFilter(ExecutorType.SpSummon,() => {
                 if (Card.HasType(CardType.Link)) //链接怪兽特殊召唤前过滤
                 {
-                    List<ClientCard> cards = Bot.GetMonsters();
-                    List<ClientCard> noLinkCards = Bot.GetMonsters().Where(card =>
-                    card == null || card.IsFacedown() || card.Level >= 8 || card.LinkCount >= 4 ||
-                    card.Rank >= 8 || card.Attack >= 3000).ToList();
-                    foreach (var card in noLinkCards) cards.Remove(card);
+                    List<ClientCard> materialList = Bot.GetMonsters().Where(card =>
+                        card != null && card.IsFaceup() && Card.Attack < 3000
+                        && ((!Card.HasType(CardType.Xyz | CardType.Link) && Card.Level < 8)
+                            || Card.HasType(CardType.Xyz) && Card.Rank < 8
+                            || Card.HasType(CardType.Link) && Card.LinkCount < 4
+                            )
+                    ).OrderBy(card => card.Attack).ToList();
 					int link_count = 0;
-					foreach (var card in cards)
+                    int totalAttack = 0;
+					foreach (var card in materialList)
                     {
 						link_count += (card.HasType(CardType.Link)) ? card.LinkCount : 1;
-						if (link_count >= Card.LinkCount) return true;
+                        totalAttack += card.Attack;
+						if (link_count >= Card.LinkCount)
+                        {
+                            return totalAttack <= Card.Attack;
+                        }
 					}
 				}
 				return false;
