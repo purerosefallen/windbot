@@ -2,7 +2,42 @@
   "windbots": [
     {
       "name": "卡片精灵",
-      "deck": "Lucky",
+      "deck": "ThunderDragon",
+      "dialog": "dealers2p1.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Kashtira",
+      "dialog": "dealers2p1.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Zefra",
+      "dialog": "dealers2p1.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Tearlaments",
+      "dialog": "dealers2p1tear.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Albaz",
+      "dialog": "dealers2p1.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Labrynth",
+      "dialog": "dealers2p1.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Swordsoul",
+      "dialog": "dealers2p1.zh-CN"
+    },
+    {
+      "name": "卡片精灵",
+      "deck": "Zoodiac",
       "dialog": "dealers2p1.zh-CN"
     }
   ]
