@@ -24,7 +24,7 @@ namespace WindBot.Game.AI
 
         public Func<bool?> ConvertToNullableFunc(Func<bool> func)
         {
-            return () => func();
+            return () => func == null || func();
         }
     }
 }
