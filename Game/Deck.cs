@@ -74,10 +74,10 @@ namespace WindBot.Game
 
                 if (deck.Cards.Count > 60)
                     return null;
-//                if (deck.ExtraCards.Count > 15)
-//                    return null;
-//                if (deck.SideCards.Count > 15)
-//                    return null;
+                if (deck.ExtraCards.Count > 15)
+                    return null;
+                if (deck.SideCards.Count > 15)
+                    return null;
 
                 return deck;
             }

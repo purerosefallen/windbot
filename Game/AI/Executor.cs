@@ -13,8 +13,7 @@ namespace WindBot.Game.AI
         public string Deck { get; set; }
         public Duel Duel { get; private set; }
         public IList<CardExecutor> Executors { get; private set; }
-		public Dictionary<ExecutorType, List<Func<bool?>> > FuncFilters { get; private set; }
-		public GameAI AI { get; private set; }
+        public GameAI AI { get; private set; }
         public AIUtil Util { get; private set; }
 
         protected MainPhase Main { get; private set; }
@@ -34,15 +33,8 @@ namespace WindBot.Game.AI
             AI = ai;
             Util = new AIUtil(duel);
             Executors = new List<CardExecutor>();
-            FuncFilters = new Dictionary<ExecutorType, List<Func<bool?>>>();
-			FuncFilters.Add(ExecutorType.Summon, new List<Func<bool?>>());
-			FuncFilters.Add(ExecutorType.SpSummon, new List<Func<bool?>>());
-            FuncFilters.Add(ExecutorType.MonsterSet, new List<Func<bool?>>());
-            FuncFilters.Add(ExecutorType.Repos, new List<Func<bool?>>());
-			FuncFilters.Add(ExecutorType.SpellSet, new List<Func<bool?>>());
-			FuncFilters.Add(ExecutorType.Activate, new List<Func<bool?>>());
-			FuncFilters.Add(ExecutorType.SummonOrSet, new List<Func<bool?>>());
-			Bot = Duel.Fields[0];
+
+            Bot = Duel.Fields[0];
             Enemy = Duel.Fields[1];
         }
 
@@ -276,11 +268,6 @@ namespace WindBot.Game.AI
             CurrentTiming = timing;
         }
 
-        public void SetFuncFilter(ExecutorType type, Func<bool?> func)
-        {
-			FuncFilters[type].Add(func);
-        }
-
         /// <summary>
         /// Do the action for the card if func return true.
         /// </summary>
@@ -300,11 +287,6 @@ namespace WindBot.Game.AI
         /// <summary>
         /// Do the action for every card if func return true.
         /// </summary>
-        public void AddExecutor(ExecutorType type, Func<bool?> func)
-        {
-            Executors.Add(new CardExecutor(type, -1, func));
-        }
-
         public void AddExecutor(ExecutorType type, Func<bool> func)
         {
             Executors.Add(new CardExecutor(type, -1, func));

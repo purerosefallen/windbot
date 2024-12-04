@@ -7,7 +7,7 @@ using WindBot.Game.AI;
 
 namespace WindBot.Game.AI.Decks
 {
-    [Deck("Lucky", "AI_Lucky", "Test")]
+    [Deck("Lucky", "AI_Test", "Test")]
     public class LuckyExecutor : DefaultExecutor
     {
         public LuckyExecutor(GameAI ai, Duel duel)
