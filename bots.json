@@ -89,6 +89,21 @@
         "dialog": "anothercopy.zh-CN"
       },
       {
+        "name": "复制梁龙",
+        "deck": "Ryzeal",
+        "dialog": "anothercopy.zh-CN"
+      },
+      {
+        "name": "复制梁龙",
+        "deck": "Ryzeal",
+        "dialog": "anothercopy.zh-CN"
+      },
+      {
+        "name": "复制梁龙",
+        "deck": "Ryzeal",
+        "dialog": "anothercopy.zh-CN"
+      },
+      {
         "name": "尼亚",
         "deck": "Yosenju",
         "dialog": "near.zh-CN"
@@ -212,16 +227,6 @@
       {
         "name": "艾克莉西娅",
         "deck": "Dogmatika",
-        "dialog": "ecclesia.zh-CN"
-      },
-      {
-        "name": "艾克莉西娅",
-        "deck": "Albaz",
-        "dialog": "ecclesia.zh-CN"
-      },
-      {
-        "name": "艾克莉西娅",
-        "deck": "Albaz",
         "dialog": "ecclesia.zh-CN"
       },
       {
