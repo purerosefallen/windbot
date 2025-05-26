@@ -249,6 +249,11 @@
         "name": "宫水静香",
         "deck": "SuperheavySamurai",
         "dialog": "wof-Miyamizu-Shizuka"
+      },
+      {
+        "name": "糖歌",
+        "deck": "Ryzeal",
+        "dialog": "wof-Ameuta"
       }
     ]
 }
