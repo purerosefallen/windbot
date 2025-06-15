@@ -433,6 +433,7 @@ namespace WindBot.Game
 
             // in case of ending duel in chain's solving
             _duel.CurrentChain.Clear();
+            _duel.CurrentChainInfo.Clear();
             _duel.ChainTargets.Clear();
             _duel.ChainTargetOnly.Clear();
             _duel.SummoningCards.Clear();
@@ -813,6 +814,8 @@ namespace WindBot.Game
             if (card.Id == 0)
                 card.SetId(cardId);
             int cc = GetLocalPlayer(packet.ReadByte());
+            packet.ReadInt16(); // trigger location + trigger sequence
+            int desc = packet.ReadInt32();
             if (_debug)
                 if (card != null) Logger.WriteLine("(" + cc.ToString() + " 's " + (card.Name ?? "UnKnowCard") + " activate effect from " + (CardLocation)pcl + ")");
             _duel.LastChainLocation = (CardLocation)pcl;
@@ -821,6 +824,7 @@ namespace WindBot.Game
             _duel.ChainTargetOnly.Clear();
             _duel.LastSummonPlayer = -1;
             _duel.CurrentChain.Add(card);
+            _duel.CurrentChainInfo.Add(new ChainInfo(card, cc, desc));
             _duel.LastChainPlayer = cc;
 
         }
@@ -855,6 +859,7 @@ namespace WindBot.Game
             _duel.LastChainPlayer = -1;
             _duel.LastChainLocation = 0;
             _duel.CurrentChain.Clear();
+            _duel.CurrentChainInfo.Clear();
             _duel.ChainTargets.Clear();
             _duel.LastChainTargets.Clear();
             _duel.ChainTargetOnly.Clear();
