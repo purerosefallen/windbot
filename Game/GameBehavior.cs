@@ -1169,16 +1169,19 @@ namespace WindBot.Game
             packet.ReadByte(); // player
             int count = packet.ReadByte();
             packet.ReadByte(); // specount
-            bool forced = packet.ReadByte() != 0;
             int hint1 = packet.ReadInt32(); // hint1
             int hint2 = packet.ReadInt32(); // hint2
 
+            // TODO: use ChainInfo?
             IList<ClientCard> cards = new List<ClientCard>();
             IList<int> descs = new List<int>();
+            IList<bool> forces = new List<bool>();
 
             for (int i = 0; i < count; ++i)
             {
                 packet.ReadByte(); // flag
+                bool forced = packet.ReadByte() != 0;
+
                 int id = packet.ReadInt32();
                 int con = GetLocalPlayer(packet.ReadByte());
                 int loc = packet.ReadByte();
@@ -1197,6 +1200,7 @@ namespace WindBot.Game
 
                 cards.Add(card);
                 descs.Add(desc);
+                forces.Add(forced);
             }
 
             if (cards.Count == 0)
@@ -1205,13 +1209,13 @@ namespace WindBot.Game
                 return;
             }
 
-            if (cards.Count == 1 && forced)
+            if (cards.Count == 1 && forces[0])
             {
                 Connection.Send(CtosMessage.Response, 0);
                 return;
             }
 
-            Connection.Send(CtosMessage.Response, _ai.OnSelectChain(cards, descs, forced, hint1 | hint2));
+            Connection.Send(CtosMessage.Response, _ai.OnSelectChain(cards, descs, forces, hint1 | hint2));
         }
 
         private void OnSelectCounter(BinaryReader packet)
