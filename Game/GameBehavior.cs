@@ -342,7 +342,7 @@ namespace WindBot.Game
 				if (player < 4)
 					Logger.WriteLine(otherName + " say to " + myName + ": " + message);
 				else
-					Logger.WriteLine("Server say to " + myName + ": " + message);
+					Logger.WriteLine("System message(" + player + "): " + message);
 			}
         }
 
@@ -355,6 +355,7 @@ namespace WindBot.Game
             packet.ReadByte();
             packet.ReadByte();
             int pcode = packet.ReadInt32();
+            Logger.DebugWriteLine("Error message received: " + msg + ", code: " + pcode);
             if (msg == 2) //ERRMSG_DECKERROR
             {
                 int code = pcode & 0xFFFFFFF;
@@ -433,6 +434,7 @@ namespace WindBot.Game
 
             // in case of ending duel in chain's solving
             _duel.CurrentChain.Clear();
+            _duel.CurrentChainInfo.Clear();
             _duel.ChainTargets.Clear();
             _duel.ChainTargetOnly.Clear();
             _duel.SummoningCards.Clear();
@@ -813,6 +815,8 @@ namespace WindBot.Game
             if (card.Id == 0)
                 card.SetId(cardId);
             int cc = GetLocalPlayer(packet.ReadByte());
+            packet.ReadInt16(); // trigger location + trigger sequence
+            int desc = packet.ReadInt32();
             if (_debug)
                 if (card != null) Logger.WriteLine("(" + cc.ToString() + " 's " + (card.Name ?? "UnKnowCard") + " activate effect from " + (CardLocation)pcl + ")");
             _duel.LastChainLocation = (CardLocation)pcl;
@@ -821,6 +825,7 @@ namespace WindBot.Game
             _duel.ChainTargetOnly.Clear();
             _duel.LastSummonPlayer = -1;
             _duel.CurrentChain.Add(card);
+            _duel.CurrentChainInfo.Add(new ChainInfo(card, cc, desc));
             _duel.LastChainPlayer = cc;
 
         }
@@ -855,6 +860,7 @@ namespace WindBot.Game
             _duel.LastChainPlayer = -1;
             _duel.LastChainLocation = 0;
             _duel.CurrentChain.Clear();
+            _duel.CurrentChainInfo.Clear();
             _duel.ChainTargets.Clear();
             _duel.LastChainTargets.Clear();
             _duel.ChainTargetOnly.Clear();
@@ -1213,16 +1219,19 @@ namespace WindBot.Game
             packet.ReadByte(); // player
             int count = packet.ReadByte();
             packet.ReadByte(); // specount
-            bool forced = packet.ReadByte() != 0;
             int hint1 = packet.ReadInt32(); // hint1
             int hint2 = packet.ReadInt32(); // hint2
 
+            // TODO: use ChainInfo?
             IList<ClientCard> cards = new List<ClientCard>();
             IList<int> descs = new List<int>();
+            IList<bool> forces = new List<bool>();
 
             for (int i = 0; i < count; ++i)
             {
                 packet.ReadByte(); // flag
+                bool forced = packet.ReadByte() != 0;
+
                 int id = packet.ReadInt32();
                 int con = GetLocalPlayer(packet.ReadByte());
                 int loc = packet.ReadByte();
@@ -1241,6 +1250,7 @@ namespace WindBot.Game
 
                 cards.Add(card);
                 descs.Add(desc);
+                forces.Add(forced);
             }
 
             if (cards.Count == 0)
@@ -1249,13 +1259,13 @@ namespace WindBot.Game
                 return;
             }
 
-            if (cards.Count == 1 && forced)
+            if (cards.Count == 1 && forces[0])
             {
                 Connection.Send(CtosMessage.Response, 0);
                 return;
             }
 
-            Connection.Send(CtosMessage.Response, _ai.OnSelectChain(cards, descs, forced, hint1 | hint2));
+            Connection.Send(CtosMessage.Response, _ai.OnSelectChain(cards, descs, forces, hint1 | hint2));
         }
 
         private void OnSelectCounter(BinaryReader packet)
@@ -1639,6 +1649,11 @@ namespace WindBot.Game
                     int OpParam = packet.ReadInt32();
                     int OpParam1 = OpParam & 0xffff;
                     int OpParam2 = OpParam >> 16;
+                    if ((OpParam & 0x80000000) > 0)
+                    {
+                        OpParam1 = OpParam & 0x7fffffff;
+                        OpParam2 = 0;
+                    }
                     if (OpParam2 > 0 && OpParam1 > OpParam2)
                     {
                         card.OpParam1 = OpParam2;
@@ -2032,6 +2047,7 @@ namespace WindBot.Game
         private void OnConfirmCards(BinaryReader packet)
         {
             /*int playerid = */packet.ReadByte();
+            /*int skip_panel = */packet.ReadByte();
             int count = packet.ReadByte();
             for (int i = 0; i < count; ++ i)
             {
