@@ -73,7 +73,7 @@ namespace WindBot.Game
             packet = GamePacketFactory.Create(CtosMessage.JoinGame);
             packet.Write(_proVersion);
             packet.Write(junk);
-            packet.WriteUnicode(_roomInfo, 30);
+            packet.WriteUnicode(_roomInfo, 20);
             Connection.Send(packet);
         }
 
@@ -84,9 +84,8 @@ namespace WindBot.Game
 
         public void Chat(string message)
         {
-            byte[] content = Encoding.Unicode.GetBytes(message + "\0");
             BinaryWriter chat = GamePacketFactory.Create(CtosMessage.Chat);
-            chat.Write(content);
+            chat.WriteUnicodeAutoLength(message, 255);
             Connection.Send(chat);
         }
 
