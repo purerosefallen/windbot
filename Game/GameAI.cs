@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 using WindBot.Game.AI;
 using YGOSharp.OCGWrapper.Enums;
 
@@ -25,6 +26,18 @@ namespace WindBot.Game
             _activatedCards = new Dictionary<int, int>();
         }
 
+        private void CheckSurrender()
+        {
+            foreach (CardExecutor exec in Executor.Executors)
+            {
+                if (exec.Type == ExecutorType.Surrender && exec.Func())
+                {
+                    _dialogs.SendSurrender();
+                    Game.Surrender();
+                }
+            }
+        }
+
         /// <summary>
         /// Called when the AI got the error message.
         /// </summary>
@@ -36,6 +49,9 @@ namespace WindBot.Game
         public void OnDeckError(string card)
         {
             _dialogs.SendDeckSorry(card);
+            Thread.Sleep(1000);
+            _dialogs.SendSurrender();
+            Game.Connection.Close();
         }
 
         /// <summary>
@@ -52,6 +68,14 @@ namespace WindBot.Game
         public void OnStart()
         {
             _dialogs.SendDuelStart();
+        }
+
+        /// <summary>
+        /// Customized called when the AI do something in a duel.
+        /// </summary>
+        public void SendCustomChat(int index, params object[] opts)
+        {
+            _dialogs.SendCustomChat(index, opts);
         }
 
         /// <summary>
@@ -98,6 +122,7 @@ namespace WindBot.Game
             m_position.Clear();
             m_selector_pointer = -1;
             m_materialSelector = null;
+            m_materialSelectorHint = 0;
             m_option = -1;
             m_yesno = -1;
             m_announce = 0;
@@ -108,6 +133,12 @@ namespace WindBot.Game
                 _dialogs.SendNewTurn();
             }
             Executor.OnNewPhase();
+            CheckSurrender();
+        }
+
+        public void OnMove(ClientCard card, int previousControler, int previousLocation, int currentControler, int currentLocation)
+        {
+            Executor.OnMove(card, previousControler, previousLocation, currentControler, currentLocation);
         }
 
         /// <summary>
@@ -116,6 +147,7 @@ namespace WindBot.Game
         public void OnDirectAttack(ClientCard card)
         {
             _dialogs.SendOnDirectAttack(card.Name);
+            CheckSurrender();
         }
 
         /// <summary>
@@ -127,6 +159,11 @@ namespace WindBot.Game
         {
             Executor.OnChaining(player,card);
         }
+
+        public void OnChainSolved(int chainIndex)
+        {
+            Executor.OnChainSolved(chainIndex);
+        }
         
         /// <summary>
         /// Called when a chain has been solved.
@@ -136,6 +173,17 @@ namespace WindBot.Game
             m_selector.Clear();
             m_selector_pointer = -1;
             Executor.OnChainEnd();
+            CheckSurrender();
+        }
+
+        /// <summary>
+        /// Called when receiving annouce
+        /// </summary>
+        /// <param name="player">Player who announce.</param>
+        /// <param name="data">Annouced info.</param>
+        public void OnReceivingAnnouce(int player, int data)
+        {
+            Executor.OnReceivingAnnouce(player, data);
         }
 
         /// <summary>
@@ -145,7 +193,6 @@ namespace WindBot.Game
         /// <returns>A new BattlePhaseAction containing the action to do.</returns>
         public BattlePhaseAction OnSelectBattleCmd(BattlePhase battle)
         {
-            Executor.SetBattle(battle);
             foreach (CardExecutor exec in Executor.Executors)
             {
                 if (exec.Type == ExecutorType.GoToMainPhase2 && battle.CanMainPhaseTwo && exec.Func()) // check if should enter main phase 2 directly
@@ -267,8 +314,16 @@ namespace WindBot.Game
             }
             else
             {
-                // Update the next selector.
-                selector = GetSelectedCards();
+                if (m_materialSelector != null && hint == m_materialSelectorHint)
+                {
+                    //Logger.DebugWriteLine("m_materialSelector hint match");
+                    selector = m_materialSelector;
+                }
+                else
+                {
+                    // Update the next selector.
+                    selector = GetSelectedCards();
+                }
             }
 
             // If we selected a card, use this card.
@@ -277,6 +332,8 @@ namespace WindBot.Game
 
             // Always select the first available cards and choose the minimum.
             IList<ClientCard> selected = new List<ClientCard>();
+
+            if (hint == HintMsg.AttackTarget && cancelable) return selected;
 
             if (cards.Count >= min)
             {
@@ -292,23 +349,34 @@ namespace WindBot.Game
         /// <param name="cards">List of activable cards.</param>
         /// <param name="descs">List of effect descriptions.</param>
         /// <param name="forced">You can't return -1 if this param is true.</param>
+        /// <param name="timing">Current hint timing</param>
         /// <returns>Index of the activated card or -1.</returns>
-        public int OnSelectChain(IList<ClientCard> cards, IList<int> descs, bool forced)
+        public int OnSelectChain(IList<ClientCard> cards, IList<int> descs, IList<bool> forces, int timing = -1)
         {
+            Executor.OnSelectChain(cards);
             foreach (CardExecutor exec in Executor.Executors)
             {
                 for (int i = 0; i < cards.Count; ++i)
                 {
                     ClientCard card = cards[i];
-                    if (ShouldExecute(exec, card, ExecutorType.Activate, descs[i]))
+                    if (ShouldExecute(exec, card, ExecutorType.Activate, descs[i], timing))
                     {
                         _dialogs.SendChaining(card.Name);
                         return i;
                     }
                 }
             }
-            // If we're forced to chain, we chain the first card. However don't do anything.
-            return forced ? 0 : -1;
+            for (int i = 0; i < forces.Count; ++i)
+            {
+                if (forces[i])
+                {
+                    // If the card is forced, we have to activate it.
+                    _dialogs.SendChaining(cards[i].Name);
+                    return i;
+                }
+            }
+            // Don't do anything.
+            return -1;
         }
         
         /// <summary>
@@ -380,7 +448,7 @@ namespace WindBot.Game
         /// <returns>A new MainPhaseAction containing the action to do.</returns>
         public MainPhaseAction OnSelectIdleCmd(MainPhase main)
         {
-            Executor.SetMain(main);
+            CheckSurrender();
             foreach (CardExecutor exec in Executor.Executors)
             {
             	if (exec.Type == ExecutorType.GoToEndPhase && main.CanEndPhase && exec.Func()) // check if should enter end phase directly
@@ -745,6 +813,7 @@ namespace WindBot.Game
 
         
         private CardSelector m_materialSelector;
+        private int m_materialSelectorHint;
         private int m_place;
         private int m_option;
         private int m_number;
@@ -912,34 +981,40 @@ namespace WindBot.Game
             m_selector.Insert(m_selector_pointer, new CardSelector(loc));
         }
 
-        public void SelectMaterials(ClientCard card)
+        public void SelectMaterials(ClientCard card, int hint = 0)
         {
             m_materialSelector = new CardSelector(card);
+            m_materialSelectorHint = hint;
         }
 
-        public void SelectMaterials(IList<ClientCard> cards)
+        public void SelectMaterials(IList<ClientCard> cards, int hint = 0)
         {
             m_materialSelector = new CardSelector(cards);
+            m_materialSelectorHint = hint;
         }
 
-        public void SelectMaterials(int cardId)
+        public void SelectMaterials(int cardId, int hint = 0)
         {
             m_materialSelector = new CardSelector(cardId);
+            m_materialSelectorHint = hint;
         }
 
-        public void SelectMaterials(IList<int> ids)
+        public void SelectMaterials(IList<int> ids, int hint = 0)
         {
             m_materialSelector = new CardSelector(ids);
+            m_materialSelectorHint = hint;
         }
 
-        public void SelectMaterials(CardLocation loc)
+        public void SelectMaterials(CardLocation loc, int hint = 0)
         {
             m_materialSelector = new CardSelector(loc);
+            m_materialSelectorHint = hint;
         }
 
         public void CleanSelectMaterials()
         {
             m_materialSelector = null;
+            m_materialSelectorHint = 0;
         }
 
         public bool HaveSelectedCards()
@@ -1096,8 +1171,9 @@ namespace WindBot.Game
             return new BattlePhaseAction(BattlePhaseAction.BattleAction.ToMainPhaseTwo);
         }
 
-        private bool ShouldExecute(CardExecutor exec, ClientCard card, ExecutorType type, int desc = -1)
+        private bool ShouldExecute(CardExecutor exec, ClientCard card, ExecutorType type, int desc = -1, int timing = -1)
         {
+            Executor.SetCard(type, card, desc, timing);
             if (card.Id != 0 && type == ExecutorType.Activate)
             {
                 if (_activatedCards.ContainsKey(card.Id) && _activatedCards[card.Id] >= 9)
@@ -1105,7 +1181,6 @@ namespace WindBot.Game
                 if (!Executor.OnPreActivate(card))
                     return false;
             }
-            Executor.SetCard(type, card, desc);
             bool result = card != null && exec.Type == type &&
                 (exec.CardId == -1 || exec.CardId == card.Id) &&
                 (exec.Func == null || exec.Func());

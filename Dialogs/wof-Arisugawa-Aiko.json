@@ -1,0 +1,42 @@
+{
+  "welcome": [
+    "你想干嘛？"
+  ],
+  "deckerror": [
+    "该碎觉了。"
+  ],
+  "duelstart": [
+    "too hot need ice cream"
+  ],
+  "newturn": [
+    ""
+  ],
+  "endturn": [
+    ""
+  ],
+  "directattack": [
+    ""
+  ],
+  "attack": [
+    ""
+  ],
+  "ondirectattack": [
+    ""
+  ],
+  "facedownmonstername": "怪兽",
+  "activate": [
+    ""
+  ],
+  "summon": [
+    ""
+  ],
+  "setmonster": [
+    ""
+  ],
+  "chaining": [
+    ""
+  ],
+  "surrender": [
+    ""
+  ]
+}

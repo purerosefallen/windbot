@@ -16,12 +16,10 @@ namespace WindBot.Game.AI
         public GameAI AI { get; private set; }
         public AIUtil Util { get; private set; }
 
-        protected MainPhase Main { get; private set; }
-        protected BattlePhase Battle { get; private set; }
-
         protected ExecutorType Type { get; private set; }
         protected ClientCard Card { get; private set; }
         protected int ActivateDescription { get; private set; }
+        protected int CurrentTiming { get; private set; }
 
         protected ClientField Bot { get; private set; }
         protected ClientField Enemy { get; private set; }
@@ -94,10 +92,21 @@ namespace WindBot.Game.AI
             // For overriding
         }
 
+        public virtual void OnChainSolved(int chainIndex)
+        {
+            // For overriding
+        }
+
         public virtual void OnChainEnd()
         {
             // For overriding
         }
+
+        public virtual void OnReceivingAnnouce(int player, int data)
+        {
+            // For overriding
+        }
+
         public virtual void OnNewPhase()
         {
             // Some AI need do something on new phase
@@ -110,6 +119,11 @@ namespace WindBot.Game.AI
         public virtual void OnDraw(int player)
         {
             // Some AI need do something on draw
+        }
+
+        public virtual void OnMove(ClientCard card, int previousControler, int previousLocation, int currentControler, int currentLocation)
+        {
+            // Some AI need do something on card's moving
         }
 
         public virtual IList<ClientCard> OnSelectCard(IList<ClientCard> cards, int min, int max, int hint, bool cancelable)
@@ -166,6 +180,11 @@ namespace WindBot.Game.AI
             return null;
         }
 
+        public virtual void OnSelectChain(IList<ClientCard> cards)
+        {
+            return;
+        }
+
         public virtual bool OnSelectYesNo(int desc)
         {
             return true;
@@ -215,24 +234,25 @@ namespace WindBot.Game.AI
             return 0;
         }
 
-        public void SetMain(MainPhase main)
+        /// <summary>
+        /// Called when card is successfully special summoned.
+        /// Used on monsters that can only special summoned once per turn.
+        /// </summary>
+        public virtual void OnSpSummoned()
         {
-            Main = main;
-        }
-
-        public void SetBattle(BattlePhase battle)
-        {
-            Battle = battle;
+            // For overriding
+            return;
         }
 
         /// <summary>
         /// Set global variables Type, Card, ActivateDescription for Executor
         /// </summary>
-        public void SetCard(ExecutorType type, ClientCard card, int description)
+        public void SetCard(ExecutorType type, ClientCard card, int description, int timing = -1)
         {
             Type = type;
             Card = card;
             ActivateDescription = description;
+            CurrentTiming = timing;
         }
 
         /// <summary>
