@@ -94,16 +94,6 @@
         "dialog": "anothercopy.zh-CN"
       },
       {
-        "name": "复制梁龙",
-        "deck": "Ryzeal",
-        "dialog": "anothercopy.zh-CN"
-      },
-      {
-        "name": "复制梁龙",
-        "deck": "Ryzeal",
-        "dialog": "anothercopy.zh-CN"
-      },
-      {
         "name": "尼亚",
         "deck": "Yosenju",
         "dialog": "near.zh-CN"
@@ -126,6 +116,21 @@
       {
         "name": "尼亚",
         "deck": "Labrynth",
+        "dialog": "near.zh-CN"
+      },
+      {
+        "name": "尼亚",
+        "deck": "Yubel",
+        "dialog": "near.zh-CN"
+      },
+      {
+        "name": "尼亚",
+        "deck": "Yubel",
+        "dialog": "near.zh-CN"
+      },
+      {
+        "name": "尼亚",
+        "deck": "Yubel",
         "dialog": "near.zh-CN"
       },
       {
