@@ -243,7 +243,8 @@
       {
         "name": "有栖川蓝子",
         "deck": "MokeyMokeyKing",
-        "dialog": "wof-Arisugawa-Aiko"
+        "dialog": "wof-Arisugawa-Aiko",
+        "hidden": true
       },
       {
         "name": "宫水静香",
@@ -254,6 +255,11 @@
         "name": "糖歌",
         "deck": "Ryzeal",
         "dialog": "wof-Ameuta"
+      },
+      {
+        "name": "夏洛特·格雷",
+        "deck": "Yubel",
+        "dialog": "wof-Charlotte-Gray"
       }
     ]
 }
