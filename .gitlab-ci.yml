@@ -14,7 +14,7 @@ build:
     - linux
   image: mono
   script:
-    - sed -i '/download.mono-project.com/d' -e 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list /etc/apt/sources.list.d/*
+    - sed -i -e '/download.mono-project.com/d' -e 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list /etc/apt/sources.list.d/*
     - apt update && apt -y install p7zip-full tar
     - msbuild /p:Configuration=Release /p:TargetFrameworkVersion=v4.6
     - mv -f bin/Release WindBot
