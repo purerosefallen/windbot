@@ -1,5 +1,7 @@
 FROM mono as builder
 
+RUN sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
+
 RUN apt update && env DEBIAN_FRONTEND=noninteractive apt install -y wget git
 
 COPY . /windbot-source
