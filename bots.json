@@ -94,6 +94,11 @@
         "dialog": "anothercopy.zh-CN"
       },
       {
+        "name": "复制梁龙",
+        "deck": "Maliss",
+        "dialog": "anothercopy.zh-CN"
+      },
+      {
         "name": "尼亚",
         "deck": "Yosenju",
         "dialog": "near.zh-CN"
@@ -116,16 +121,6 @@
       {
         "name": "尼亚",
         "deck": "Labrynth",
-        "dialog": "near.zh-CN"
-      },
-      {
-        "name": "尼亚",
-        "deck": "Yubel",
-        "dialog": "near.zh-CN"
-      },
-      {
-        "name": "尼亚",
-        "deck": "Yubel",
         "dialog": "near.zh-CN"
       },
       {
@@ -243,6 +238,11 @@
         "name": "今晚有宵夜吗",
         "deck": "SuperheavySamurai",
         "dialog": "superheavysamurai.zh-CN"
+      },
+      {
+        "name": "今晚有宵夜吗",
+        "deck": "MalissOCG",
+        "dialog": "Xiaoye.zh-CN"
       }
     ]
 }
