@@ -179,6 +179,7 @@ namespace WindBot.Game.AI
             public const int HeroicChampionClaivesolish = 97453744;
             public const int GhostrickAlucard = 75367227;
             public const int DinowrestlerKingTWrextle = 77967790;
+            public const int NumberF0UtopicFutureZexal = 41522092;
 
             public const int PerformapalMissDirector = 92932860;
             public const int AncientWarriorsMasterfulSunMou = 40140448;
@@ -201,6 +202,8 @@ namespace WindBot.Game.AI
             public const int SeleneQueenOfTheMasterMagicians = 45819647;
             public const int TheWingedDragonofRaSphereMode = 10000080;
             public const int SelettriceVaalmonica = 23093373;
+            public const int PerformageTrapezeWitch = 33206889;
+            public const int PoseidraTheStormingAtlantean = 99193444;
 
             public const int RockOfTheVanquisher = 28168628;
             public const int SpiralDischarge = 29477860;
@@ -229,6 +232,7 @@ namespace WindBot.Game.AI
             public const int Ghostrick = 0x8d;
             public const int OddEyes = 0x99;
             public const int Performapal = 0x9f;
+            public const int Performage = 0xc6;
             public const int BlueEyes = 0xdd;
             public const int FurHire = 0x114;
             public const int Altergeist = 0x103;
@@ -295,7 +299,8 @@ namespace WindBot.Game.AI
             {_CardId.HeroicChampionClaivesolish, defender => true},
             {_CardId.GhostrickAlucard, defender => defender.HasSetcode(_Setcode.Ghostrick) || defender.IsFacedown()},
             {_CardId.MekkKnightCrusadiaAstram, defender => true},
-            {_CardId.DinowrestlerKingTWrextle, defender => true}
+            {_CardId.DinowrestlerKingTWrextle, defender => true},
+            {_CardId.NumberF0UtopicFutureZexal, defender => true}
         };
 
         /// <summary>
@@ -324,7 +329,9 @@ namespace WindBot.Game.AI
             {_CardId.SeleneQueenOfTheMasterMagicians, (defender, list) => list.Any(monster => monster.HasSetcode(_Setcode.Endymion))},
 
             {_CardId.TheWingedDragonofRaSphereMode, (defender, list) => true},
-            {_CardId.SelettriceVaalmonica, (defender, list) => list.Any(monster => !monster.IsCode(_CardId.SelettriceVaalmonica))}
+            {_CardId.SelettriceVaalmonica, (defender, list) => list.Any(monster => !monster.IsCode(_CardId.SelettriceVaalmonica))},
+            {_CardId.PerformageTrapezeWitch, (defender, list) => list.Any(monster => !monster.IsCode(_CardId.PerformageTrapezeWitch) && monster.HasSetcode(_Setcode.Performage))},
+            {_CardId.PoseidraTheStormingAtlantean, (defender, list) => list.Any(monster => !monster.IsCode(_CardId.PoseidraTheStormingAtlantean))}
         };
 
         /// <summary>

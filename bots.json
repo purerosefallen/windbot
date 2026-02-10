@@ -249,6 +249,7 @@
       {
         "name": "宫水静香",
         "deck": "SuperheavySamurai",
+<<<<<<< HEAD
         "dialog": "wof-Miyamizu-Shizuka"
       },
       {
@@ -260,6 +261,14 @@
         "name": "夏洛特·格雷",
         "deck": "Yubel",
         "dialog": "wof-Charlotte-Gray"
+=======
+        "dialog": "superheavysamurai.zh-CN"
+      },
+      {
+        "name": "今晚有宵夜吗",
+        "deck": "MalissOCG",
+        "dialog": "Xiaoye.zh-CN"
+>>>>>>> d65223bd24c56285bc480d6e266476163b7771dc
       }
     ]
 }

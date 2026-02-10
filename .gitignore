@@ -13,6 +13,11 @@
 *.user
 *.sln.docstates
 .vs/
+.vscode/
+
+Windbot.exe
+cards.cdb
+pm2.json
 
 # Build results
 
