@@ -260,6 +260,16 @@
         "name": "夏洛特·格雷",
         "deck": "Yubel",
         "dialog": "wof-Charlotte-Gray"
+      },
+      {
+        "name": "紫苑兰舞",
+        "deck": "MalissOCG",
+        "dialog": "wof-Ziyan-Rabu"
+      },
+      {
+        "name": "雾切玲奈",
+        "deck": "Maliss",
+        "dialog": "wof-Kirigiri-Reina"
       }
     ]
 }
