@@ -12,6 +12,7 @@ namespace WindBot
         public string Host { get; set; }
         public int Port { get; set; }
         public string HostInfo { get; set; }
+        public string RealIP { get; set; }
         public int Version { get; set; }
         public int Hand { get; set; }
         public bool Debug { get; set; }
@@ -26,6 +27,7 @@ namespace WindBot
             Host = "127.0.0.1";
             Port = 7911;
             HostInfo = "";
+            RealIP = null;
             Version = 0x1362;
             Hand = 0;
             Debug = false;

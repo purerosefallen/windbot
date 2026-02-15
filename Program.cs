@@ -5,6 +5,7 @@ using System.Net;
 using System.Web;
 using WindBot.Game;
 using WindBot.Game.AI;
+using YGOSharp.Network;
 using YGOSharp.OCGWrapper;
 
 namespace WindBot
@@ -72,7 +73,6 @@ namespace WindBot
             Info.Name = Config.GetString("Name", Info.Name);
             Info.Deck = Config.GetString("Deck", Info.Deck);
             Info.DeckFile = Config.GetString("DeckFile", Info.DeckFile);
-            Info.DeckCode = Config.GetString("DeckCode", Info.DeckCode);
             Info.Dialog = Config.GetString("Dialog", Info.Dialog);
             Info.Host = Config.GetString("Host", Info.Host);
             Info.Port = Config.GetInt("Port", Info.Port);
@@ -81,40 +81,28 @@ namespace WindBot
             Info.Hand = Config.GetInt("Hand", Info.Hand);
             Info.Debug = Config.GetBool("Debug", Info.Debug);
             Info.Chat = Config.GetBool("Chat", Info.Chat);
+            Info.DeckCode = Config.GetString("DeckCode", Info.DeckCode);
+            Info.RealIP = Config.GetString("RealIP", Info.RealIP);
             Run(Info);
         }
 
         private static void RunAsServer(int ServerPort)
         {
-            using (HttpListener MainServer = new HttpListener())
-            {
-                MainServer.AuthenticationSchemes = AuthenticationSchemes.Anonymous;
-                MainServer.Prefixes.Add("http://+:" + ServerPort + "/");
-                MainServer.Start();
                 Logger.WriteLine("WindBot server start successed.");
                 Logger.WriteLine("HTTP GET http://127.0.0.1:" + ServerPort + "/?name=WindBot&host=127.0.0.1&port=7911 to call the bot.");
-                while (true)
+                ServerModeHost.Run(ServerPort, new ParameterizedThreadStart(Run), delegate (string rawUrl, out WindBotInfo Info, out string port)
                 {
-#if !DEBUG
-    try
-    {
-#endif
-                    HttpListenerContext ctx = MainServer.GetContext();
-
-                    WindBotInfo Info = new WindBotInfo();
-                    string RawUrl = Path.GetFileName(ctx.Request.RawUrl);
+                    Info = new WindBotInfo();
+                    string RawUrl = Path.GetFileName(rawUrl);
                     Info.Name = HttpUtility.ParseQueryString(RawUrl).Get("name");
                     Info.Deck = HttpUtility.ParseQueryString(RawUrl).Get("deck");
                     Info.Host = HttpUtility.ParseQueryString(RawUrl).Get("host");
-                    string port = HttpUtility.ParseQueryString(RawUrl).Get("port");
+                    port = HttpUtility.ParseQueryString(RawUrl).Get("port");
                     if (port != null)
                         Info.Port = Int32.Parse(port);
                     string deckfile = HttpUtility.ParseQueryString(RawUrl).Get("deckfile");
                     if (deckfile != null)
                         Info.DeckFile = deckfile;
-                    string deckcode = HttpUtility.ParseQueryString(RawUrl).Get("deckcode");
-                    if (deckcode != null)
-                        Info.DeckCode = deckcode;
                     string dialog = HttpUtility.ParseQueryString(RawUrl).Get("dialog");
                     if (dialog != null)
                         Info.Dialog = dialog;
@@ -133,39 +121,13 @@ namespace WindBot
                     string chat = HttpUtility.ParseQueryString(RawUrl).Get("chat");
                     if (chat != null)
                         Info.Chat = bool.Parse(chat);
-
-                    if (Info.Name == null || Info.Host == null || port == null)
-                    {
-                        ctx.Response.StatusCode = 400;
-                        ctx.Response.Close();
-                    }
-                    else
-                    {
-#if !DEBUG
-        try
-        {
-#endif
-                        Thread workThread = new Thread(new ParameterizedThreadStart(Run));
-                        workThread.Start(Info);
-#if !DEBUG
-        }
-        catch (Exception ex)
-        {
-            Logger.WriteErrorLine("Start Thread Error: " + ex);
-        }
-#endif
-                        ctx.Response.StatusCode = 200;
-                        ctx.Response.Close();
-                    }
-#if !DEBUG
-    }
-    catch (Exception ex)
-    {
-        Logger.WriteErrorLine("Parse Http Request Error: " + ex);
-    }
-#endif
-                }
-            }
+                    string deckcode = HttpUtility.ParseQueryString(RawUrl).Get("deckcode");
+                    if (deckcode != null)
+                        Info.DeckCode = deckcode;
+                    string realIP = HttpUtility.ParseQueryString(RawUrl).Get("realip");
+                    if (realIP != null)
+                        Info.RealIP = realIP;
+                });
         }
 
         private static void Run(object o)
@@ -175,8 +137,16 @@ namespace WindBot
     {
     //all errors will be catched instead of causing the program to crash.
 #endif
-            WindBotInfo Info = (WindBotInfo)o;
-            GameClient client = new GameClient(Info);
+            WindBotInfo Info = o as WindBotInfo;
+            YGOClient presetConnection = null;
+
+            ServerRunRequest request = o as ServerRunRequest;
+            if (request != null)
+            {
+                Info = request.Info;
+                presetConnection = request.Connection;
+            }
+            GameClient client = (presetConnection == null) ? new GameClient(Info) : new GameClient(Info, presetConnection);
             client.Start();
             Logger.DebugWriteLine(client.Username + " started.");
             while (client.Connection.IsConnected)

@@ -16,7 +16,7 @@ namespace YGOSharp.Network
         protected int HeaderSize = 2;
         protected bool IsHeaderSizeIncluded = false;
 
-        private NetworkClient _client;
+        private INetworkClient _client;
 
         private List<byte> _receiveBuffer = new List<byte>();
         private Queue<byte[]> _pendingPackets = new Queue<byte[]>();
@@ -38,7 +38,7 @@ namespace YGOSharp.Network
             get { return _client.RemoteIPAddress; }
         }
 
-        public BinaryClient(NetworkClient client)
+        public BinaryClient(INetworkClient client)
         {
             _client = client;
 
@@ -48,6 +48,7 @@ namespace YGOSharp.Network
 
             if (_client.IsConnected)
             {
+                Client_Connected();
                 _client.BeginReceive();
             }
         }

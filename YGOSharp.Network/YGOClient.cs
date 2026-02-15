@@ -10,7 +10,7 @@ namespace YGOSharp.Network
         {
         }
 
-        public YGOClient(NetworkClient client)
+        public YGOClient(INetworkClient client)
             : base(client)
         {
         }

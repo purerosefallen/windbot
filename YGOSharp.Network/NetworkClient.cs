@@ -4,7 +4,7 @@ using System.Net.Sockets;
 
 namespace YGOSharp.Network
 {
-    public class NetworkClient
+    public class NetworkClient : INetworkClient
     {
         public event Action Connected;
         public event Action<Exception> Disconnected;
