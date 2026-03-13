@@ -129,6 +129,11 @@
         "dialog": "near.zh-CN"
       },
       {
+        "name": "尼亚",
+        "deck": "Apophis",
+        "dialog": "near.zh-CN"
+      },
+      {
         "name": "试作型机器人1732",
         "deck": "ST1732",
         "dialog": "default"
