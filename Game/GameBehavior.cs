@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -163,6 +163,7 @@ namespace WindBot.Game
             _messages.Add(GameMessage.FlipSummoning, OnSummoning);
             _messages.Add(GameMessage.FlipSummoned, OnSummoned);
             _messages.Add(GameMessage.ConfirmCards, OnConfirmCards);
+            _messages.Add(GameMessage.PlayerHint, OnPlayerHint);
         }
 
         private BinaryWriter buildUpdateDeck(Deck targetDeck) {
@@ -407,6 +408,11 @@ namespace WindBot.Game
             if (type == 4) // HINT_OPSELECTED
             {
                 _ai.OnReceivingAnnouce(player, data);
+            }
+            if (type == 11) // HINT_ZONE
+            {
+                Logger.DebugWriteLine("HINT_ZONE received: player=" + player + ", zone=" + data);
+                _ai.OnHintZone(player, data);
             }
         }
 
@@ -2060,6 +2066,19 @@ namespace WindBot.Game
                 if (_debug)
                     Logger.WriteLine("(Confirm " + player.ToString() + "'s " + (CardLocation)loc + " card: " + (card.Name ?? "UnKnowCard") + ")");
             }
+        }
+
+        /// <summary>
+        /// Handles PlayerHint message. Protocol: player(buffer8), hintType(buffer8), description(buffer32).
+        /// hintType values: PlayerHintType (e.g. PHINT_DESC_ADD=6, PHINT_DESC_REMOVE=7).
+        /// </summary>
+        private void OnPlayerHint(BinaryReader packet)
+        {
+            int player = GetLocalPlayer(packet.ReadByte());
+            int hintType = packet.ReadByte();
+            int description = packet.ReadInt32();
+            Logger.DebugWriteLine("PlayerHint received: player=" + player + ", hintType=" + hintType + " (" + (PlayerHintType)hintType + "), description=" + description);
+            _ai.OnPlayerHint(player, hintType, description);
         }
     }
 }
