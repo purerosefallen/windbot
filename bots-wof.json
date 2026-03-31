@@ -262,14 +262,19 @@
         "dialog": "wof-Charlotte-Gray"
       },
       {
-        "name": "今晚有宵夜吗",
+        "name": "紫苑兰舞",
         "deck": "MalissOCG",
-        "dialog": "Xiaoye.zh-CN"
+        "dialog": "wof-Ziyan-Rabu"
       },
       {
         "name": "雾切玲奈",
         "deck": "Maliss",
         "dialog": "wof-Kirigiri-Reina"
+      },
+      {
+        "name": "蚀影",
+        "deck": "Apophis",
+        "dialog": "wof-Eclipse-Shadow"
       }
     ]
 }

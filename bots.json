@@ -270,6 +270,11 @@
         "name": "雾切玲奈",
         "deck": "Maliss",
         "dialog": "wof-Kirigiri-Reina"
+      },
+      {
+        "name": "蚀影",
+        "deck": "Apophis",
+        "dialog": "wof-Eclipse-Shadow"
       }
     ]
 }
