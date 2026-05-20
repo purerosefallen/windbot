@@ -99,6 +99,11 @@
         "dialog": "anothercopy.zh-CN"
       },
       {
+        "name": "复制梁龙",
+        "deck": "BE2025",
+        "dialog": "anothercopy.zh-CN"
+      },
+      {
         "name": "尼亚",
         "deck": "Yosenju",
         "dialog": "near.zh-CN"
@@ -247,6 +252,11 @@
       {
         "name": "今晚有宵夜吗",
         "deck": "MalissOCG",
+        "dialog": "Xiaoye.zh-CN"
+      },
+      {
+        "name": "今晚有宵夜吗",
+        "deck": "Neko",
         "dialog": "Xiaoye.zh-CN"
       }
     ]
