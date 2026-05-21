@@ -41,6 +41,11 @@
         "dialog": "wof-Shimogakinarumi-Riona"
       },
       {
+        "name": "星宫时子",
+        "deck": "BE2025",
+        "dialog": "wof-Hoshimiya-Toko"
+      },
+      {
         "name": "鹭泽由依",
         "deck": "Yosenju",
         "dialog": "wof-Sagisawa-Yui"
@@ -275,6 +280,11 @@
         "name": "蚀影",
         "deck": "Apophis",
         "dialog": "wof-Eclipse-Shadow"
+      },
+      {
+        "name": "楠木明绘",
+        "deck": "Neko",
+        "dialog": "wof-Akie-Kusunoki"
       }
     ]
 }
