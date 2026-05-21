@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Net;
 using System.Web;
+using System.Diagnostics;
 using WindBot.Game;
 using WindBot.Game.AI;
 using YGOSharp.Network;
@@ -13,6 +14,7 @@ namespace WindBot
     public class Program
     {
         internal static Random Rand;
+        internal static bool ServerMode;
 
         internal static void Main(string[] args)
         {
@@ -24,9 +26,9 @@ namespace WindBot
 
             InitDatas(databasePath);
 
-            bool serverMode = Config.GetBool("ServerMode", false);
+            ServerMode = Config.GetBool("ServerMode", false);
 
-            if (serverMode)
+            if (ServerMode)
             {
                 // Run in server mode, provide a http interface to create bot.
                 int serverPort = Config.GetInt("ServerPort", 2399);
@@ -88,91 +90,92 @@ namespace WindBot
 
         private static void RunAsServer(int ServerPort)
         {
-                Logger.WriteLine("WindBot server start successed.");
-                Logger.WriteLine("HTTP GET http://127.0.0.1:" + ServerPort + "/?name=WindBot&host=127.0.0.1&port=7911 to call the bot.");
-                ServerModeHost.Run(ServerPort, new ParameterizedThreadStart(Run), delegate (string rawUrl, out WindBotInfo Info, out string port)
-                {
-                    Info = new WindBotInfo();
-                    string RawUrl = Path.GetFileName(rawUrl);
-                    Info.Name = HttpUtility.ParseQueryString(RawUrl).Get("name");
-                    Info.Deck = HttpUtility.ParseQueryString(RawUrl).Get("deck");
-                    Info.Host = HttpUtility.ParseQueryString(RawUrl).Get("host");
-                    port = HttpUtility.ParseQueryString(RawUrl).Get("port");
-                    if (port != null)
-                        Info.Port = Int32.Parse(port);
-                    string deckfile = HttpUtility.ParseQueryString(RawUrl).Get("deckfile");
-                    if (deckfile != null)
-                        Info.DeckFile = deckfile;
-                    string dialog = HttpUtility.ParseQueryString(RawUrl).Get("dialog");
-                    if (dialog != null)
-                        Info.Dialog = dialog;
-                    string version = HttpUtility.ParseQueryString(RawUrl).Get("version");
-                    if (version != null)
-                        Info.Version = Int16.Parse(version);
-                    string password = HttpUtility.ParseQueryString(RawUrl).Get("password");
-                    if (password != null)
-                        Info.HostInfo = password;
-                    string hand = HttpUtility.ParseQueryString(RawUrl).Get("hand");
-                    if (hand != null)
-                        Info.Hand = Int32.Parse(hand);
-                    string debug = HttpUtility.ParseQueryString(RawUrl).Get("debug");
-                    if (debug != null)
-                        Info.Debug= bool.Parse(debug);
-                    string chat = HttpUtility.ParseQueryString(RawUrl).Get("chat");
-                    if (chat != null)
-                        Info.Chat = bool.Parse(chat);
-                    string deckcode = HttpUtility.ParseQueryString(RawUrl).Get("deckcode");
-                    if (deckcode != null)
-                        Info.DeckCode = deckcode;
-                    string realIP = HttpUtility.ParseQueryString(RawUrl).Get("realip");
-                    if (realIP != null)
-                        Info.RealIP = realIP;
-                });
+            Logger.WriteLine("WindBot server start successed.");
+            Logger.WriteLine("HTTP GET http://127.0.0.1:" + ServerPort + "/?name=WindBot&host=127.0.0.1&port=7911 to call the bot.");
+            ServerModeHost.Run(ServerPort, new ParameterizedThreadStart(Run), delegate (string rawUrl, out WindBotInfo Info, out string port)
+            {
+                Info = new WindBotInfo();
+                string RawUrl = Path.GetFileName(rawUrl);
+                var queryParams = HttpUtility.ParseQueryString(RawUrl);
+                Info.Name = queryParams.Get("name");
+                Info.Deck = queryParams.Get("deck");
+                Info.Host = queryParams.Get("host");
+                port = queryParams.Get("port");
+                if (port != null)
+                    Info.Port = Int32.Parse(port);
+                string deckfile = queryParams.Get("deckfile");
+                if (deckfile != null)
+                    Info.DeckFile = deckfile;
+                string dialog = queryParams.Get("dialog");
+                if (dialog != null)
+                    Info.Dialog = dialog;
+                string version = queryParams.Get("version");
+                if (version != null)
+                    Info.Version = Int16.Parse(version);
+                string password = queryParams.Get("password");
+                if (password != null)
+                    Info.HostInfo = password;
+                string hand = queryParams.Get("hand");
+                if (hand != null)
+                    Info.Hand = Int32.Parse(hand);
+                string debug = queryParams.Get("debug");
+                if (debug != null)
+                    Info.Debug = bool.Parse(debug);
+                string chat = queryParams.Get("chat");
+                if (chat != null)
+                    Info.Chat = bool.Parse(chat);
+                string deckcode = queryParams.Get("deckcode");
+                if (deckcode != null)
+                    Info.DeckCode = deckcode;
+                string realIP = queryParams.Get("realip");
+                if (realIP != null)
+                    Info.RealIP = realIP;
+            });
         }
 
         private static void Run(object o)
         {
-#if !DEBUG
-    try
-    {
-    //all errors will be catched instead of causing the program to crash.
-#endif
-            WindBotInfo Info = o as WindBotInfo;
-            YGOClient presetConnection = null;
+            try
+            {
+                WindBotInfo Info = o as WindBotInfo;
+                YGOClient presetConnection = null;
 
-            ServerRunRequest request = o as ServerRunRequest;
-            if (request != null)
-            {
-                Info = request.Info;
-                presetConnection = request.Connection;
+                ServerRunRequest request = o as ServerRunRequest;
+                if (request != null)
+                {
+                    Info = request.Info;
+                    presetConnection = request.Connection;
+                }
+
+                GameClient client = (presetConnection == null) ? new GameClient(Info) : new GameClient(Info, presetConnection);
+                client.Start();
+                Logger.DebugWriteLine(client.Username + " started.");
+                while (client.Connection.IsConnected)
+                {
+                    try
+                    {
+                        client.Tick();
+#if DEBUG
+                        Thread.Sleep(1);
+#else
+                        Thread.Sleep(30);
+#endif
+                    }
+                    catch (Exception ex)
+                    {
+                        if (Debugger.IsAttached)
+                            throw;
+                        Logger.WriteErrorLine("Tick Error: " + ex);
+                    }
+                }
+                Logger.DebugWriteLine(client.Username + " end.");
             }
-            GameClient client = (presetConnection == null) ? new GameClient(Info) : new GameClient(Info, presetConnection);
-            client.Start();
-            Logger.DebugWriteLine(client.Username + " started.");
-            while (client.Connection.IsConnected)
+            catch (Exception ex)
             {
-#if !DEBUG
-        try
-        {
-#endif
-                client.Tick();
-                Thread.Sleep(30);
-#if !DEBUG
-        }
-        catch (Exception ex)
-        {
-            Logger.WriteErrorLine("Tick Error: " + ex);
-        }
-#endif
+                if (Debugger.IsAttached)
+                    throw;
+                Logger.WriteErrorLine("Run Error: " + ex);
             }
-            Logger.DebugWriteLine(client.Username + " end.");
-#if !DEBUG
-    }
-    catch (Exception ex)
-    {
-        Logger.WriteErrorLine("Run Error: " + ex);
-    }
-#endif
         }
 
         public static FileStream ReadFile(string directory, string filename, string extension)

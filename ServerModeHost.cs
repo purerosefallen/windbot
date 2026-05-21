@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -26,19 +27,17 @@ namespace WindBot
             mainServer.Start();
             while (true)
             {
-#if !DEBUG
-    try
-    {
-#endif
-                Socket socket = mainServer.AcceptSocket();
-                ThreadPool.QueueUserWorkItem(delegate { HandleServerSocket(socket, runCallback, parseInfoCallback); });
-#if !DEBUG
-    }
-    catch (Exception ex)
-    {
-        Logger.WriteErrorLine("Accept Socket Error: " + ex);
-    }
-#endif
+                try
+                {
+                    Socket socket = mainServer.AcceptSocket();
+                    ThreadPool.QueueUserWorkItem(delegate { HandleServerSocket(socket, runCallback, parseInfoCallback); });
+                }
+                catch (Exception ex)
+                {
+                    if (Debugger.IsAttached)
+                        throw;
+                    Logger.WriteErrorLine("Accept Socket Error: " + ex);
+                }
             }
         }
 
@@ -126,27 +125,25 @@ namespace WindBot
                     return;
                 }
 
-#if !DEBUG
-        try
-        {
-#endif
-                Thread normalWorkThread = new Thread(runCallback);
-                normalWorkThread.Start(info);
-#if !DEBUG
-        }
-        catch (Exception ex)
-        {
-            Logger.WriteErrorLine("Start Thread Error: " + ex);
-        }
-#endif
+                try
+                {
+                    Thread normalWorkThread = new Thread(runCallback);
+                    normalWorkThread.Start(info);
+                }
+                catch (Exception ex)
+                {
+                    if (Debugger.IsAttached)
+                        throw;
+                    Logger.WriteErrorLine("Start Thread Error: " + ex);
+                }
                 WriteHttpResponse(socket, 200, "OK", "");
-#if !DEBUG
-    }
-    catch (Exception ex)
-    {
-        Logger.WriteErrorLine("Handle Socket Request Error: " + ex);
-    }
-#endif
+            }
+            catch (Exception ex)
+            {
+                if (Debugger.IsAttached)
+                    throw;
+                Logger.WriteErrorLine("Handle Socket Request Error: " + ex);
+            }
             finally
             {
                 if (!handoffToBot)
