@@ -104,6 +104,11 @@
         "dialog": "anothercopy.zh-CN"
       },
       {
+        "name": "复制梁龙",
+        "deck": "SacredBeast",
+        "dialog": "anothercopy.zh-CN"
+      },
+      {
         "name": "尼亚",
         "deck": "Yosenju",
         "dialog": "near.zh-CN"
