@@ -41,6 +41,11 @@
         "dialog": "wof-Shimogakinarumi-Riona"
       },
       {
+        "name": "艾丽娅",
+        "deck": "SacredBeast",
+        "dialog": "wof-Aria"
+      },
+      {
         "name": "星宫时子",
         "deck": "BE2025",
         "dialog": "wof-Hoshimiya-Toko"
