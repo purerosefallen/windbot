@@ -4,8 +4,17 @@ stages:
   
 variables:
   GIT_DEPTH: "1"
-  CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+
+.docker-op:
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+.build-image:
+  extends: .docker-op
+  stage: build
+  script:
+    - docker build --pull --no-cache -t $TARGET_IMAGE .
+    - docker push $TARGET_IMAGE
 
 build:
   stage: build
@@ -31,14 +40,19 @@ build:
     paths:
       - dist/
 
-docker:
-  stage: build
-  tags: 
+build-x86:
+  extends: .build-image
+  tags:
     - docker
-  script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build --pull --no-cache -t $CONTAINER_TEST_IMAGE .
-    - docker push $CONTAINER_TEST_IMAGE
+  variables:
+    TARGET_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-x86
+
+build-arm:
+  extends: .build-image
+  tags:
+    - docker-arm
+  variables:
+    TARGET_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-arm
 
 upload_to_minio:
   stage: deploy
@@ -47,18 +61,30 @@ upload_to_minio:
   tags: 
     - linux
   script:
-    - aws s3 --endpoint=https://minio.mycard.moe:9000 sync dist/ s3://mycard/windbot
+    - aws s3 --endpoint=https://minio.moenext.com:9000 sync dist/ s3://mycard/windbot
   only:
     - master
 
-deploy_docker:
+.deploy:
+  extends: .docker-op
   stage: deploy
-  tags: 
+  tags:
     - docker
   script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker pull $CONTAINER_TEST_IMAGE
-    - docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_IMAGE
-    - docker push $CONTAINER_RELEASE_IMAGE
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-x86
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-arm
+    - docker manifest create $TARGET_IMAGE --amend $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-x86 --amend
+      $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-arm
+    - docker manifest push $TARGET_IMAGE
+
+deploy_latest:
+  extends: .deploy
+  variables:
+    TARGET_IMAGE: $CI_REGISTRY_IMAGE:latest
   only:
     - master
+
+deploy_branch:
+  extends: .deploy
+  variables:
+    TARGET_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG

@@ -1,14 +1,19 @@
-FROM debian:trixie-slim as resource-loader
+ARG YGOPRO_DATABASE_REPO=https://code.moenext.com/nanahira/ygopro-database
+ARG YGOPRO_DATABASE_BRANCH=master
+
+FROM debian:trixie-slim AS resource-loader
 ARG NO_RESOURCE=0
+ARG YGOPRO_DATABASE_REPO
+ARG YGOPRO_DATABASE_BRANCH
 RUN mkdir -p /resources/windbot && \
   if [ "$NO_RESOURCE" != "1" ]; then \
     apt update && apt -y install git && \
-    git clone --depth=1 https://github.com/purerosefallen/ygopro-database /ygopro-database && \
+    git clone --branch="${YGOPRO_DATABASE_BRANCH}" --depth=1 "${YGOPRO_DATABASE_REPO}" /ygopro-database && \
     cp -f /ygopro-database/locales/zh-CN/cards.cdb /resources/windbot/ && \
     rm -rf /var/lib/apt/lists/* /ygopro-database; \
   fi
 
-FROM mono as builder
+FROM mono AS builder
 
 COPY . /windbot-source
 WORKDIR /windbot-source
