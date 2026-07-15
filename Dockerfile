@@ -1,12 +1,17 @@
 ARG GIT_IMAGE=alpine/git:v2.52.0
 ARG ALPINE_IMAGE=alpine:3.22
 ARG NO_RESOURCE=0
+ARG USE_APK_CHINA_MIRROR=0
 ARG YGOPRO_DATABASE_REPO=https://code.moenext.com/nanahira/ygopro-database
 ARG YGOPRO_DATABASE_BRANCH=master
 ARG TARGET_FRAMEWORK_VERSION=v4.8
 
 FROM ${ALPINE_IMAGE} AS mono-alpine
-RUN apk add --no-cache mono
+ARG USE_APK_CHINA_MIRROR
+RUN if [ "${USE_APK_CHINA_MIRROR}" = "1" ]; then \
+      sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
+    fi && \
+    apk add --no-cache mono
 
 FROM ${GIT_IMAGE} AS resource-loader
 ARG NO_RESOURCE
