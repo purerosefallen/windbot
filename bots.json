@@ -31,6 +31,11 @@
         "dialog": "swordsman.zh-CN"
       },
       {
+        "name": "谜之剑士LV4",
+        "deck": "HeroBeat1103",
+        "dialog": "swordsman.zh-CN"
+      },
+      {
         "name": "我太帅了",
         "deck": "Dragun",
         "dialog": "smart.zh-CN"
@@ -60,6 +65,16 @@
         "deck": "Zoodiac",
         "dialog": "copy.zh-CN",
         "hidden": true
+      },
+      {
+        "name": "复制植物",
+        "deck": "Rank8",
+        "dialog": "copy.zh-CN"
+      },
+      {
+        "name": "复制植物",
+        "deck": "Rank8",
+        "dialog": "copy.zh-CN"
       },
       {
         "name": "悠悠",
@@ -144,6 +159,11 @@
         "dialog": "near.zh-CN"
       },
       {
+        "name": "尼亚",
+        "deck": "Archfiend",
+        "dialog": "near.zh-CN"
+      },
+      {
         "name": "试作型机器人1732",
         "deck": "ST1732",
         "dialog": "default"
@@ -170,6 +190,11 @@
         "deck": "Horus",
         "dialog": "soul.zh-CN",
         "hidden": true
+      },
+      {
+        "name": "永远之魂",
+        "deck": "Chaos408",
+        "dialog": "soul.zh-CN"
       },
       {
         "name": "奇異果",
