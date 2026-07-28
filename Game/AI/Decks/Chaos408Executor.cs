@@ -28,6 +28,7 @@ namespace WindBot.Game.AI.Decks
             public const int GracefulCharity = 79571449; // 天使的施舍
             public const int Confiscation = 17375316; // 收押
             public const int HeavyStorm = 19613556; // 大风暴
+            public const int ReinforcementOfTheArmy = 32807846; // 增援
             public const int CreatureSwap = 31036355; // 强制转移
             public const int PotOfAvarice = 67169062; // 贪欲之壶
             public const int NoblemanOfCrossout = 71044499; // 抹杀之使徒
@@ -67,7 +68,7 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.Activate, CardId.EnemyController, EnemyControllerActivate);
             AddExecutor(ExecutorType.Activate, CardId.CreatureSwap, CreatureSwapActivate);
 
-            AddExecutor(ExecutorType.Activate, CardId.BottomlessTrapHole, DefaultUniqueTrap);
+            AddExecutor(ExecutorType.Activate, CardId.BottomlessTrapHole, DefaultBottomlessTrapHole);
             AddExecutor(ExecutorType.Activate, CardId.MirrorForce, MirrorForceActivate);
             AddExecutor(ExecutorType.Activate, CardId.TorrentialTribute, DefaultTorrentialTribute);
             AddExecutor(ExecutorType.Activate, CardId.CallOfTheHaunted, CallOfTheHauntedActivate);
@@ -77,8 +78,8 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.Activate, CardId.MysticTomato, MysticTomatoActivate);
             AddExecutor(ExecutorType.Activate, CardId.DDWarriorLady, DDWarriorLadyActivate);
 
-            // 先处理反转召唤，避免直接把尚未发动反转效果的怪兽解放掉。
-            AddExecutor(ExecutorType.Repos, MonsterRepos);
+            // 先只处理反转召唤，避免直接把尚未发动反转效果的怪兽解放掉。
+            AddExecutor(ExecutorType.Repos, MonsterFlipSummon);
 
             // 针对性通常召唤必须先于通用打手。
             AddExecutor(ExecutorType.Summon, CardId.ZaborgTheThunderMonarch, ZaborgSummon);
@@ -92,10 +93,12 @@ namespace WindBot.Game.AI.Decks
             // 等混沌召唤和复活判断结束后，再洗回墓地资源。
             AddExecutor(ExecutorType.Activate, CardId.PotOfAvarice, PotOfAvariceActivate);
 
+            AddExecutor(ExecutorType.SpellSet, SpellSetForHandLimit);
             AddExecutor(ExecutorType.MonsterSet, CardId.MagicianOfFaith, MagicianOfFaithSet);
             AddExecutor(ExecutorType.MonsterSet, CardId.Sangan);
             AddExecutor(ExecutorType.MonsterSet, CardId.Marshmallon);
             AddExecutor(ExecutorType.MonsterSet, CardId.SpiritReaper);
+            AddExecutor(ExecutorType.Repos, MonsterRepos);
             AddExecutor(ExecutorType.SpellSet, DefaultSpellSet);
         }
 
@@ -107,11 +110,12 @@ namespace WindBot.Game.AI.Decks
         public override IList<ClientCard> OnSelectCard(
             IList<ClientCard> cards, int min, int max, int hint, bool cancelable)
         {
-            ClientCard solvingCard = Duel.GetCurrentSolvingChainCard();
-            if (solvingCard == null || solvingCard.Controller != 0)
-                return base.OnSelectCard(cards, min, max, hint, cancelable);
+            ClientCard currentChainCard = Duel.GetCurrentChainCard();
+            ClientCard solvingChainCard = Duel.GetCurrentSolvingChainCard();
 
-            if (solvingCard.IsCode(CardId.GracefulCharity) &&
+            if (solvingChainCard != null &&
+                solvingChainCard.Controller == 0 &&
+                solvingChainCard.IsCode(CardId.GracefulCharity) &&
                 hint == HintMsg.Discard)
             {
                 List<ClientCard> selected = new List<ClientCard>();
@@ -192,41 +196,84 @@ namespace WindBot.Game.AI.Decks
                 return Util.CheckSelectCount(selected, cards, min, max);
             }
 
-            if (solvingCard.IsCode(CardId.ZaborgTheThunderMonarch))
+            if (solvingChainCard != null &&
+                solvingChainCard.Controller == 0 &&
+                solvingChainCard.IsCode(CardId.Confiscation) &&
+                hint == HintMsg.Discard)
             {
                 List<ClientCard> targets = new List<ClientCard>();
+                targets.AddRange(cards.Where(c =>
+                    c.IsCode(CardId.GracefulCharity)));
+                targets.AddRange(cards.Where(c =>
+                    c.IsCode(CardId.HeavyStorm)));
+                targets.AddRange(cards
+                    .Where(c => c.IsMonster())
+                    .OrderByDescending(c => c.Attack));
+                targets.AddRange(cards.Where(c =>
+                    c.IsCode(CardId.ReinforcementOfTheArmy)));
+                targets.AddRange(cards.Where(c =>
+                    c.IsCode(CardId.Confiscation)));
+                targets.AddRange(cards.Where(c =>
+                    c.IsTrap() && !targets.Contains(c)));
+                targets.AddRange(cards.Where(c =>
+                    c.IsSpell() && !targets.Contains(c)));
+                targets.AddRange(cards.Where(c => !targets.Contains(c)));
+                return Util.CheckSelectCount(targets, cards, min, max);
+            }
+
+            if (currentChainCard != null &&
+                currentChainCard.Controller == 0 &&
+                currentChainCard.IsCode(CardId.ZaborgTheThunderMonarch) &&
+                hint == HintMsg.Destroy)
+            {
+                List<ClientCard> targets = new List<ClientCard>();
+
                 ClientCard problematic = Util.GetProblematicEnemyMonster(0, true);
                 if (problematic != null && cards.Contains(problematic) &&
                     !problematic.IsShouldNotBeTarget() &&
                     !problematic.IsShouldNotBeMonsterTarget())
                     targets.Add(problematic);
 
-                targets.AddRange(cards
-                    .Where(c => c.Controller == 1 && c != problematic &&
-                        !c.IsShouldNotBeTarget() && !c.IsShouldNotBeMonsterTarget())
-                    .OrderByDescending(c => c.IsFaceup())
-                    .ThenByDescending(c => c.GetDefensePower()));
-                targets.AddRange(cards
-                    .Where(c => c.Controller == 0 &&
-                        !c.IsCode(CardId.ZaborgTheThunderMonarch) &&
-                        !c.IsShouldNotBeMonsterTarget())
-                    .OrderBy(c => c.IsCode(CardId.Sangan) ? 0 : 1)
-                    .ThenBy(c => c.GetDefensePower()));
-                if (cards.Contains(solvingCard))
-                    targets.Add(solvingCard);
+                if (targets.Count < max)
+                    targets.AddRange(cards
+                        .Where(c => c.Controller == 1 && c != problematic &&
+                            !c.IsShouldNotBeTarget() && !c.IsShouldNotBeMonsterTarget())
+                        .OrderByDescending(c => c.IsFaceup())
+                        .ThenByDescending(c => c.GetDefensePower()));
+
+                if (targets.Count < max)
+                    targets.AddRange(cards
+                        .Where(c => c.Controller == 1 && !targets.Contains(c))
+                        .OrderByDescending(c => c.IsFaceup())
+                        .ThenByDescending(c => c.GetDefensePower()));
+
+                if (targets.Count < max)
+                    targets.AddRange(cards
+                        .Where(c => c.Controller == 0 &&
+                            !c.IsCode(CardId.ZaborgTheThunderMonarch) &&
+                            !c.IsShouldNotBeMonsterTarget())
+                        .OrderBy(c => c.IsCode(CardId.Sangan) ? 0 : 1)
+                        .ThenBy(c => c.GetDefensePower()));
+
                 return Util.CheckSelectCount(targets, cards, min, max);
             }
 
-            if (solvingCard.IsCode(CardId.Tsukuyomi))
+            if (currentChainCard != null &&
+                currentChainCard.Controller == 0 &&
+                currentChainCard.IsCode(CardId.Tsukuyomi) &&
+                hint == HintMsg.Faceup)
             {
                 ClientCard target = GetTsukuyomiTarget(cards) ??
-                    cards.FirstOrDefault(c => c == solvingCard);
+                    cards.FirstOrDefault(c => c == currentChainCard);
                 if (target != null)
                     return Util.CheckSelectCount(
                         new List<ClientCard> { target }, cards, min, max);
             }
 
-            if (solvingCard.IsCode(CardId.MagicianOfFaith))
+            if (currentChainCard != null &&
+                currentChainCard.Controller == 0 &&
+                currentChainCard.IsCode(CardId.MagicianOfFaith) &&
+                hint == HintMsg.AddToHand)
             {
                 List<int> priority = new List<int>();
                 if (Enemy.GetMonsters().Any(c => c.IsFaceup()))
@@ -270,7 +317,10 @@ namespace WindBot.Game.AI.Decks
                 return Util.CheckSelectCount(targets, cards, min, max);
             }
 
-            if (solvingCard.IsCode(CardId.Sangan))
+            if (solvingChainCard != null &&
+                solvingChainCard.Controller == 0 &&
+                solvingChainCard.IsCode(CardId.Sangan) &&
+                hint == HintMsg.AddToHand)
             {
                 List<int> priority = Duel.Player == 0
                     ? new List<int>
@@ -329,6 +379,11 @@ namespace WindBot.Game.AI.Decks
             return base.OnSelectMonsterSummonOrSet(card);
         }
 
+        private bool MonsterFlipSummon()
+        {
+            return Card.IsFacedown() && MonsterRepos();
+        }
+
         private bool MonsterRepos()
         {
             if (Card.IsCode(CardId.MagicianOfFaith) && Card.IsFacedown() &&
@@ -337,9 +392,13 @@ namespace WindBot.Game.AI.Decks
 
             if (Card.IsCode(CardId.SpiritReaper))
             {
-                int attackers = Bot.GetMonsters().Count(c =>
-                    c.IsFaceup() && c.IsAttack() && c.Attack >= 1500);
-                bool shouldAttack = attackers >= Enemy.GetMonsterCount();
+                int otherAttackers = Bot.GetMonsters().Count(c =>
+                    !c.Equals(Card) &&
+                    c.IsFaceup() &&
+                    c.IsAttack());
+                bool shouldAttack =
+                    !Util.IsTurn1OrMain2() &&
+                    otherAttackers >= Enemy.GetMonsterCount();
                 return Card.IsDefense()
                     ? shouldAttack
                     : !shouldAttack;
@@ -442,17 +501,10 @@ namespace WindBot.Game.AI.Decks
 
         private bool BookOfMoonActivate()
         {
-            ClientCard endangered = Bot.GetMonsters()
-                .FirstOrDefault(c => c.IsFaceup() && !c.HasType(CardType.Link) && Util.IsChainTarget(c));
-            if (endangered != null)
-            {
-                AI.SelectCard(endangered);
-                return true;
-            }
-
             ClientCard attacker = Enemy.BattlingMonster;
             if (ShouldStopAttack(attacker) && attacker.IsFaceup() &&
-                !attacker.HasType(CardType.Link))
+                !attacker.HasType(CardType.Link) &&
+                !IsCardAlreadyHandledInCurrentChain(attacker))
             {
                 AI.SelectCard(attacker);
                 return true;
@@ -467,10 +519,31 @@ namespace WindBot.Game.AI.Decks
                 return true;
             }
 
-            ClientCard threat = Util.GetProblematicEnemyMonster(0, true);
-            if (threat != null && threat.IsFaceup() && !threat.HasType(CardType.Link) &&
-                !threat.IsShouldNotBeTarget() &&
-                !threat.IsShouldNotBeSpellTrapTarget())
+            ClientCard threat = Duel.LastSummonedCards
+                .FirstOrDefault(c =>
+                    c.Controller == 1 &&
+                    c.IsFloodgate() &&
+                    c.IsFaceup() &&
+                    !c.HasType(CardType.Link) &&
+                    !c.IsShouldNotBeTarget() &&
+                    !c.IsShouldNotBeSpellTrapTarget() &&
+                    !IsCardAlreadyHandledInCurrentChain(c));
+            if (threat == null &&
+                Duel.Phase > DuelPhase.Main1 &&
+                Duel.Phase < DuelPhase.Main2)
+            {
+                threat = Util.GetProblematicEnemyMonster(0, true);
+                if (threat != null &&
+                    (!threat.IsFaceup() ||
+                    threat.HasType(CardType.Link) ||
+                    threat.IsShouldNotBeTarget() ||
+                    threat.IsShouldNotBeSpellTrapTarget() ||
+                    IsCardAlreadyHandledInCurrentChain(threat)))
+                {
+                    threat = null;
+                }
+            }
+            if (threat != null)
             {
                 AI.SelectCard(threat);
                 return true;
@@ -482,7 +555,8 @@ namespace WindBot.Game.AI.Decks
                     .Where(c => c.IsFaceup() &&
                         !c.HasType(CardType.Link | CardType.Token) &&
                         !c.IsShouldNotBeTarget() &&
-                        !c.IsShouldNotBeSpellTrapTarget())
+                        !c.IsShouldNotBeSpellTrapTarget() &&
+                        !IsCardAlreadyHandledInCurrentChain(c))
                     .OrderByDescending(c => c.Attack)
                     .FirstOrDefault();
                 if (target != null)
@@ -674,11 +748,30 @@ namespace WindBot.Game.AI.Decks
 
             ClientCard target = targets.First();
             bool protectCall = Util.IsChainTarget(Card);
+            int[] directAttackReviveOrder =
+            {
+                CardId.MysticTomato,
+                CardId.DDWarriorLady,
+                CardId.Sangan,
+                CardId.Marshmallon
+            };
+            ClientCard directAttackTarget = null;
+            if (Bot.UnderAttack &&
+                Bot.BattlingMonster == null &&
+                Enemy.BattlingMonster != null)
+            {
+                directAttackTarget = directAttackReviveOrder
+                    .Select(id => targets.FirstOrDefault(c => c.IsCode(id)))
+                    .FirstOrDefault(c => c != null);
+            }
+            bool stopDirectAttack = directAttackTarget != null;
             bool stopBattle = Duel.Player == 1 &&
                 Duel.Phase > DuelPhase.Main1 &&
                 Duel.Phase < DuelPhase.Main2 &&
                 ShouldStopAttack(Enemy.BattlingMonster);
-            if (stopBattle)
+            if (stopDirectAttack)
+                target = directAttackTarget;
+            else if (stopBattle)
                 target = targets.OrderByDescending(c => c.Attack).First();
             bool reviveForOwnTurn = Duel.Player == 1 &&
                 Duel.Phase == DuelPhase.End &&
@@ -686,11 +779,20 @@ namespace WindBot.Game.AI.Decks
             bool useOnOwnTurn = Duel.Player == 0 &&
                 target.Attack >= 2000 &&
                 (Enemy.GetMonsterCount() == 0 || Util.IsAllEnemyBetter(true));
-            if (!protectCall && !stopBattle && !reviveForOwnTurn && !useOnOwnTurn)
+            if (!protectCall && !stopDirectAttack && !stopBattle &&
+                !reviveForOwnTurn && !useOnOwnTurn)
                 return false;
 
             AI.SelectCard(target);
             return true;
+        }
+
+        private bool SpellSetForHandLimit()
+        {
+            int handLimit = Bot.HasInMonstersZone(CardId.Tsukuyomi, true, false, true) ? 5 : 6;
+            return Duel.Phase == DuelPhase.Main2 &&
+                Bot.Hand.Count > handLimit &&
+                Card.IsSpell();
         }
 
         private bool EnemyControllerActivate()
