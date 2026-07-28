@@ -68,6 +68,16 @@
       },
       {
         "name": "复制植物",
+        "deck": "Lightsworn",
+        "dialog": "copy.zh-CN"
+      },
+      {
+        "name": "复制植物",
+        "deck": "Lightsworn",
+        "dialog": "copy.zh-CN"
+      },
+      {
+        "name": "复制植物",
         "deck": "Rank8",
         "dialog": "copy.zh-CN"
       },
@@ -194,6 +204,11 @@
       {
         "name": "永远之魂",
         "deck": "Chaos408",
+        "dialog": "soul.zh-CN"
+      },
+      {
+        "name": "永远之魂",
+        "deck": "Monarch506",
         "dialog": "soul.zh-CN"
       },
       {
