@@ -36,7 +36,7 @@ namespace WindBot
                 {
                     if (Debugger.IsAttached)
                         throw;
-                    Logger.WriteErrorLine("Accept Socket Error: " + ex);
+                    Logger.WriteErrorLine("Accept Socket Error", ex);
                 }
             }
         }
@@ -134,7 +134,7 @@ namespace WindBot
                 {
                     if (Debugger.IsAttached)
                         throw;
-                    Logger.WriteErrorLine("Start Thread Error: " + ex);
+                    Logger.WriteErrorLine("Start Thread Error", ex);
                 }
                 WriteHttpResponse(socket, 200, "OK", "");
             }
@@ -142,7 +142,7 @@ namespace WindBot
             {
                 if (Debugger.IsAttached)
                     throw;
-                Logger.WriteErrorLine("Handle Socket Request Error: " + ex);
+                Logger.WriteErrorLine("Handle Socket Request Error", ex);
             }
             finally
             {
