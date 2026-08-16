@@ -162,11 +162,11 @@ namespace WindBot.Game.AI.Decks
             enemyMonster.Sort(CardContainer.CompareCardAttack);
             enemyMonster.Reverse();
             targetList.AddRange(enemyMonster);
-            targetList.AddRange(ShuffleList(Enemy.GetSpells().Where(card =>
+            targetList.AddRange(Util.ShuffleList(Enemy.GetSpells().Where(card =>
                 (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(card)) && enemySetThisTurn.Contains(card)).ToList()));
-            targetList.AddRange(ShuffleList(Enemy.GetSpells().Where(card =>
+            targetList.AddRange(Util.ShuffleList(Enemy.GetSpells().Where(card =>
                 (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(card)) && !enemySetThisTurn.Contains(card)).ToList()));
-            targetList.AddRange(ShuffleList(Enemy.GetMonsters().Where(card => card.IsFacedown() && (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(card))).ToList()));
+            targetList.AddRange(Util.ShuffleList(Enemy.GetMonsters().Where(card => card.IsFacedown() && (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(card))).ToList()));
             return targetList;
         }
 
@@ -217,7 +217,7 @@ namespace WindBot.Game.AI.Decks
             
             List<ClientCard> problemEnemySpellList = Enemy.SpellZone.Where(c => c?.Data != null && !resultList.Contains(c) && !currentDestroyCardList.Contains(c)
                 && c.IsFloodgate() && c.IsFaceup() && CheckCanBeTargeted(c, canBeTarget, selfType)).ToList();
-            if (problemEnemySpellList.Count() > 0) resultList.AddRange(ShuffleList(problemEnemySpellList));
+            if (problemEnemySpellList.Count() > 0) resultList.AddRange(Util.ShuffleList(problemEnemySpellList));
 
             List<ClientCard> dangerList = Enemy.MonsterZone.Where(c => c?.Data != null && !resultList.Contains(c) && !currentDestroyCardList.Contains(c)
                 && c.IsMonsterDangerous() && c.IsFaceup() && CheckCanBeTargeted(c, canBeTarget, selfType)).OrderByDescending(card => card.Attack).ToList();
@@ -246,7 +246,7 @@ namespace WindBot.Game.AI.Decks
             List<ClientCard> spells = Enemy.GetSpells().Where(c => c.IsFaceup() && !currentDestroyCardList.Contains(c)
                 && c.HasType(CardType.Equip | CardType.Pendulum | CardType.Field | CardType.Continuous) && CheckCanBeTargeted(c, canBeTarget, selfType)
                 && !notToDestroySpellTrap.Contains(c.Id)).ToList();
-            if (spells.Count() > 0 && !ignoreSpells) resultList.AddRange(ShuffleList(spells));
+            if (spells.Count() > 0 && !ignoreSpells) resultList.AddRange(Util.ShuffleList(spells));
 
             return resultList;
         }
@@ -391,7 +391,7 @@ namespace WindBot.Game.AI.Decks
 
             // after GetHighestAttackMonster, the left monsters must be face-down.
             if (monsters.Count() > 0 && !onlyFaceup)
-                return ShuffleList(monsters)[0];
+                return Util.ShuffleList(monsters)[0];
 
             return null;
         }
@@ -508,14 +508,7 @@ namespace WindBot.Game.AI.Decks
         public void SelectSTPlace(ClientCard card = null, bool avoid_Impermanence = false, List<int> avoid_list = null)
         {
             List<int> list = new List<int> { 0, 1, 2, 3, 4 };
-            int n = list.Count;
-            while (n-- > 1)
-            {
-                int index = Program.Rand.Next(n + 1);
-                int temp = list[index];
-                list[index] = list[n];
-                list[n] = temp;
-            }
+            Util.ShuffleListInPlace(list);
             foreach (int seq in list)
             {
                 int zone = (int)System.Math.Pow(2, seq);
@@ -555,8 +548,7 @@ namespace WindBot.Game.AI.Decks
             }
             if (Card.IsMonster() && Card.Location == CardLocation.MonsterZone && Card.IsDefense())
             {
-                if (Enemy.MonsterZone.GetFirstMatchingFaceupCard(card => card.Id == _CardId.Number41BagooskatheTerriblyTiredTapir && card.IsDefense() && !card.IsDisabled()) != null
-                    || Bot.MonsterZone.GetFirstMatchingFaceupCard(card => card.Id == _CardId.Number41BagooskatheTerriblyTiredTapir && card.IsDefense() && !card.IsDisabled()) != null)
+                if (DefaultCheckWhetherNumber41IsActive())
                 {
                     return true;
                 }
@@ -769,27 +761,27 @@ namespace WindBot.Game.AI.Decks
 
         private int GetCardToSearch()
         {
-            if (NoLo() && !Bot.HasInHand(CardId.Lo) && !Bot.HasInHand(CardId.Diviner) && Bot.GetRemainingCount(CardId.Lo, 3) > 0)
+            if (NoLo() && !Bot.HasInHand(CardId.Lo) && !Bot.HasInHand(CardId.Diviner) && Bot.HasInDeck(CardId.Lo))
             {
                 return CardId.Lo;
             }
-            else if (!Bot.HasInHand(CardId.Saffira) && Bot.GetRemainingCount(CardId.Saffira, 3) > 0)
+            else if (!Bot.HasInHand(CardId.Saffira) && Bot.HasInDeck(CardId.Saffira))
             {
                 return CardId.Saffira;
             }
-            else if (EmptyMainMonsterZone() && !Bot.HasInHand(CardId.VVSkullGuard) && Bot.GetRemainingCount(CardId.VVSkullGuard, 3) > 0)
+            else if (EmptyMainMonsterZone() && !Bot.HasInHand(CardId.VVSkullGuard) && Bot.HasInDeck(CardId.VVSkullGuard))
             {
                 return CardId.VVSkullGuard;
             }
-            else if (Bot.GetRemainingCount(CardId.VVRadiance, 1) > 0)
+            else if (Bot.HasInDeck(CardId.VVRadiance))
             {
                 return CardId.VVRadiance;
             }
-            else if (Bot.GetRemainingCount(CardId.VVSauravis, 1) > 0) //if there's >= 2 spells in grave
+            else if (Bot.HasInDeck(CardId.VVSauravis)) //if there's >= 2 spells in grave
             {
                 return CardId.VVSauravis;
             }
-            // else if (Util.GetProblematicEnemyMonster() != null && Bot.GetRemainingCount(CardId.WidowAnchor, 3) > 0)
+            // else if (Util.GetProblematicEnemyMonster() != null && Bot.HasInDeck(CardId.WidowAnchor))
             // {
             //     return CardId.WidowAnchor;
             // }
@@ -813,26 +805,10 @@ namespace WindBot.Game.AI.Decks
         {
             foreach (CardExecutor exec in Executors)
             {
-                if (exec.Type == Type && exec.CardId == Card.Id)
+                if (exec.Type == Type && Card.IsOriginalCode(exec.CardId))
                     return false;
             }
             return true;
-        }
-
-        private List<T> ShuffleList<T>(IList<T> source)
-        {
-            Random rng = new Random();
-            List<T> list = new List<T>(source);
-            int n = list.Count;
-            while (n > 1)
-            {
-                n--;
-                int k = rng.Next(n + 1);
-                T value = list[k];
-                list[k] = list[n];
-                list[n] = value;
-            }
-            return list;
         }
 
         private int CompareUsableAttack(ClientCard a, ClientCard b) 

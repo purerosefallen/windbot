@@ -134,13 +134,6 @@ namespace WindBot.Game.AI.Decks
         const int hintTimingMainEnd = 0x4;
         const int hintDamageStep = 0x2000;
 
-        Dictionary<int, List<int>> DeckCountTable = new Dictionary<int, List<int>>{
-            {3, new List<int> { CardId.DogmatikaEcclesia, _CardId.AshBlossom, _CardId.MaxxC, CardId.KnightmareCorruptorIblee, CardId.NadirServant,
-                                CardId.WANTED_SeekerOfSinfulSpoils, CardId.DogmatikaMatrix, _CardId.InfiniteImpermanence, CardId.DogmatikaPunishment }},
-            {2, new List<int> { CardId.DogmatikaAlbaZoa, CardId.DogmatikaFleurdelis, _CardId.CalledByTheGrave }},
-            {1, new List<int> { CardId.ThesIrisSwordsoul, CardId.DogmatikaMaximus, CardId.DiabellstarTheBlackWitch, CardId.DogmatikaLamity, CardId.DogmatikaMacabre,
-                                CardId.SinfulSpoilsOfDoom_Rciela, _CardId.CrossoutDesignator }},
-        };
         List<int> notToNegateIdList = new List<int>{
             58699500, 20343502
         };
@@ -172,24 +165,6 @@ namespace WindBot.Game.AI.Decks
         int enemySpSummonFromExThisTurn = 0;
         bool enemySpSummonFromDeck = false;
         bool enemySpSummonFromExtra = false;
-
-        /// <summary>
-        /// Shuffle List<ClientCard> and return a random-order card list
-        /// </summary>
-        public List<ClientCard> ShuffleCardList(List<ClientCard> list)
-        {
-            List<ClientCard> result = list;
-            int n = result.Count;
-            while (n-- > 1)
-            {
-                int index = Program.Rand.Next(result.Count);
-                int nextIndex = (index + Program.Rand.Next(result.Count - 1)) % result.Count;
-                ClientCard tempCard = result[index];
-                result[index] = result[nextIndex];
-                result[nextIndex] = tempCard;
-            }
-            return result;
-        }
 
         public void UpdateBanSpSummonFromExTurn(int newTurn)
         {
@@ -263,7 +238,7 @@ namespace WindBot.Game.AI.Decks
                 && c.IsFloodgate() && c.IsFaceup() && (!canBeTarget || !c.IsShouldNotBeTarget())).ToList();
             if (problemEnemySpellList.Count() > 0)
             {
-                resultList.AddRange(ShuffleCardList(problemEnemySpellList));
+                resultList.AddRange(Util.ShuffleList(problemEnemySpellList));
             }
 
             List<ClientCard> dangerList = Enemy.MonsterZone.Where(c => c?.Data != null && !resultList.Contains(c)
@@ -310,7 +285,7 @@ namespace WindBot.Game.AI.Decks
                 && c.HasType(CardType.Equip | CardType.Pendulum | CardType.Field | CardType.Continuous)).ToList();
             if (spells.Count() > 0 && !ignoreNormalSpell)
             {
-                resultList.AddRange(ShuffleCardList(spells));
+                resultList.AddRange(Util.ShuffleList(spells));
             }
 
             return resultList;
@@ -332,7 +307,7 @@ namespace WindBot.Game.AI.Decks
 
             // after GetHighestAttackMonster, the left monsters must be face-down.
             if (monsters.Count() > 0 && !onlyFaceup)
-                return ShuffleCardList(monsters)[0];
+                return Util.ShuffleList(monsters)[0];
 
             return null;
         }
@@ -343,7 +318,7 @@ namespace WindBot.Game.AI.Decks
                 && c.IsFloodgate() && c.IsFaceup() && (!canBeTarget || !c.IsShouldNotBeTarget())).ToList();
             if (problemEnemySpellList.Count() > 0)
             {
-                return ShuffleCardList(problemEnemySpellList)[0];
+                return Util.ShuffleList(problemEnemySpellList)[0];
             }
 
             List<ClientCard> spells = Enemy.GetSpells().Where(card => !(card.IsFaceup() && card.IsCode(_CardId.EvenlyMatched))).ToList();
@@ -352,12 +327,12 @@ namespace WindBot.Game.AI.Decks
                 ecard.HasType(CardType.Equip | CardType.Pendulum | CardType.Field | CardType.Continuous)).ToList();
             if (faceUpList.Count() > 0)
             {
-                return ShuffleCardList(faceUpList)[0];
+                return Util.ShuffleList(faceUpList)[0];
             }
 
             if (spells.Count() > 0 && !onlyFaceup)
             {
-                return ShuffleCardList(spells)[0];
+                return Util.ShuffleList(spells)[0];
             }
 
             return null;
@@ -386,7 +361,7 @@ namespace WindBot.Game.AI.Decks
                     graveMonsterList.Reverse();
                     return graveMonsterList[0];
                 }
-                return ShuffleCardList(Enemy.Graveyard.ToList())[0];
+                return Util.ShuffleList(Enemy.Graveyard.ToList())[0];
             }
 
             return null;
@@ -414,8 +389,8 @@ namespace WindBot.Game.AI.Decks
             enemyMonster.Sort(CardContainer.CompareCardAttack);
             enemyMonster.Reverse();
             targetList.AddRange(enemyMonster);
-            targetList.AddRange(ShuffleCardList(Enemy.GetSpells().Where(card => !ignoreCurrentDestroy || !currentDestroyCardList.Contains(card)).ToList()));
-            targetList.AddRange(ShuffleCardList(Enemy.GetMonsters().Where(card => card.IsFacedown() && (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(card))).ToList()));
+            targetList.AddRange(Util.ShuffleList(Enemy.GetSpells().Where(card => !ignoreCurrentDestroy || !currentDestroyCardList.Contains(card)).ToList()));
+            targetList.AddRange(Util.ShuffleList(Enemy.GetMonsters().Where(card => card.IsFacedown() && (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(card))).ToList()));
             if (targetKnightmare)
             {
                 List<ClientCard> enemyKnightmare = Enemy.GetMonsters().Where(card => card.IsFaceup() && !targetList.Contains(card) && card.IsCode(CardId.KnightmareCorruptorIblee)
@@ -465,7 +440,7 @@ namespace WindBot.Game.AI.Decks
         {
             List<int> result = new List<int>();
 
-            bool canSearchAlbaZoa = !Bot.HasInHand(CardId.DogmatikaAlbaZoa) && CheckRemainInDeck(CardId.DogmatikaAlbaZoa) > 0;
+            bool canSearchAlbaZoa = !Bot.HasInHand(CardId.DogmatikaAlbaZoa) && Bot.HasInDeck(CardId.DogmatikaAlbaZoa);
             int totalLevelInGY = Bot.Graveyard.Where(card => card != null && card.HasType(CardType.Fusion | CardType.Synchro)).Sum(c => (int?)c.Level ?? 0);
 
             bool needSearchAlbaZoa = Bot.HasInHandOrInSpellZone(CardId.DogmatikaLamity) && Bot.HasInExtra(CardId.DespianLuluwalilith) && canSearchAlbaZoa;
@@ -479,12 +454,12 @@ namespace WindBot.Game.AI.Decks
             }
 
             if (Bot.HasInHand(CardId.DogmatikaAlbaZoa) && Bot.HasInExtra(CardId.DespianLuluwalilith) && !Bot.HasInHandOrInSpellZone(CardId.DogmatikaLamity)
-                && CheckRemainInDeck(CardId.DogmatikaLamity) > 0)
+                && Bot.HasInDeck(CardId.DogmatikaLamity))
             {
                 result.Add(CardId.DogmatikaLamity);
             }
 
-            if (Bot.HasInHand(CardId.DogmatikaAlbaZoa) && !Bot.HasInHandOrInSpellZone(CardId.DogmatikaMacabre) && CheckRemainInDeck(CardId.DogmatikaMacabre) > 0
+            if (Bot.HasInHand(CardId.DogmatikaAlbaZoa) && !Bot.HasInHandOrInSpellZone(CardId.DogmatikaMacabre) && Bot.HasInDeck(CardId.DogmatikaMacabre)
                 && totalLevelInGY >= 12)
             {
                 result.Add(CardId.DogmatikaMacabre);
@@ -528,8 +503,8 @@ namespace WindBot.Game.AI.Decks
             if (baseAtk <= 2500 && Bot.HasInExtra(CardId.TitanikladTheAshDragon) && CheckCalledbytheGrave(CardId.TitanikladTheAshDragon) == 0
                 && !discardExtraThisTurn.Contains(CardId.TitanikladTheAshDragon) && !enemyActivateLockBird)
             {
-                bool successFlag = !activatedCardIdList.Contains(CardId.DogmatikaEcclesia) && CheckRemainInDeck(CardId.DogmatikaEcclesia) > 0;
-                successFlag |= Bot.GetMonsters().Any(card => card.IsFaceup() && card.HasSetcode(SetcodeDogmatika)) && !Bot.HasInHand(CardId.DogmatikaFleurdelis) && CheckRemainInDeck(CardId.DogmatikaFleurdelis) > 0;
+                bool successFlag = !activatedCardIdList.Contains(CardId.DogmatikaEcclesia) && Bot.HasInDeck(CardId.DogmatikaEcclesia);
+                successFlag |= Bot.GetMonsters().Any(card => card.IsFaceup() && card.HasSetcode(SetcodeDogmatika)) && !Bot.HasInHand(CardId.DogmatikaFleurdelis) && Bot.HasInDeck(CardId.DogmatikaFleurdelis);
                 if (successFlag)
                 {
                     selectResult = Bot.ExtraDeck.FirstOrDefault(card => card.IsCode(CardId.TitanikladTheAshDragon));
@@ -544,7 +519,7 @@ namespace WindBot.Game.AI.Decks
             if (baseAtk <= 2500 && Bot.HasInExtra(CardId.GranguignolTheDuskDragon))
             {
                 bool successFlag = Bot.HasInExtra(CardId.DespianLuluwalilith);
-                successFlag |= CheckRemainInDeck(CardId.DogmatikaEcclesia, CardId.DogmatikaFleurdelis, CardId.DogmatikaMaximus) > 0;
+                successFlag |= Bot.HasInDeck(CardId.DogmatikaEcclesia, CardId.DogmatikaFleurdelis, CardId.DogmatikaMaximus);
                 if (successFlag)
                 {
                     selectResult = Bot.ExtraDeck.FirstOrDefault(card => card.IsCode(CardId.GranguignolTheDuskDragon));
@@ -614,31 +589,7 @@ namespace WindBot.Game.AI.Decks
             return 0;
         }
 
-        /// <summary>
-        /// Check remain cards in deck
-        /// </summary>
-        /// <param name="id">Card's ID</param>
-        public int CheckRemainInDeck(int id)
-        {
-            for (int count = 1; count < 4; ++count)
-            {
-                if (DeckCountTable[count].Contains(id)) {
-                    return Bot.GetRemainingCount(id, count);
-                }
-            }
-            return 0;
-        }
 
-        public int CheckRemainInDeck(params int[] ids)
-        {
-            int sumResult = 0;
-            foreach (int id in ids)
-            {
-                sumResult += CheckRemainInDeck(id);
-            }
-
-            return sumResult;
-        }
 
         /// <summary>
         /// Whether spell or trap will be negate. If so, return true.
@@ -695,9 +646,9 @@ namespace WindBot.Game.AI.Decks
             }
             if (Card.IsMonster() && (toFieldCheck || Card.Location == CardLocation.MonsterZone))
             {
-                if (toFieldCheck || Card.IsDefense())
+                if ((toFieldCheck && !Card.HasType(CardType.Link)) || Card.IsDefense())
                 {
-                    if (Enemy.MonsterZone.Any(card => CheckNumber41(card)) || Bot.MonsterZone.Any(card => CheckNumber41(card)))
+                    if (DefaultCheckWhetherNumber41IsActive())
                     {
                         return true;
                     }
@@ -708,11 +659,6 @@ namespace WindBot.Game.AI.Decks
                 }
             }
             return false;
-        }
-
-        public bool CheckNumber41(ClientCard card)
-        {
-            return card != null && card.IsFaceup() && card.IsCode(CardId.Number41BagooskatheTerriblyTiredTapir) && card.IsDefense() && !card.IsDisabled();
         }
 
         /// <summary>
@@ -877,7 +823,7 @@ namespace WindBot.Game.AI.Decks
 
                     // spells
                     List<ClientCard> spells = Bot.GetSpells();
-                    banishList.AddRange(ShuffleCardList(spells));
+                    banishList.AddRange(Util.ShuffleList(spells));
 
                     // ritual monster
                     List<ClientCard> synchroMonsters = botMonsters.Where(card => card.HasType(CardType.Ritual) && !banishList.Contains(card)).ToList();
@@ -941,9 +887,9 @@ namespace WindBot.Game.AI.Decks
                         if (elder != null && destroyList.Count() > 0) discardList.Add(elder);
                         if (ashDragon != null && !activatedCardIdList.Contains(CardId.TitanikladTheAshDragon) && !discardEnemyExtraIdList.Contains(CardId.TitanikladTheAshDragon))
                         {
-                            bool checkFlag = !activatedCardIdList.Contains(CardId.DogmatikaEcclesia) && CheckRemainInDeck(CardId.DogmatikaEcclesia) > 0
+                            bool checkFlag = !activatedCardIdList.Contains(CardId.DogmatikaEcclesia) && Bot.HasInDeck(CardId.DogmatikaEcclesia)
                                 && CheckCalledbytheGrave(CardId.DogmatikaEcclesia) == 0;
-                            checkFlag |= CheckRemainInDeck(CardId.DogmatikaFleurdelis) > 0 && !Bot.HasInHand(CardId.DogmatikaFleurdelis) && !enemyActivateLockBird;
+                            checkFlag |= Bot.HasInDeck(CardId.DogmatikaFleurdelis) && !Bot.HasInHand(CardId.DogmatikaFleurdelis) && !enemyActivateLockBird;
                             if (checkFlag) discardList.Add(ashDragon);
                         }
                         if (garura != null && !activatedCardIdList.Contains(CardId.GaruraWingsOfResonantLife) && !enemyActivateLockBird) discardList.Add(garura);
@@ -977,7 +923,7 @@ namespace WindBot.Game.AI.Decks
                                 }
                             }
                         }
-                        discardList = ShuffleCardList(discardList);
+                        Util.ShuffleListInPlace(discardList);
 
                         // avoid link summon
                         foreach (ClientCard card in cards)
@@ -1081,7 +1027,7 @@ namespace WindBot.Game.AI.Decks
             }
             if (attackers.Count() > 0 && defenders.Count() > 0)
             {
-                List<ClientCard> sortedAttacker = attackers.OrderBy(card => card.Attack).ToList();
+                List<ClientCard> sortedAttacker = attackers.OrderBy(card => card.GetAttackPower()).ToList();
                 for (int k = 0; k < sortedAttacker.Count; ++k)
                 {
                     ClientCard attacker = sortedAttacker[k];
@@ -1099,7 +1045,7 @@ namespace WindBot.Game.AI.Decks
         {
             foreach (ClientCard defender in defenders)
             {
-                attacker.RealPower = attacker.Attack;
+                attacker.RealPower = attacker.GetAttackPower();
                 defender.RealPower = defender.GetDefensePower();
                 if (!OnPreBattleBetween(attacker, defender))
                     continue;
@@ -1174,6 +1120,7 @@ namespace WindBot.Game.AI.Decks
                     }
                 }
             }
+            base.OnChainSolved(chainIndex);
         }
 
         public override void OnChainEnd()
@@ -1204,15 +1151,7 @@ namespace WindBot.Game.AI.Decks
                     list.Add(seq);
                 }
             }
-            int n = list.Count;
-            while (n-- > 1)
-            {
-                int index = Program.Rand.Next(list.Count);
-                int nextIndex = (index + Program.Rand.Next(list.Count - 1)) % list.Count;
-                int tempInt = list[index];
-                list[index] = list[nextIndex];
-                list[nextIndex] = tempInt;
-            }
+            Util.ShuffleListInPlace(list);
             if (avoidImpermanence && Bot.GetMonsters().Any(c => c.IsFaceup() && !c.IsDisabled()))
             {
                 foreach (int seq in list)
@@ -1297,7 +1236,7 @@ namespace WindBot.Game.AI.Decks
                             AI.SelectYesNo(true);
                             AI.SelectCard(target);
                         } else {
-                            List<ClientCard> enemyTargetList = ShuffleCardList(Enemy.GetMonsters().Where(card => card.IsFaceup() && !card.IsDisabled()).ToList());
+                            List<ClientCard> enemyTargetList = Util.ShuffleList(Enemy.GetMonsters().Where(card => card.IsFaceup() && !card.IsDisabled()).ToList());
                             if (enemyTargetList.Count() > 0)
                             {
                                 AI.SelectYesNo(true);
@@ -1327,7 +1266,7 @@ namespace WindBot.Game.AI.Decks
                     && Duel.Phase == DuelPhase.Main1 && (CurrentTiming & hintTimingMainEnd) != 0 && Duel.Turn > 1)
                 {
                     activatedCardIdList.Add(CardId.DogmatikaFleurdelis);
-                    List<ClientCard> enemyTargetList = ShuffleCardList(Enemy.GetMonsters().Where(card => card.IsFaceup() && !card.IsDisabled()).ToList());
+                    List<ClientCard> enemyTargetList = Util.ShuffleList(Enemy.GetMonsters().Where(card => card.IsFaceup() && !card.IsDisabled()).ToList());
                     if (enemyTargetList.Count() > 0)
                     {
                         AI.SelectYesNo(true);
@@ -1371,7 +1310,7 @@ namespace WindBot.Game.AI.Decks
                 }
                 if (checkFlag)
                 {
-                    List<ClientCard> enemyTargetList = ShuffleCardList(Enemy.GetMonsters().Where(card => card.IsFaceup() && !card.IsDisabled()).ToList());
+                    List<ClientCard> enemyTargetList = Util.ShuffleList(Enemy.GetMonsters().Where(card => card.IsFaceup() && !card.IsDisabled()).ToList());
                     if (enemyTargetList.Count() > 0)
                     {
                         AI.SelectYesNo(true);
@@ -1410,7 +1349,7 @@ namespace WindBot.Game.AI.Decks
                 }
 
                 // find not summoned card
-                List<ClientCard> notSummonedList = ShuffleCardList(Bot.Graveyard.Where(card => card != null && card.IsMonster() && card.ProcCompleted == 0
+                List<ClientCard> notSummonedList = Util.ShuffleList(Bot.Graveyard.Where(card => card != null && card.IsMonster() && card.ProcCompleted == 0
                     && card.HasType(CardType.Fusion | CardType.Synchro | CardType.Xyz | CardType.Link)).ToList());
                 if (notSummonedList.Count() > 0)
                 {
@@ -1548,7 +1487,7 @@ namespace WindBot.Game.AI.Decks
                     AI.SelectCard(CardId.DogmatikaFleurdelis);
                     return true;
                 }
-                if (CheckRemainInDeck(CardId.DogmatikaMacabre) > 0)
+                if (Bot.HasInDeck(CardId.DogmatikaMacabre))
                 {
                     ClientCard albaZoaInHand = Bot.Hand.FirstOrDefault(card => card.IsCode(CardId.DogmatikaAlbaZoa));
                     if (albaZoaInHand != null)
@@ -1579,7 +1518,7 @@ namespace WindBot.Game.AI.Decks
                     }
                 }
             }
-            if (Bot.GetMonsterCount() == 0 || CheckRemainInDeck(CardId.SinfulSpoilsOfDoom_Rciela) > 0)
+            if (Bot.GetMonsterCount() == 0 || Bot.HasInDeck(CardId.SinfulSpoilsOfDoom_Rciela))
             {
                 List<int> spellIdList = new List<int>{ _CardId.CrossoutDesignator, _CardId.InfiniteImpermanence, _CardId.CalledByTheGrave, 
                     CardId.DogmatikaPunishment, CardId.DogmatikaMacabre, CardId.DogmatikaLamity };
@@ -1649,7 +1588,7 @@ namespace WindBot.Game.AI.Decks
             {
                 if ((Duel.Player == 0 && Duel.Phase == DuelPhase.End) || (Duel.Player == 1 && Duel.Phase < DuelPhase.End))
                 {
-                    if (!Bot.HasInHand(CardId.DogmatikaFleurdelis) && CheckRemainInDeck(CardId.DogmatikaFleurdelis) > 0)
+                    if (!Bot.HasInHand(CardId.DogmatikaFleurdelis) && Bot.HasInDeck(CardId.DogmatikaFleurdelis))
                     {
                         AI.SelectCard(CardId.DogmatikaFleurdelis);
                         activatedCardIdList.Add(Card.Id);
@@ -1670,7 +1609,7 @@ namespace WindBot.Game.AI.Decks
                     checkIdListFirstPart.Add(CardId.DogmatikaMatrix);
                     foreach (int checkId in checkIdListFirstPart)
                     {
-                        if (!Bot.HasInHandOrInSpellZone(checkId) && CheckRemainInDeck(checkId) > 0)
+                        if (!Bot.HasInHandOrInSpellZone(checkId) && Bot.HasInDeck(checkId))
                         {
                             AI.SelectCard(checkId);
                             activatedCardIdList.Add(Card.Id);
@@ -1682,7 +1621,7 @@ namespace WindBot.Game.AI.Decks
 
                 // search matrix
                 bool canSearchMatrix = DogmatikaMatrixCanActivate() && !activatedCardIdList.Contains(CardId.DogmatikaMatrix)
-                    && CheckRemainInDeck(CardId.DogmatikaMatrix) > 0 && !Bot.HasInHand(CardId.DogmatikaMatrix);
+                    && Bot.HasInDeck(CardId.DogmatikaMatrix) && !Bot.HasInHand(CardId.DogmatikaMatrix);
                 if (canSearchMatrix && Enemy.GetMonsterCount() > 0)
                 {
                     AI.SelectCard(CardId.DogmatikaMatrix);
@@ -1693,7 +1632,7 @@ namespace WindBot.Game.AI.Decks
 
                 // search for ritual
                 List<int> needSearchRitualIdList = GetNeedSearchRitualCardIdList();
-                bool canSearchMaximus = CheckRemainInDeck(CardId.DogmatikaMaximus) > 0 && !activatedCardIdList.Contains(CardId.DogmatikaMaximus)
+                bool canSearchMaximus = Bot.HasInDeck(CardId.DogmatikaMaximus) && !activatedCardIdList.Contains(CardId.DogmatikaMaximus)
                     && Bot.Graveyard.Where(card => card.HasType(CardType.Fusion | CardType.Synchro | CardType.Xyz | CardType.Link)).Count() > 0;
                 if (needSearchRitualIdList.Count() > 0)
                 {
@@ -1734,7 +1673,7 @@ namespace WindBot.Game.AI.Decks
                 checkIdListSecondPart.Add(CardId.DogmatikaMatrix);
                 foreach (int checkId in checkIdListSecondPart)
                 {
-                    if (!Bot.HasInHandOrInSpellZone(checkId) && CheckRemainInDeck(checkId) > 0)
+                    if (!Bot.HasInHandOrInSpellZone(checkId) && Bot.HasInDeck(checkId))
                     {
                         AI.SelectCard(checkId);
                         activatedCardIdList.Add(Card.Id);
@@ -1816,7 +1755,7 @@ namespace WindBot.Game.AI.Decks
             {
                 if (CheckHasExtraOnField() || !summoned)
                 {
-                    if (Bot.HasInGraveyard(CardId.DogmatikaEcclesia) || CheckRemainInDeck(CardId.DogmatikaEcclesia) > 0)
+                    if (Bot.HasInGraveyard(CardId.DogmatikaEcclesia) || Bot.HasInDeck(CardId.DogmatikaEcclesia))
                     {
                         searchId = CardId.DogmatikaEcclesia;
                         discardExtra = GetExtraToDiscard(1500, null);
@@ -1828,7 +1767,7 @@ namespace WindBot.Game.AI.Decks
             if (searchId == 0 || discardExtra == null)
             {
                 if (!activatedCardIdList.Contains(CardId.DogmatikaMaximus) && CheckCalledbytheGrave(CardId.DogmatikaMaximus) == 0
-                    && Bot.HasInGraveyard(CardId.DogmatikaMaximus) || CheckRemainInDeck(CardId.DogmatikaMaximus) > 0)
+                    && Bot.HasInGraveyard(CardId.DogmatikaMaximus) || Bot.HasInDeck(CardId.DogmatikaMaximus))
                 {
                     searchId = CardId.DogmatikaMaximus;
                     discardExtra = GetExtraToDiscard(1500, null);
@@ -1839,7 +1778,7 @@ namespace WindBot.Game.AI.Decks
             if (searchId == 0 || discardExtra == null)
             {
                 if (!Bot.HasInHand(CardId.DogmatikaFleurdelis) && Bot.GetMonsters().Any(card => card.IsFaceup() && card.HasSetcode(SetcodeDogmatika))
-                    && Bot.HasInGraveyard(CardId.DogmatikaFleurdelis) || CheckRemainInDeck(CardId.DogmatikaFleurdelis) > 0)
+                    && Bot.HasInGraveyard(CardId.DogmatikaFleurdelis) || Bot.HasInDeck(CardId.DogmatikaFleurdelis))
                 {
                     searchId = CardId.DogmatikaFleurdelis;
                     discardExtra = GetExtraToDiscard(2500, null);
@@ -1849,7 +1788,7 @@ namespace WindBot.Game.AI.Decks
             // search ecclesia for next turn
             if (searchId == 0 || discardExtra == null)
             {
-                if (Bot.HasInGraveyard(CardId.DogmatikaEcclesia) || CheckRemainInDeck(CardId.DogmatikaEcclesia) > 0)
+                if (Bot.HasInGraveyard(CardId.DogmatikaEcclesia) || Bot.HasInDeck(CardId.DogmatikaEcclesia))
                 {
                     searchId = CardId.DogmatikaEcclesia;
                     discardExtra = GetExtraToDiscard(1500, null);
@@ -2149,7 +2088,7 @@ namespace WindBot.Game.AI.Decks
                 // do not negate black witch
                 if (code == CardId.DiabellstarTheBlackWitch) return false;
                 if (CheckCalledbytheGrave(code) > 0) return false;
-                if (CheckRemainInDeck(code) > 0)
+                if (Bot.HasInDeck(code))
                 {
                     if (!(Card.Location == CardLocation.SpellZone))
                     {
@@ -2178,7 +2117,7 @@ namespace WindBot.Game.AI.Decks
 
         public bool DogmatikaMatrixCanActivate()
         {
-            return CheckRemainInDeck(CardId.DogmatikaAlbaZoa, CardId.DogmatikaLamity, CardId.DogmatikaMacabre) > 0;
+            return Bot.HasInDeck(CardId.DogmatikaAlbaZoa, CardId.DogmatikaLamity, CardId.DogmatikaMacabre);
         }
 
         public bool DogmatikaMatrixActivate()
@@ -2212,7 +2151,7 @@ namespace WindBot.Game.AI.Decks
                         SelectSTPlace(null, true);
                         AI.SelectYesNo(true);
                         // search both monster and spell
-                        if (CheckRemainInDeck(CardId.DogmatikaAlbaZoa) > 0 && CheckRemainInDeck(CardId.DogmatikaLamity, CardId.DogmatikaMacabre) > 0)
+                        if (Bot.HasInDeck(CardId.DogmatikaAlbaZoa) && Bot.HasInDeck(CardId.DogmatikaLamity, CardId.DogmatikaMacabre))
                         {
                             AI.SelectCard(CardId.DogmatikaAlbaZoa);
                             AI.SelectNextCard(CardId.DogmatikaLamity, CardId.DogmatikaMacabre);
@@ -2277,7 +2216,7 @@ namespace WindBot.Game.AI.Decks
             {
                 if (hasExtraOnField || !summoned)
                 {
-                    if (CheckRemainInDeck(CardId.DogmatikaEcclesia) > 0)
+                    if (Bot.HasInDeck(CardId.DogmatikaEcclesia))
                     {
                         AI.SelectNextCard(CardId.DogmatikaEcclesia);
                         return;
@@ -2286,7 +2225,7 @@ namespace WindBot.Game.AI.Decks
             }
 
             // seach Maximus
-            if (CheckRemainInDeck(CardId.DogmatikaMaximus) > 0 && !activatedCardIdList.Contains(CardId.DogmatikaMaximus)
+            if (Bot.HasInDeck(CardId.DogmatikaMaximus) && !activatedCardIdList.Contains(CardId.DogmatikaMaximus)
                 && Bot.Graveyard.Where(card => card.HasType(CardType.Fusion | CardType.Synchro | CardType.Xyz | CardType.Link)).Count() > 0)
             {
                 AI.SelectNextCard(CardId.DogmatikaMaximus);
@@ -2294,7 +2233,7 @@ namespace WindBot.Game.AI.Decks
             }
 
             // search Fleurdelis
-            if (CheckRemainInDeck(CardId.DogmatikaFleurdelis) > 0 && !Bot.HasInHand(CardId.DogmatikaFleurdelis) && hasExtraOnField
+            if (Bot.HasInDeck(CardId.DogmatikaFleurdelis) && !Bot.HasInHand(CardId.DogmatikaFleurdelis) && hasExtraOnField
                 && Bot.GetMonsters().Any(card => card.IsFaceup() && card.HasSetcode(SetcodeDogmatika)))
             {
                 AI.SelectNextCard(CardId.DogmatikaFleurdelis);
@@ -2305,7 +2244,7 @@ namespace WindBot.Game.AI.Decks
                     CardId.DogmatikaMaximus, CardId.DogmatikaFleurdelis, CardId.DogmatikaAlbaZoa, CardId.DogmatikaLamity, CardId.DogmatikaMacabre };
             foreach (int searchId in searchIdList)
             {
-                if (CheckRemainInDeck(searchId) > 0)
+                if (Bot.HasInDeck(searchId))
                 {
                     AI.SelectNextCard(searchId);
                     return;
@@ -2480,13 +2419,13 @@ namespace WindBot.Game.AI.Decks
 
         public bool TitanikladTheAshDragonActivate()
         {
-            if (!activatedCardIdList.Contains(CardId.DogmatikaEcclesia) && CheckRemainInDeck(CardId.DogmatikaEcclesia) > 0 && CheckCalledbytheGrave(CardId.DogmatikaEcclesia) == 0)
+            if (!activatedCardIdList.Contains(CardId.DogmatikaEcclesia) && Bot.HasInDeck(CardId.DogmatikaEcclesia) && CheckCalledbytheGrave(CardId.DogmatikaEcclesia) == 0)
             {
                 AI.SelectOption(1);
                 AI.SelectCard(CardId.DogmatikaEcclesia);
                 return true;
             }
-            if (CheckRemainInDeck(CardId.DogmatikaFleurdelis) > 0)
+            if (Bot.HasInDeck(CardId.DogmatikaFleurdelis))
             {
                 if (!Bot.HasInHand(CardId.DogmatikaFleurdelis) && !enemyActivateLockBird)
                 {
@@ -2504,7 +2443,7 @@ namespace WindBot.Game.AI.Decks
                     return true;
                 }
             }
-            if (CheckRemainInDeck(CardId.DogmatikaMaximus) > 0)
+            if (Bot.HasInDeck(CardId.DogmatikaMaximus))
             {
                 AI.SelectOption(1);
                 AI.SelectCard(CardId.DogmatikaMaximus);
@@ -2541,18 +2480,18 @@ namespace WindBot.Game.AI.Decks
             // spsummon
             if (Card.Location == CardLocation.Grave)
             {
-                if (!activatedCardIdList.Contains(CardId.DogmatikaEcclesia) && CheckRemainInDeck(CardId.DogmatikaEcclesia) > 0
+                if (!activatedCardIdList.Contains(CardId.DogmatikaEcclesia) && Bot.HasInDeck(CardId.DogmatikaEcclesia)
                     && CheckCalledbytheGrave(CardId.DogmatikaEcclesia) == 0 && !enemyActivateLockBird)
                 {
                     AI.SelectCard(CardId.DogmatikaEcclesia);
                     return true;
                 }
-                if (CheckRemainInDeck(CardId.ThesIrisSwordsoul) > 0)
+                if (Bot.HasInDeck(CardId.ThesIrisSwordsoul))
                 {
                     AI.SelectCard(CardId.ThesIrisSwordsoul);
                     return true;
                 }
-                if (Duel.Turn > 1 && Enemy.GetMonsterCount() == 0 && CheckRemainInDeck(CardId.DogmatikaFleurdelis) > 0)
+                if (Duel.Turn > 1 && Enemy.GetMonsterCount() == 0 && Bot.HasInDeck(CardId.DogmatikaFleurdelis))
                 {
                     AI.SelectCard(CardId.DogmatikaFleurdelis);
                     return true;
@@ -2562,7 +2501,7 @@ namespace WindBot.Game.AI.Decks
                     List<int> checkIdList = new List<int>{ CardId.DogmatikaMaximus, CardId.DogmatikaEcclesia, CardId.DogmatikaFleurdelis };
                     foreach (int checkId in checkIdList)
                     {
-                        if (CheckRemainInDeck(checkId) > 0)
+                        if (Bot.HasInDeck(checkId))
                         {
                             AI.SelectCard(checkId);
                             return true;
@@ -2576,8 +2515,8 @@ namespace WindBot.Game.AI.Decks
                 List<ClientCard> currentChainEnemyCard = Duel.CurrentChain.Where(card => card.Controller == 1 && !currentNegateMonsterList.Contains(card)
                     && (card.Location == CardLocation.MonsterZone || card.Location == CardLocation.SpellZone)).ToList();
                 currentChainEnemyCard.AddRange(GetProblematicEnemyCardList(false, false));
-                currentChainEnemyCard.AddRange(ShuffleCardList(Enemy.GetSpells().Where(card => card.IsFaceup()).ToList()));
-                currentChainEnemyCard.AddRange(ShuffleCardList(Enemy.GetMonsters().Where(card => card.IsFaceup()).ToList()));
+                currentChainEnemyCard.AddRange(Util.ShuffleList(Enemy.GetSpells().Where(card => card.IsFaceup()).ToList()));
+                currentChainEnemyCard.AddRange(Util.ShuffleList(Enemy.GetMonsters().Where(card => card.IsFaceup()).ToList()));
                 if (currentChainEnemyCard.Count() > 0)
                 {
                     currentNegateMonsterList.Add(currentChainEnemyCard[0]);
@@ -2617,7 +2556,7 @@ namespace WindBot.Game.AI.Decks
                     CardId.DogmatikaEcclesia, CardId.DogmatikaFleurdelis, CardId.DogmatikaMatrix };
                 foreach (int checkId in recycleMainIdList)
                 {
-                    if (CheckRemainInDeck(checkId) <= 0 && Bot.HasInGraveyard(checkId))
+                    if (!Bot.HasInDeck(checkId) && Bot.HasInGraveyard(checkId))
                     {
                         AI.SelectCard(checkId);
                         omegaActivateCount ++;
@@ -2685,8 +2624,8 @@ namespace WindBot.Game.AI.Decks
             if (targetList.Count() > 0)
             {
                 targetList.AddRange(Enemy.GetMonsters().Where(card => card.IsFaceup() && !targetList.Contains(card)).OrderByDescending(card => card.Attack));
-                targetList.AddRange(ShuffleCardList(Enemy.GetMonsters().Where(card => card.IsFacedown() && !targetList.Contains(card)).ToList()));
-                targetList.AddRange(ShuffleCardList(Bot.GetMonsters().Where(card => card.IsFacedown() && !targetList.Contains(card)).ToList()));
+                targetList.AddRange(Util.ShuffleList(Enemy.GetMonsters().Where(card => card.IsFacedown() && !targetList.Contains(card)).ToList()));
+                targetList.AddRange(Util.ShuffleList(Bot.GetMonsters().Where(card => card.IsFacedown() && !targetList.Contains(card)).ToList()));
                 targetList.AddRange(Bot.GetMonsters().Where(card => card.IsFaceup() && !targetList.Contains(card)).OrderBy(card => card.Attack));
                 AI.SelectCard(Card.Overlays);
                 AI.SelectNextCard(targetList);

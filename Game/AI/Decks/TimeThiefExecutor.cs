@@ -482,14 +482,7 @@ namespace WindBot.Game.AI.Decks
         public void SelectSTPlace(ClientCard card = null, bool avoid_Impermanence = false, List<int> avoid_list = null)
         {
             List<int> list = new List<int> { 0, 1, 2, 3, 4 };
-            int n = list.Count;
-            while (n-- > 1)
-            {
-                int index = Program.Rand.Next(n + 1);
-                int temp = list[index];
-                list[index] = list[n];
-                list[n] = temp;
-            }
+            Util.ShuffleListInPlace(list);
             foreach (int seq in list)
             {
                 int zone = (int)System.Math.Pow(2, seq);
@@ -563,8 +556,7 @@ namespace WindBot.Game.AI.Decks
             if (redoer == null)
                 return false;
 
-            if (Util.IsChainTarget(redoer) ||
-                Card == redoer && DefaultOnBecomeTarget() ||
+            if (DefaultOnBecomeTarget(redoer) ||
                 Duel.Player == 0 && Duel.Phase == DuelPhase.Main2)
             {
                 return true;

@@ -69,7 +69,8 @@ server 模式会为每个 HTTP 请求创建独立线程和独立的 `GameClient`
 
 ### 上下文、状态与选择
 
-- `Executor.SetCard` 会在查询前设置当前 `Type`、`Card`、`ActivateDescription`、`CurrentTiming`。
+- `Executor.SetCard` 会在查询执行器条件前设置当前 `Type`、`Card`、`ActivateDescription`、`CurrentTiming`。这些字段只表示“当前正在查询的执行器候选”，不是当前决斗动作或当前连锁的全局上下文；仅可在执行器条件及其同步调用的辅助方法中使用。
+- `OnSelectCard`、`OnSelectPlace`、`OnSelectPosition`、`OnSelectOption`、`OnSelectYesNo` 和生命周期回调不得依赖上述字段。应根据回调参数、`Duel.GetCurrentChainCard()`、`Duel.GetCurrentSolvingChainInfo()` 或明确维护的牌组状态识别上下文；在回调中假设评估某张候选卡时，应把候选卡、效果描述和时点显式传给辅助方法。
 - `Bot` 和 `Enemy` 分别是本机视角的 `Duel.Fields[0]` 与 `Duel.Fields[1]`；协议玩家编号应通过现有本地化逻辑转换，不要自行假定座位编号。
 - 优先使用 `ClientField`、`ClientCard`、`AIUtil`、`CardExtension` 的现有查询方法，避免重复遍历和散落的区域位掩码。
 - 未知卡的 `Id` 可能为 `0`，`Data`/`Name` 可能为 `null`。对隐藏区域只能依赖客户端实际知道的数量、位置和已公开历史。
@@ -145,9 +146,15 @@ server 模式会为每个 HTTP 请求创建独立线程和独立的 `GameClient`
 - 保持与现有代码一致的 C# 风格：4 空格缩进、Allman 大括号、清晰的显式控制流；不要为无关文件做批量格式化。
 - 所有代码文件使用 UTF-8 和 CRLF。新文件建议无 BOM；已有 BOM 不做无关调整。
 - 避免引入 .NET Framework 4.8 或当前编译方式不支持的 API/语法。
+- 为兼容项目支持的旧版 Mono 构建链，使用 C# 7 及以上语法时遵循以下限制：
+  - 已确认可用：对已经声明的变量或其他可赋值位置进行简单解构赋值，包括用 `(left, right) = (right, left);` 交换两个值。此用法不得把元组作为值保存、传递或返回。
+  - 已确认不可用：在类型声明、泛型参数、参数或返回值中使用元组类型及命名元组，例如 `Dictionary<(int zone, ClientCard[] cards), int>`；创建并保存元组值、访问命名元组元素，以及使用 `var (left, right) = value;` 等解构声明。
+  - 已确认不可用：局部函数，包括普通、表达式体和递归局部函数；应改为类级方法，或在确有必要时使用 C# 6 支持的委托和 lambda。
+  - 已确认不可用：`default` 字面量；应写成 `default(T)` 等显式形式。
+  - 其他未经旧版 Mono 构建验证、且只是语法糖的 C# 7 及以上语法默认避免使用，例如模式匹配、内联 `out` 变量、弃元和 throw 表达式；优先使用清晰的 C# 6 等价写法。
 - Linq可以积极使用，空条件运算符（`?.`）和空合并运算符（`??`）也可以使用。
 - 不要提取只在单个函数中调用一次、且没有明显复用价值的小函数。
-- 注释可以复述单个函数整体行为。
+- 注释可以复述超过 30 行的单个函数的整体行为。
 - 保留用户已有的未提交和暂存更改。除非用户明确要求，不要暂存、提交、切换分支或改动暂存区。
 - 除非用户明确要求，不要新增独立文档文件；必要说明优先更新现有文档。
 - 审阅更改时，除列出问题外，还应简述改动内容，评价充分性、必要性、优缺点和明显优化点，并快速搜索项目内是否存在同类问题。

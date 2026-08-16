@@ -159,14 +159,6 @@ namespace WindBot.Game.AI.Decks
         const int hintTimingMainEnd = 0x4;
         const int hintBattleStart = 0x8;
 
-        Dictionary<int, List<int>> DeckCountTable = new Dictionary<int, List<int>>{
-            {3, new List<int> { CardId.AriannaTheLabrynthServant, CardId.LabrynthChandraglier, _CardId.AshBlossom, _CardId.MaxxC,
-                                CardId.LabrynthStovieTorbie, CardId.LabrynthCooclock, _CardId.InfiniteImpermanence, CardId.BigWelcomeLabrynth }},
-            {2, new List<int> { CardId.LadyLabrynthOfTheSilverCastle, CardId.AriasTheLabrynthButler, CardId.PotOfExtravagance, CardId.WelcomeLabrynth,
-                                CardId.TransactionRollback }},
-            {1, new List<int> { CardId.LovelyLabrynthOfTheSilverCastle, CardId.UnchainedSoulOfSharvara, CardId.ArianeTheLabrynthServant,
-                                CardId.DestructiveDarumaKarmaCannon, CardId.EscapeOfTheUnchained, _CardId.DimensionalBarrier }}
-        };
         List<int> notToNegateIdList = new List<int>{
             58699500, 20343502
         };
@@ -203,24 +195,6 @@ namespace WindBot.Game.AI.Decks
         List<int> dimensionalBarrierAnnouced = new List<int>();
         List<int> chainSummoningIdList = new List<int>(3);
         ClientCard bigwelcomeEscaseTarget = null;
-
-        /// <summary>
-        /// Shuffle List<ClientCard> and return a random-order card list
-        /// </summary>
-        public List<T> ShuffleList<T>(List<T> list)
-        {
-            List<T> result = list;
-            int n = result.Count;
-            while (n-- > 1)
-            {
-                int index = Program.Rand.Next(result.Count);
-                int nextIndex = (index + Program.Rand.Next(result.Count - 1)) % result.Count;
-                T tempCard = result[index];
-                result[index] = result[nextIndex];
-                result[nextIndex] = tempCard;
-            }
-            return result;
-        }
 
         public ClientCard GetProblematicEnemyMonster(int attack = 0, bool canBeTarget = false, bool ignoreCurrentDestroy = false, CardType selfType = 0)
         {
@@ -279,7 +253,7 @@ namespace WindBot.Game.AI.Decks
             
             List<ClientCard> problemEnemySpellList = Enemy.SpellZone.Where(c => c?.Data != null && !resultList.Contains(c) && !currentDestroyCardList.Contains(c)
                 && c.IsFloodgate() && c.IsFaceup() && CheckCanBeTargeted(c, canBeTarget, selfType)).ToList();
-            if (problemEnemySpellList.Count() > 0) resultList.AddRange(ShuffleList(problemEnemySpellList));
+            if (problemEnemySpellList.Count() > 0) resultList.AddRange(Util.ShuffleList(problemEnemySpellList));
 
             List<ClientCard> dangerList = Enemy.MonsterZone.Where(c => c?.Data != null && !resultList.Contains(c) && !currentDestroyCardList.Contains(c)
                 && c.IsMonsterDangerous() && c.IsFaceup() && CheckCanBeTargeted(c, canBeTarget, selfType)).OrderByDescending(card => card.Attack).ToList();
@@ -308,7 +282,7 @@ namespace WindBot.Game.AI.Decks
             List<ClientCard> spells = Enemy.GetSpells().Where(c => c.IsFaceup() && !currentDestroyCardList.Contains(c)
                 && c.HasType(CardType.Equip | CardType.Pendulum | CardType.Field | CardType.Continuous) && CheckCanBeTargeted(c, canBeTarget, selfType)
                 && !notToDestroySpellTrap.Contains(c.Id)).ToList();
-            if (spells.Count() > 0 && !ignoreSpells) resultList.AddRange(ShuffleList(spells));
+            if (spells.Count() > 0 && !ignoreSpells) resultList.AddRange(Util.ShuffleList(spells));
 
             return resultList;
         }
@@ -329,7 +303,7 @@ namespace WindBot.Game.AI.Decks
 
             // after GetHighestAttackMonster, the left monsters must be face-down.
             if (monsters.Count() > 0 && !onlyFaceup)
-                return ShuffleList(monsters)[0];
+                return Util.ShuffleList(monsters)[0];
 
             return null;
         }
@@ -366,11 +340,11 @@ namespace WindBot.Game.AI.Decks
             enemyMonster.Sort(CardContainer.CompareCardAttack);
             enemyMonster.Reverse();
             targetList.AddRange(enemyMonster);
-            targetList.AddRange(ShuffleList(Enemy.GetSpells().Where(card =>
+            targetList.AddRange(Util.ShuffleList(Enemy.GetSpells().Where(card =>
                 (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(card)) && enemySetThisTurn.Contains(card)).ToList()));
-            targetList.AddRange(ShuffleList(Enemy.GetSpells().Where(card =>
+            targetList.AddRange(Util.ShuffleList(Enemy.GetSpells().Where(card =>
                 (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(card)) && !enemySetThisTurn.Contains(card)).ToList()));
-            targetList.AddRange(ShuffleList(Enemy.GetMonsters().Where(card => card.IsFacedown() && (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(card))).ToList()));
+            targetList.AddRange(Util.ShuffleList(Enemy.GetMonsters().Where(card => card.IsFacedown() && (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(card))).ToList()));
 
             return targetList;
         }
@@ -472,30 +446,6 @@ namespace WindBot.Game.AI.Decks
             return true;
         }
 
-        /// <summary>
-        /// Check remain cards in deck
-        /// </summary>
-        /// <param name="id">Card's ID</param>
-        public int CheckRemainInDeck(int id)
-        {
-            for (int count = 1; count < 4; ++count)
-            {
-                if (DeckCountTable[count].Contains(id)) {
-                    return Bot.GetRemainingCount(id, count);
-                }
-            }
-            return 0;
-        }
-        public int CheckRemainInDeck(params int[] ids)
-        {
-            int sumResult = 0;
-            foreach (int id in ids)
-            {
-                sumResult += CheckRemainInDeck(id);
-            }
-
-            return sumResult;
-        }
 
         /// <summary>
         /// Whether spell or trap will be negate. If so, return true.
@@ -545,17 +495,12 @@ namespace WindBot.Game.AI.Decks
             {
                 if ((toFieldCheck && (((int)type & (int)CardType.Link) == 0)) || Card.IsDefense())
                 {
-                    if (Enemy.MonsterZone.Any(card => CheckNumber41(card)) || Bot.MonsterZone.Any(card => CheckNumber41(card))) return true;
+                    if (DefaultCheckWhetherNumber41IsActive()) return true;
                 }
                 if (Enemy.HasInSpellZone(CardId.SkillDrain, true, true)) return true;
             }
             if (disablecheck) return Card.IsDisabled();
             return false;
-        }
-
-        public bool CheckNumber41(ClientCard card)
-        {
-            return card != null && card.IsFaceup() && card.IsCode(CardId.Number41BagooskatheTerriblyTiredTapir) && card.IsDefense() && !card.IsDisabled();
         }
 
         /// <summary>
@@ -631,7 +576,7 @@ namespace WindBot.Game.AI.Decks
 
         public bool CheckBigWelcomeCanSpSummon(int cardId)
         {
-            return Bot.HasInHandOrInGraveyard(cardId) || CheckRemainInDeck(cardId) > 0;
+            return Bot.HasInHandOrInGraveyard(cardId) || Bot.HasInDeck(cardId);
         }
 
         public int CompareUsableAttack(ClientCard cardA, ClientCard cardB)
@@ -667,19 +612,19 @@ namespace WindBot.Game.AI.Decks
                     banishList.AddRange(faceDownMonsters);
                     List<ClientCard> notImportantMonster = botMonsters.Where(card => !banishList.Contains(card)
                         && ((card.HasType(CardType.Fusion | CardType.Synchro | CardType.Xyz | CardType.Link) && Bot.HasInExtra(card.Id))
-                        || CheckRemainInDeck(card.Id) > 0)).ToList();
+                        || Bot.HasInDeck(card.GetNonAltartCode()))).ToList();
                     notImportantMonster.Sort(CardContainer.CompareCardAttack);
                     banishList.AddRange(notImportantMonster);
 
                     // spells
                     List<ClientCard> faceUpSpells = Bot.GetSpells().Where(c => c.IsFaceup()).ToList();
-                    banishList.AddRange(ShuffleList(faceUpSpells));
+                    banishList.AddRange(Util.ShuffleList(faceUpSpells));
                     List<ClientCard> faceDownSpells = Bot.GetSpells().Where(c => c.IsFacedown()).ToList();
-                    banishList.AddRange(ShuffleList(faceDownSpells));
+                    banishList.AddRange(Util.ShuffleList(faceDownSpells));
 
                     List<ClientCard> importantMonster = botMonsters.Where(card => !banishList.Contains(card) && !card.IsCode(CardId.LovelyLabrynthOfTheSilverCastle)
                         && ((card.HasType(CardType.Fusion | CardType.Synchro | CardType.Xyz | CardType.Link) && !Bot.HasInExtra(card.Id))
-                        || CheckRemainInDeck(card.Id) == 0)).ToList();
+                        || !Bot.HasInDeck(card.GetNonAltartCode()))).ToList();
                     importantMonster.Sort(CardContainer.CompareCardAttack);
                     banishList.AddRange(importantMonster);
 
@@ -717,7 +662,7 @@ namespace WindBot.Game.AI.Decks
                             haveUnchainSoul |= Bot.HasInHand(CardId.UnchainedSoulOfSharvara);
                             haveUnchainSoul |= Duel.Player == 0 && Duel.Phase <= DuelPhase.Main2
                                 && Bot.HasInExtra(CardId.UnchainedSoulLordOfYama) && !activatedCardIdList.Contains(CardId.UnchainedSoulLordOfYama)
-                                && (CheckRemainInDeck(CardId.UnchainedSoulOfSharvara) > 0 || Bot.HasInGraveyard(CardId.UnchainedSoulOfSharvara))
+                                && (Bot.HasInDeck(CardId.UnchainedSoulOfSharvara) || Bot.HasInGraveyard(CardId.UnchainedSoulOfSharvara))
                                 && Bot.GetMonsters().Where(card => card.IsFaceup() && card.HasRace(CardRace.Fiend) && card.Level <= 4).Count() >= 2;
                         }
                         bool haveAriane = false;
@@ -936,12 +881,12 @@ namespace WindBot.Game.AI.Decks
                     // search cooclock/bulter to activate trap
                     ClientCard arias = null;
                     ClientCard cooclock = null;
-                    if (!activatedCardIdList.Contains(CardId.AriasTheLabrynthButler) && CheckRemainInDeck(CardId.AriasTheLabrynthButler) > 0
+                    if (!activatedCardIdList.Contains(CardId.AriasTheLabrynthButler) && Bot.HasInDeck(CardId.AriasTheLabrynthButler)
                         && !Bot.HasInHand(CardId.AriasTheLabrynthButler))
                     {
                         arias = GetWelcomeOrBigWelcomeTarget(cards, CardId.AriasTheLabrynthButler);
                     }
-                    if (!activatedCardIdList.Contains(CardId.LabrynthCooclock) && CheckRemainInDeck(CardId.LabrynthCooclock) > 0
+                    if (!activatedCardIdList.Contains(CardId.LabrynthCooclock) && Bot.HasInDeck(CardId.LabrynthCooclock)
                         && !Bot.HasInHand(CardId.LabrynthCooclock))
                     {
                         cooclock = GetWelcomeOrBigWelcomeTarget(cards, CardId.LabrynthCooclock);
@@ -1108,7 +1053,7 @@ namespace WindBot.Game.AI.Decks
                     foreach (int checkId in uniqueCheckIdList)
                     {
                         ClientCard targetCard = GetWelcomeOrBigWelcomeTarget(cards, checkId);
-                        if (CheckRemainInDeck(checkId) > 0)
+                        if (Bot.HasInDeck(checkId))
                         {
                             if (checkId == CardId.BigWelcomeLabrynth || checkId == CardId.WelcomeLabrynth)
                             {
@@ -1188,7 +1133,7 @@ namespace WindBot.Game.AI.Decks
                     }
 
                     ClientCard cooclock = cards.FirstOrDefault(c => c.IsCode(CardId.LabrynthCooclock));
-                    bool canSearchWelcome = CheckRemainInDeck(CardId.WelcomeLabrynth, CardId.BigWelcomeLabrynth) > 0
+                    bool canSearchWelcome = Bot.HasInDeck(CardId.WelcomeLabrynth, CardId.BigWelcomeLabrynth)
                                         && (Bot.HasInHandOrHasInMonstersZone(new List<int> { CardId.LabrynthChandraglier, CardId.LabrynthStovieTorbie })
                                             || summonInChainList.Any(c => c.IsCode(CardId.AriannaTheLabrynthServant))
                                             || (Duel.Player == 0 && !summoned && !activatedCardIdList.Contains(CardId.AriannaTheLabrynthServant) && Bot.HasInHand(CardId.AriannaTheLabrynthServant)));
@@ -1316,9 +1261,9 @@ namespace WindBot.Game.AI.Decks
                     if (Bot.MonsterZone[3] != null && (Zones.z5 & available) != 0) return Zones.z5;
                 }
 
-                List<int> zoneIdList = ShuffleList(new List<int> { 0, 2, 4 });
-                zoneIdList.AddRange(ShuffleList(new List<int> { 1, 3 }));
-                zoneIdList.AddRange(ShuffleList(new List<int> { 5, 6 }));
+                List<int> zoneIdList = Util.ShuffleList(new List<int> { 0, 2, 4 });
+                zoneIdList.AddRange(Util.ShuffleList(new List<int> { 1, 3 }));
+                zoneIdList.AddRange(Util.ShuffleList(new List<int> { 5, 6 }));
                 foreach (int zoneId in zoneIdList)
                 {
                     int zone = (int)System.Math.Pow(2, zoneId);
@@ -1403,7 +1348,7 @@ namespace WindBot.Game.AI.Decks
                 enemyMonster.Sort(CardContainer.CompareCardAttack);
                 enemyMonster.Reverse();
                 targetList.AddRange(enemyMonster);
-                targetList.AddRange(ShuffleList(Enemy.GetSpells().Where(card => !currentDestroyCardList.Contains(card) && card.IsFacedown()).ToList()));
+                targetList.AddRange(Util.ShuffleList(Enemy.GetSpells().Where(card => !currentDestroyCardList.Contains(card) && card.IsFacedown()).ToList()));
                 if (targetList.Count() > 0)
                 {
                     currentDestroyCardList.Add(targetList[0]);
@@ -1743,7 +1688,7 @@ namespace WindBot.Game.AI.Decks
        {
             if (attackers.Count() > 0 && defenders.Count() > 0)
             {
-                List<ClientCard> sortedAttacker = attackers.OrderBy(card => card.Attack).ToList();
+                List<ClientCard> sortedAttacker = attackers.OrderBy(card => card.GetAttackPower()).ToList();
                 for (int k = 0; k < sortedAttacker.Count; ++k)
                 {
                     ClientCard attacker = sortedAttacker[k];
@@ -1776,15 +1721,7 @@ namespace WindBot.Game.AI.Decks
                     list.Add(seq);
                 }
             }
-            int n = list.Count;
-            while (n-- > 1)
-            {
-                int index = Program.Rand.Next(list.Count);
-                int nextIndex = (index + Program.Rand.Next(list.Count - 1)) % list.Count;
-                int tempInt = list[index];
-                list[index] = list[nextIndex];
-                list[nextIndex] = tempInt;
-            }
+            Util.ShuffleListInPlace(list);
             if (avoidImpermanence && Bot.GetMonsters().Any(c => c.IsFaceup() && !c.IsDisabled()))
             {
                 foreach (int seq in list)
@@ -1902,7 +1839,7 @@ namespace WindBot.Game.AI.Decks
 
                 if (GetCanBeUsedForLinkMaterial(true, card => !card.HasRace(CardRace.Fiend)).Count() == 2
                     && !activatedCardIdList.Contains(CardId.UnchainedSoulLordOfYama)
-                    && (Bot.HasInGraveyard(CardId.UnchainedSoulOfSharvara) || CheckRemainInDeck(CardId.UnchainedSoulOfSharvara) > 0))
+                    && (Bot.HasInGraveyard(CardId.UnchainedSoulOfSharvara) || Bot.HasInDeck(CardId.UnchainedSoulOfSharvara)))
                 {
                     activatedCardIdList.Add(Card.Id);
                     return true;
@@ -1925,7 +1862,7 @@ namespace WindBot.Game.AI.Decks
                     enemyMonster.Sort(CardContainer.CompareCardAttack);
                     enemyMonster.Reverse();
                     targetList.AddRange(enemyMonster);
-                    targetList.AddRange(ShuffleList(Enemy.GetSpells().Where(card => !currentDestroyCardList.Contains(card)).ToList()));
+                    targetList.AddRange(Util.ShuffleList(Enemy.GetSpells().Where(card => !currentDestroyCardList.Contains(card)).ToList()));
 
                     if (targetList.Count() > 0)
                     {
@@ -2068,7 +2005,7 @@ namespace WindBot.Game.AI.Decks
                     {
                         searchFlag |= (CurrentTiming & hintTimingMainEnd) != 0;
                         searchFlag |= GetProblematicEnemyCardList(false).Count() > 0
-                            && (Bot.HasInMonstersZoneOrInGraveyard(CardId.LovelyLabrynthOfTheSilverCastle) || CheckRemainInDeck(CardId.LovelyLabrynthOfTheSilverCastle) > 0)
+                            && (Bot.HasInMonstersZoneOrInGraveyard(CardId.LovelyLabrynthOfTheSilverCastle) || Bot.HasInDeck(CardId.LovelyLabrynthOfTheSilverCastle))
                             && !activatedCardIdList.Contains(CardId.LovelyLabrynthOfTheSilverCastle + 1);
                     }
                     if (Duel.Player == 0) searchFlag |= summoned && !CheckShouldNoMoreSpSummon();
@@ -2127,7 +2064,7 @@ namespace WindBot.Game.AI.Decks
                 if (CheckShouldNoMoreSpSummon() && !(haveRollback && Bot.Graveyard.Any(card => card.IsCode(CardId.WelcomeLabrynth, CardId.BigWelcomeLabrynth)))) return false;
                 int specialSummonId = 0;
                 // arianna
-                if (!activatedCardIdList.Contains(CardId.AriannaTheLabrynthServant) && CheckRemainInDeck(CardId.AriannaTheLabrynthServant) > 0)
+                if (!activatedCardIdList.Contains(CardId.AriannaTheLabrynthServant) && Bot.HasInDeck(CardId.AriannaTheLabrynthServant))
                 {
                     specialSummonId = CardId.AriannaTheLabrynthServant;
                 }
@@ -2137,7 +2074,7 @@ namespace WindBot.Game.AI.Decks
                     List<int> checkIdList = new List<int>{CardId.LabrynthStovieTorbie, CardId.LabrynthChandraglier, CardId.LabrynthCooclock};
                     foreach (int checkId in checkIdList)
                     {
-                        if (!Bot.HasInHandOrInMonstersZoneOrInGraveyard(checkId) && CheckRemainInDeck(checkId) > 0)
+                        if (!Bot.HasInHandOrInMonstersZoneOrInGraveyard(checkId) && Bot.HasInDeck(checkId))
                         {
                             specialSummonId = checkId;
                             break;
@@ -2156,7 +2093,7 @@ namespace WindBot.Game.AI.Decks
                     });
                     foreach (int checkId in checkIdList)
                     {
-                        if (CheckRemainInDeck(checkId) > 0)
+                        if (Bot.HasInDeck(checkId))
                         {
                             specialSummonId = checkId;
                             break;
@@ -2283,7 +2220,7 @@ namespace WindBot.Game.AI.Decks
                 }
                 bool activateFlag = becomeTarget;
                 // set big welcome for lovely
-                bool canActivateSetBigWelcomeThisTurn = CheckRemainInDeck(CardId.BigWelcomeLabrynth) > 0 && cooclockAffected && !activatedCardIdList.Contains(CardId.BigWelcomeLabrynth)
+                bool canActivateSetBigWelcomeThisTurn = Bot.HasInDeck(CardId.BigWelcomeLabrynth) && cooclockAffected && !activatedCardIdList.Contains(CardId.BigWelcomeLabrynth)
                     && (Bot.HasInMonstersZone(CardId.LovelyLabrynthOfTheSilverCastle, true, false, true) || CheckBigWelcomeCanSpSummon(CardId.LovelyLabrynthOfTheSilverCastle))
                     && (!Bot.GetSpells().Any(card => card.IsFacedown() && card.IsCode(CardId.BigWelcomeLabrynth) && !setTrapThisTurn.Contains(card)))
                     && (
@@ -2417,7 +2354,7 @@ namespace WindBot.Game.AI.Decks
                     // whether have labrynth to trigger cooclock
                     bool haveBigWelcome = Duel.Player == 0 && Bot.HasInHand(CardId.BigWelcomeLabrynth)
                         && (Bot.GetMonsters().Any(card => card.IsFaceup() && card.HasSetcode(SetcodeLabrynth)) || (!summoned && Bot.Hand.Any(card => card != Card && card.HasType(CardType.Monster) && card.Level <= 4 && card.HasSetcode(SetcodeLabrynth))));
-                    if (CheckRemainInDeck(CardId.BigWelcomeLabrynth) > 0)
+                    if (Bot.HasInDeck(CardId.BigWelcomeLabrynth))
                     {
                         foreach (int checkId in new List<int> { CardId.LabrynthChandraglier, CardId.LabrynthStovieTorbie })
                         {
@@ -2615,7 +2552,7 @@ namespace WindBot.Game.AI.Decks
 
                 bool becomeTarget = Card.Location == CardLocation.SpellZone && DefaultOnBecomeTarget();
                 if ((Duel.Player == 0 && Duel.Phase <= DuelPhase.Main2 || Duel.Player == 1 && activateTimingFlag)
-                    && CheckRemainInDeck(CardId.ArianeTheLabrynthServant) > 0 && Bot.HasInHandOrInSpellZone(CardId.TransactionRollback)
+                    && Bot.HasInDeck(CardId.ArianeTheLabrynthServant) && Bot.HasInHandOrInSpellZone(CardId.TransactionRollback)
                     && !chainSummoningIdList.Contains(CardId.ArianeTheLabrynthServant))
                 {
                     if (!noSelect)
@@ -2631,7 +2568,7 @@ namespace WindBot.Game.AI.Decks
                 ariannaCheck |= Duel.Player == 0;
                 if (ariannaCheck)
                 {
-                    if (CheckRemainInDeck(CardId.AriannaTheLabrynthServant) > 0 && !activatedCardIdList.Contains(CardId.AriannaTheLabrynthServant)
+                    if (Bot.HasInDeck(CardId.AriannaTheLabrynthServant) && !activatedCardIdList.Contains(CardId.AriannaTheLabrynthServant)
                         && !CheckWhetherNegated(true, true, CardType.Monster) && !chainSummoningIdList.Contains(CardId.AriannaTheLabrynthServant))
                     {
                         if (!noSelect)
@@ -2644,7 +2581,7 @@ namespace WindBot.Game.AI.Decks
                 }
                 if (Bot.HasInSpellZoneOrInGraveyard(CardId.BigWelcomeLabrynth) && !activatedCardIdList.Contains(CardId.BigWelcomeLabrynth))
                 {
-                    if (Bot.HasInHand(CardId.LovelyLabrynthOfTheSilverCastle) && CheckRemainInDeck(CardId.AriasTheLabrynthButler) > 0
+                    if (Bot.HasInHand(CardId.LovelyLabrynthOfTheSilverCastle) && Bot.HasInDeck(CardId.AriasTheLabrynthButler)
                          && !chainSummoningIdList.Contains(CardId.AriasTheLabrynthButler) && !Bot.HasInMonstersZone(CardId.AriasTheLabrynthButler, true, false, true))
                     {
                         if (!noSelect)
@@ -2664,18 +2601,18 @@ namespace WindBot.Game.AI.Decks
                     if (!noSelect)
                     {
                         if (Bot.HasInSpellZoneOrInGraveyard(CardId.BigWelcomeLabrynth) && !activatedCardIdList.Contains(CardId.BigWelcomeLabrynth)
-                            && CheckRemainInDeck(CardId.LovelyLabrynthOfTheSilverCastle) > 0 && !chainSummoningIdList.Contains(CardId.LovelyLabrynthOfTheSilverCastle))
+                            && Bot.HasInDeck(CardId.LovelyLabrynthOfTheSilverCastle) && !chainSummoningIdList.Contains(CardId.LovelyLabrynthOfTheSilverCastle))
                         {
                             chainSummoningIdList.Add(CardId.LovelyLabrynthOfTheSilverCastle);
                         }
-                        else if (!activatedCardIdList.Contains(CardId.AriannaTheLabrynthServant) && CheckRemainInDeck(CardId.AriannaTheLabrynthServant) > 0
+                        else if (!activatedCardIdList.Contains(CardId.AriannaTheLabrynthServant) && Bot.HasInDeck(CardId.AriannaTheLabrynthServant)
                             && !CheckWhetherNegated(true, true, CardType.Monster) && !chainSummoningIdList.Contains(CardId.AriannaTheLabrynthServant))
                         {
                             chainSummoningIdList.Add(CardId.AriannaTheLabrynthServant);
                         }
                         else if (Bot.HasInGraveyard(CardId.BigWelcomeLabrynth) && !activatedCardIdList.Contains(CardId.BigWelcomeLabrynth)
                             && !Bot.GetMonsters().Any(card => card.IsFaceup() && card.HasRace(CardRace.Fiend) && card.Level >= 8)
-                            && CheckRemainInDeck(CardId.LadyLabrynthOfTheSilverCastle) > 0 && !chainSummoningIdList.Contains(CardId.LadyLabrynthOfTheSilverCastle))
+                            && Bot.HasInDeck(CardId.LadyLabrynthOfTheSilverCastle) && !chainSummoningIdList.Contains(CardId.LadyLabrynthOfTheSilverCastle))
                         {
                             chainSummoningIdList.Add(CardId.LadyLabrynthOfTheSilverCastle);
                         }
@@ -2684,7 +2621,7 @@ namespace WindBot.Game.AI.Decks
                             List<int> checkIdList = new List<int>{CardId.LabrynthStovieTorbie, CardId.LabrynthChandraglier, CardId.LabrynthCooclock};
                             foreach (int checkId in checkIdList)
                             {
-                                if (!Bot.HasInHandOrInMonstersZoneOrInGraveyard(checkId) && CheckRemainInDeck(checkId) > 0
+                                if (!Bot.HasInHandOrInMonstersZoneOrInGraveyard(checkId) && Bot.HasInDeck(checkId)
                                      && !chainSummoningIdList.Contains(checkId))
                                 {
                                     selectId = checkId;
@@ -2699,7 +2636,7 @@ namespace WindBot.Game.AI.Decks
                             {
                                 foreach (int checkId in fullCheckIdList)
                                 {
-                                    if (CheckRemainInDeck(checkId) > 0 && !chainSummoningIdList.Contains(checkId))
+                                    if (Bot.HasInDeck(checkId) && !chainSummoningIdList.Contains(checkId))
                                     {
                                         selectId = checkId;
                                         break;
@@ -3316,7 +3253,7 @@ namespace WindBot.Game.AI.Decks
                 // trigger furniture/welcome
                 List<ClientCard> checkFurnitureList = new List<ClientCard>(Bot.Hand);
                 checkFurnitureList.AddRange(Bot.GetMonsters());
-                if ((CheckRemainInDeck(CardId.WelcomeLabrynth, CardId.BigWelcomeLabrynth) == 0
+                if ((!Bot.HasInDeck(CardId.WelcomeLabrynth, CardId.BigWelcomeLabrynth)
                     || !checkFurnitureList.Any(card => card.IsCode(CardId.LabrynthChandraglier, CardId.LabrynthStovieTorbie)))
                     && Duel.LastChainPlayer < 0 && Duel.Player == 0 && !Bot.HasInMonstersZone(CardId.LovelyLabrynthOfTheSilverCastle, true, false, true)
                     && !(cooclockAffected && Bot.HasInHandOrInSpellZone(CardId.BigWelcomeLabrynth)))
@@ -3529,8 +3466,8 @@ namespace WindBot.Game.AI.Decks
             if (targetList.Count() > 0)
             {
                 targetList.AddRange(Enemy.GetMonsters().Where(card => card.IsFaceup() && !targetList.Contains(card)).OrderByDescending(card => card.Attack));
-                targetList.AddRange(ShuffleList(Enemy.GetMonsters().Where(card => card.IsFacedown() && !targetList.Contains(card)).ToList()));
-                targetList.AddRange(ShuffleList(Bot.GetMonsters().Where(card => card.IsFacedown() && !targetList.Contains(card)).ToList()));
+                targetList.AddRange(Util.ShuffleList(Enemy.GetMonsters().Where(card => card.IsFacedown() && !targetList.Contains(card)).ToList()));
+                targetList.AddRange(Util.ShuffleList(Bot.GetMonsters().Where(card => card.IsFacedown() && !targetList.Contains(card)).ToList()));
                 targetList.AddRange(Bot.GetMonsters().Where(card => card.IsFaceup() && !targetList.Contains(card)).OrderBy(card => card.Attack));
                 AI.SelectCard(Card.Overlays);
                 Logger.DebugWriteLine("TYPHON first target: " + targetList[0]?.Name ?? "UNKNOWN");

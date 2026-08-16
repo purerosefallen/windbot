@@ -17,6 +17,12 @@ namespace WindBot.Game
         // record activated count to prevent infinite actions
         private Dictionary<int, int> _activatedCards;
 
+        private bool _selectingPendulumSummon;
+
+        private ClientCard _pendingAttacker;
+        private ClientCard _pendingAttackTarget;
+        private ISet<ClientCard> _attackersWithInvalidPreselectedTarget = new HashSet<ClientCard>();
+
         public GameAI(GameClient game, Duel duel)
         {
             Game = game;
@@ -118,7 +124,11 @@ namespace WindBot.Game
         /// </summary>
         public void OnNewPhase()
         {
+            _pendingAttacker = null;
+            _pendingAttackTarget = null;
+            _attackersWithInvalidPreselectedTarget.Clear();
             ClearSelections();
+            _selectingPendulumSummon = false;
             if (Duel.Player == 0 && Duel.Phase == DuelPhase.Draw)
             {
                 _dialogs.SendNewTurn();
@@ -130,6 +140,16 @@ namespace WindBot.Game
         public void OnMove(ClientCard card, int previousControler, int previousLocation, int currentControler, int currentLocation)
         {
             Executor.OnMove(card, previousControler, previousLocation, currentControler, currentLocation);
+        }
+
+        /// <summary>
+        /// Called when an attack has been declared and its battling monsters have been recorded.
+        /// </summary>
+        public void OnAttack()
+        {
+            _pendingAttacker = null;
+            _pendingAttackTarget = null;
+            _attackersWithInvalidPreselectedTarget.Clear();
         }
 
         /// <summary>
@@ -168,6 +188,12 @@ namespace WindBot.Game
         public void OnSpSummoned()
         {
             Executor.OnSpSummoned();
+        }
+
+        public void OnSpSummoning()
+        {
+            _selectingPendulumSummon = false;
+            Executor.OnSpSummoning();
         }
         
         /// <summary>
@@ -234,6 +260,9 @@ namespace WindBot.Game
         /// <returns>A new BattlePhaseAction containing the action to do.</returns>
         public BattlePhaseAction OnSelectBattleCmd(BattlePhase battle)
         {
+            _pendingAttacker = null;
+            _pendingAttackTarget = null;
+
             foreach (CardExecutor exec in Executor.Executors)
             {
                 if (exec.Type == ExecutorType.GoToMainPhase2 && battle.CanMainPhaseTwo && exec.Func()) // check if should enter main phase 2 directly
@@ -255,14 +284,19 @@ namespace WindBot.Game
                 }
             }
 
-            // Sort the attackers and defenders, make monster with higher attack go first.
-            List<ClientCard> attackers = new List<ClientCard>(battle.AttackableCards);
-            attackers.Sort(CardContainer.CompareCardAttack);
+            // Sort the attackers and defenders, make monster with higher battle power go first.
+            List<ClientCard> attackers = battle.AttackableCards
+                .Where(card => !_attackersWithInvalidPreselectedTarget.Contains(card))
+                .ToList();
+            attackers.Sort(CardContainer.CompareCardAttackPower);
             attackers.Reverse();
 
             List<ClientCard> defenders = new List<ClientCard>(Duel.Fields[1].GetMonsters());
             defenders.Sort(CardContainer.CompareDefensePower);
             defenders.Reverse();
+
+            if (attackers.Count > 0)
+            { // bad indent, just to reduce the diff
 
             // Let executor decide which card should attack first.
             ClientCard selected = Executor.OnSelectAttacker(attackers, defenders);
@@ -276,14 +310,6 @@ namespace WindBot.Game
             BattlePhaseAction result = Executor.OnBattle(attackers, defenders);
             if (result != null)
                 return result;
-
-            if (attackers.Count == 0)
-            {
-                if (battle.CanMainPhaseTwo)
-                    return ToMainPhase2();
-                if (battle.CanEndPhase)
-                    return ToEndPhase();
-            }
 
             if (defenders.Count == 0)
             {
@@ -303,12 +329,18 @@ namespace WindBot.Game
                 }
             }
 
+            } // end of if (attackers.Count > 0)
+
             if (battle.CanMainPhaseTwo)
                 return ToMainPhase2();
             if (battle.CanEndPhase)
                 return ToEndPhase();
 
-            return Attack(attackers[0], (defenders.Count == 0) ? null : defenders[0]);
+            Logger.DebugWriteLine("No monster to attack, but can't leave battle phase.", true);
+            BattlePhaseAction fallbackAction = Attack(battle.AttackableCards[0], (defenders.Count == 0) ? null : defenders[0]);
+            _pendingAttacker = null; // don't fall into the preselected attack target logic which can cancel the attack and cause an infinite loop
+            _pendingAttackTarget = null;
+            return fallbackAction;
         }
 
         /// <summary>
@@ -322,19 +354,46 @@ namespace WindBot.Game
         /// <returns>A new list containing the selected cards.</returns>
         public IList<ClientCard> OnSelectCard(IList<ClientCard> cards, int min, int max, int hint, bool cancelable)
         {
-            // Check for the executor.
-            IList<ClientCard> result = Executor.OnSelectCard(cards, min, max, hint, cancelable);
-            result = ValidateCardSelection(result, cards, min, max, cancelable);
-            if (result != null)
-                return result;
+            IList<ClientCard> result;
 
-            if (hint == HintMsg.SpSummon && min == 1 && max > min) // pendulum summon
+            // Check for the pendulum summon selection first.
+            if (hint == HintMsg.SpSummon && _selectingPendulumSummon)
             {
-                result = Executor.OnSelectPendulumSummon(cards, max);
+                result = Executor.OnSelectPendulumSummon(cards, min, max);
                 result = ValidateCardSelection(result, cards, min, max, cancelable);
                 if (result != null)
                     return result;
             }
+
+            // Attack target selection uses GameMessage.SelectCard.
+            // Some scripts also use this HintMsg so check _pendingAttacker.
+            if (hint == HintMsg.AttackTarget && _pendingAttacker != null)
+            {
+                if (_pendingAttackTarget != null && cards.Contains(_pendingAttackTarget))
+                {
+                    var target = new List<ClientCard> { _pendingAttackTarget };
+                    return target;
+                }
+                else
+                {
+                    // TODO: Avoid this by redefining the attack logic.
+                    Logger.DebugWriteLine("The preselected attack target is not in the list of legal targets.", true);
+                    if (cancelable)
+                    {
+                        _attackersWithInvalidPreselectedTarget.Add(_pendingAttacker);
+                        _pendingAttacker = null;
+                        _pendingAttackTarget = null;
+                        return new List<ClientCard>();
+                    }
+                    // else: use default selection below, which will attack the monster we don't want.
+                }
+            }
+
+            // Check for the executor.
+            result = Executor.OnSelectCard(cards, min, max, hint, cancelable);
+            result = ValidateCardSelection(result, cards, min, max, cancelable);
+            if (result != null)
+                return result;
 
             CardSelector selector = null;
             if (hint == HintMsg.FusionMaterial || hint == HintMsg.SynchroMaterial || hint == HintMsg.XyzMaterial || hint == HintMsg.LinkMaterial)
@@ -383,14 +442,15 @@ namespace WindBot.Game
 
             // Always select the first available cards and choose the minimum.
             IList<ClientCard> selected = new List<ClientCard>();
-
-            if (hint == HintMsg.AttackTarget && cancelable) return selected;
-
             if (cards.Count >= min)
             {
                 for (int i = 0; i < min; ++i)
                     selected.Add(cards[i]);
             }
+
+            if (hint == HintMsg.AttackTarget && cancelable)
+                Logger.DebugWriteLine("Attack target selection not covered by _pendingAttacker.", true);
+
             return selected;
         }
 
@@ -517,6 +577,7 @@ namespace WindBot.Game
         /// <returns>A new MainPhaseAction containing the action to do.</returns>
         public MainPhaseAction OnSelectIdleCmd(MainPhase main)
         {
+            _selectingPendulumSummon = false;
             CheckSurrender();
             foreach (CardExecutor exec in Executor.Executors)
             {
@@ -558,7 +619,12 @@ namespace WindBot.Game
                 {
                     if (ShouldExecute(exec, card, ExecutorType.SpSummon))
                     {
-                        _dialogs.SendSummon(card.Name);
+                        ClientCard leftScale = Executor.Util.GetPZone(0, 0);
+                        ClientCard rightScale = Executor.Util.GetPZone(0, 1);
+                        _selectingPendulumSummon = card.HasType(CardType.Pendulum)
+                            && (card == leftScale || card == rightScale);
+                        if (!_selectingPendulumSummon)
+                            _dialogs.SendSummon(card.Name);
                         return new MainPhaseAction(MainPhaseAction.MainAction.SpSummon, card.ActionIndex);
                     }
                 }
@@ -587,7 +653,7 @@ namespace WindBot.Game
                 }
             }
 
-            if (main.CanBattlePhase && Duel.Fields[0].HasAttackingMonster())
+            if (main.CanBattlePhase && (Duel.Fields[0].HasAttackingMonster() || !main.CanEndPhase))
                 return new MainPhaseAction(MainPhaseAction.MainAction.ToBattlePhase);
 
             _dialogs.SendEndTurn();
@@ -614,21 +680,161 @@ namespace WindBot.Game
             return 0; // Always select the first option.
         }
 
-        public int OnSelectPlace(int cardId, int player, CardLocation location, int available)
+        public uint OnSelectPlace(int cardId, int count, uint available)
         {
+            if (count > 1)
+            {
+                m_place = 0;
+                return OnSelectDisfield(cardId, count, available);
+            }
+
+            int player;
+            CardLocation location;
+            int filter;
+            if ((available & 0x7fu) != 0)
+            {
+                player = 0;
+                location = CardLocation.MonsterZone;
+                filter = (int)(available & (uint)Zones.MonsterZones);
+            }
+            else if ((available & 0x1f00u) != 0)
+            {
+                player = 0;
+                location = CardLocation.SpellZone;
+                filter = (int)((available >> 8) & (uint)Zones.SpellZones);
+            }
+            else if ((available & 0x2000u) != 0)
+            {
+                player = 0;
+                location = CardLocation.FieldZone;
+                filter = Zones.FieldZone;
+            }
+            else if ((available & 0xc000u) != 0)
+            {
+                player = 0;
+                location = CardLocation.PendulumZone;
+                filter = (int)((available >> 14) & (uint)Zones.PendulumZones);
+            }
+            else if ((available & 0x7f0000u) != 0)
+            {
+                player = 1;
+                location = CardLocation.MonsterZone;
+                filter = (int)((available >> 16) & (uint)Zones.MonsterZones);
+            }
+            else if ((available & 0x1f000000u) != 0)
+            {
+                player = 1;
+                location = CardLocation.SpellZone;
+                filter = (int)((available >> 24) & (uint)Zones.SpellZones);
+            }
+            else if ((available & 0x20000000u) != 0)
+            {
+                player = 1;
+                location = CardLocation.FieldZone;
+                filter = Zones.FieldZone;
+            }
+            else
+            {
+                player = 1;
+                location = CardLocation.PendulumZone;
+                filter = (int)((available >> 30) & (uint)Zones.PendulumZones);
+            }
+
             int selector_selected = m_place;
             m_place = 0;
 
-            int executor_selected = Executor.OnSelectPlace(cardId, player, location, available);
+            int executor_selected = Executor.OnSelectPlace(cardId, player, location, filter);
 
-            if ((executor_selected & available) > 0)
-                return executor_selected & available;
-            if ((selector_selected & available) > 0)
-                return selector_selected & available;
+            if ((executor_selected & filter) > 0)
+                filter &= executor_selected;
+            else if ((selector_selected & filter) > 0)
+                filter &= selector_selected;
 
-            // TODO: LinkedZones
+            // TODO: Some helpers for prefering linked zones or non-linked zones
 
-            return 0;
+            int sequence = 0;
+            if (location != CardLocation.PendulumZone && location != CardLocation.FieldZone)
+            {
+                if ((filter & Zones.z2) != 0) sequence = 2;
+                else if ((filter & Zones.z1) != 0) sequence = 1;
+                else if ((filter & Zones.z3) != 0) sequence = 3;
+                else if ((filter & Zones.z0) != 0) sequence = 0;
+                else if ((filter & Zones.z4) != 0) sequence = 4;
+                else if ((filter & Zones.z6) != 0) sequence = 6;
+                else if ((filter & Zones.z5) != 0) sequence = 5;
+            }
+            else
+            {
+                location = CardLocation.SpellZone;
+                if ((filter & Zones.FieldZone) != 0) sequence = 5;
+                if ((filter & Zones.z0) != 0) sequence = 6;
+                if ((filter & Zones.z1) != 0) sequence = 7;
+            }
+            return 1u << (player * 16 + (location == CardLocation.MonsterZone ? 0 : 8) + sequence);
+        }
+
+        public uint OnSelectDisfield(int hint, int count, uint available)
+        {
+            int required = System.Math.Max(1, count);
+            uint executorSelected = Executor.OnSelectDisfield(hint, count, available) & available;
+            int executorSelectedCount = 0;
+            for (uint pending = executorSelected; pending != 0; pending &= pending - 1u)
+                ++executorSelectedCount;
+            bool selectsMirroredExtraMonsterZones =
+                (executorSelected & ((1u << 5) | (1u << 22))) == ((1u << 5) | (1u << 22))
+                || (executorSelected & ((1u << 6) | (1u << 21))) == ((1u << 6) | (1u << 21));
+            if (executorSelectedCount == required && !selectsMirroredExtraMonsterZones)
+                return executorSelected;
+
+            // Select zones in central order, opponent's zones first.
+            IList<uint> zones = new List<uint>();
+            int[] monsterZoneOrder = { 2, 1, 3, 0, 4, 6, 5 };
+            int[] spellZoneOrder = { 2, 1, 3, 0, 4 };
+            foreach (int player in new[] { 1, 0 })
+            {
+                int offset = player * 16;
+                foreach (int sequence in monsterZoneOrder)
+                {
+                    uint zone = 1u << (offset + sequence);
+                    if ((available & zone) != 0)
+                        zones.Add(zone);
+                }
+                foreach (int sequence in spellZoneOrder)
+                {
+                    uint zone = 1u << (offset + 8 + sequence);
+                    if ((available & zone) != 0)
+                        zones.Add(zone);
+                }
+            }
+            foreach (int player in new[] { 0, 1 })
+            {
+                int offset = player * 16 + 8;
+                foreach (int sequence in new[] { 5, 7, 6 })
+                {
+                    uint zone = 1u << (offset + sequence);
+                    if ((available & zone) != 0)
+                        zones.Add(zone);
+                }
+            }
+
+            uint selected = 0;
+            int remaining = required;
+            foreach (uint zone in zones)
+            {
+                if (remaining == 0)
+                    break;
+
+                // Each extra monster zone has two protocol coordinates, but selecting both is invalid.
+                if ((zone == (1u << 5) && (selected & (1u << 22)) != 0)
+                    || (zone == (1u << 22) && (selected & (1u << 5)) != 0)
+                    || (zone == (1u << 6) && (selected & (1u << 21)) != 0)
+                    || (zone == (1u << 21) && (selected & (1u << 6)) != 0))
+                    continue;
+
+                selected |= zone;
+                --remaining;
+            }
+            return selected;
         }
 
         /// <summary>
@@ -944,6 +1150,15 @@ namespace WindBot.Game
         public bool OnSelectBattleReplay()
         {
             return Executor.OnSelectBattleReplay();
+        }
+
+        /// <summary>
+        /// Called when the AI has to decide whether the pending attack should be a direct attack.
+        /// </summary>
+        public bool OnSelectBattleDirectAttack()
+        {
+            bool preselectedAnswer = _pendingAttackTarget == null;
+            return Executor.OnSelectBattleDirectAttack(_pendingAttacker, preselectedAnswer);
         }
 
         /// <summary>
@@ -1322,19 +1537,17 @@ namespace WindBot.Game
 
         public BattlePhaseAction Attack(ClientCard attacker, ClientCard defender)
         {
-            Executor.SetCard(0, attacker, -1);
             if (defender != null)
             {
                 string cardName = defender.Name ?? "monster";
-                attacker.ShouldDirectAttack = false;
                 _dialogs.SendAttack(attacker.Name, cardName);
-                SelectCard(defender);
             }
             else
             {
-                attacker.ShouldDirectAttack = true;
                 _dialogs.SendDirectAttack(attacker.Name);
             }
+            _pendingAttacker = attacker;
+            _pendingAttackTarget = defender;
             return new BattlePhaseAction(BattlePhaseAction.BattleAction.Attack, attacker.ActionIndex);
         }
 
@@ -1359,7 +1572,7 @@ namespace WindBot.Game
                     return false;
             }
             bool result = card != null && exec.Type == type &&
-                (exec.CardId == -1 || exec.CardId == card.Id) &&
+                (exec.CardId == -1 || card.IsOriginalCode(exec.CardId)) &&
                 (exec.Func == null || exec.Func());
             if (card.Id != 0 && type == ExecutorType.Activate && result)
             {

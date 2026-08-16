@@ -70,58 +70,6 @@ namespace WindBot.Game.AI.Decks
 
         }
 
-        Dictionary<int, List<int>> DeckCountTable = new Dictionary<int, List<int>>
-        {
-            { 3, new List<int>
-                {
-                    CardId.BlueEyesWhiteDragon,
-                    CardId.DeepEyes,
-                    CardId.MulcharmyFuwalos,
-                    CardId.MaidenOfWhite,
-                    CardId.SageWithEyesOfBlue,
-                    CardId.Wishes,
-                    CardId.Gogo,
-                    CardId.BlueEyesSpiritDragon
-                }
-            },
-
-            { 2, new List<int>
-                {
-                    _CardId.AshBlossom,
-                    CardId.EffectVeiler,
-                    _CardId.InfiniteImpermanence,
-                    CardId.BlueEyesUltimateSpiritDragon,
-                    CardId.SpiritWithEyesOfBlue
-                }
-            },
-
-            { 1, new List<int>
-                {
-                    CardId.BlueEyesJetDragon,
-                    _CardId.MaxxC,
-                    CardId.KaibamanTheLegend,
-                    _CardId.LockBird,
-                    CardId.BlueEyesChaosMAXDragon,
-                    CardId.MausoleumOfWhite,
-                    CardId.RoarOfTheBlueEyedDragons,
-                    CardId.UltimateFusion,
-                    CardId.SynchroRumble,
-                    _CardId.CalledByTheGrave,
-                    _CardId.CrossoutDesignator,
-                    CardId.MajestyOfTheWhiteDragons,
-                    CardId.TrueLight,
-                    CardId.CosmicBlazar,
-                    CardId.BlueEyesUltimateDragon,
-                    CardId.DragonMasterMagia,
-                    CardId.NeoBlueEyesUltimateDragon,
-                    CardId.StardustSifrDivineDragon,
-                    CardId.CrimsonDragon,
-                    CardId.ChaosAngel,
-                    CardId.BaronneDeFleur,
-                    CardId.LightstromDragon
-                }
-            },
-        };
 
         private static readonly int[] PreferDiscard =
         {
@@ -300,17 +248,6 @@ namespace WindBot.Game.AI.Decks
             }
             base.OnSpSummoned();
         }
-        public int CheckRemainInDeck(int id)
-        {
-            for (int count = 1; count < 4; ++count)
-            {
-                if (DeckCountTable[count].Contains(id))
-                {
-                    return Bot.GetRemainingCount(id, count);
-                }
-            }
-            return 0;
-        }
         public bool CheckAtAdvantage()
         {
             if (GetProblematicEnemyMonster() == null && Bot.GetMonsters().Any(card => card.IsFaceup()))
@@ -351,7 +288,7 @@ namespace WindBot.Game.AI.Decks
                 if (alias != 0 && alias - code < 10) code = alias;
                 if (code == 0) return false;
                 if (DefaultCheckWhetherCardIdIsNegated(code)) return false;
-                if (CheckRemainInDeck(code) > 0)
+                if (Bot.HasInDeck(code))
                 {
                     if (!(Card.Location == CardLocation.SpellZone))
                     {
@@ -584,18 +521,14 @@ namespace WindBot.Game.AI.Decks
             if (DefaultCheckWhetherCardIsNegated(Card)) return true;
             if (isMonster && (toFieldCheck || Card.Location == CardLocation.MonsterZone))
             {
-                if ((toFieldCheck && (((int)type & (int)CardType.Link) != 0)) || Card.IsDefense())
+                if ((toFieldCheck && (((int)type & (int)CardType.Link) == 0)) || Card.IsDefense())
                 {
-                    if (Enemy.MonsterZone.Any(card => CheckNumber41(card)) || Bot.MonsterZone.Any(card => CheckNumber41(card))) return true;
+                    if (DefaultCheckWhetherNumber41IsActive()) return true;
                 }
                 if (Enemy.HasInSpellZone(CardId.SkillDrain, true)) return true;
             }
             if (disablecheck) return (Card.Location == CardLocation.MonsterZone || Card.Location == CardLocation.SpellZone) && Card.IsDisabled() && Card.IsFaceup();
             return false;
-        }
-        public bool CheckNumber41(ClientCard card)
-        {
-            return card != null && card.IsFaceup() && card.IsCode(CardId.Number41BagooskatheTerriblyTiredTapir) && card.IsDefense() && !card.IsDisabled();
         }
         public void SelectSTPlace(ClientCard card = null, bool avoidImpermanence = false, List<int> avoidList = null)
         {
@@ -611,15 +544,7 @@ namespace WindBot.Game.AI.Decks
                     list.Add(seq);
                 }
             }
-            int n = list.Count;
-            while (n-- > 1)
-            {
-                int index = Program.Rand.Next(list.Count);
-                int nextIndex = (index + Program.Rand.Next(list.Count - 1)) % list.Count;
-                int tempInt = list[index];
-                list[index] = list[nextIndex];
-                list[nextIndex] = tempInt;
-            }
+            Util.ShuffleListInPlace(list);
             if (avoidImpermanence && Bot.GetMonsters().Any(c => c.IsFaceup() && !c.IsDisabled()))
             {
                 foreach (int seq in list)
@@ -729,20 +654,6 @@ namespace WindBot.Game.AI.Decks
         {
             return !currentDestroyCardList.Contains(cards) && !currentNegateCardList.Contains(cards);
         }
-        public List<T> ShuffleList<T>(List<T> list)
-        {
-            List<T> result = list;
-            int n = result.Count;
-            while (n-- > 1)
-            {
-                int index = Program.Rand.Next(result.Count);
-                int nextIndex = (index + Program.Rand.Next(result.Count - 1)) % result.Count;
-                T tempCard = result[index];
-                result[index] = result[nextIndex];
-                result[nextIndex] = tempCard;
-            }
-            return result;
-        }
         public List<ClientCard> GetProblematicEnemyCardList(bool canBeTarget = false, bool ignoreSpells = false, CardType selfType = 0)
         {
             List<ClientCard> resultList = new List<ClientCard>();
@@ -753,7 +664,7 @@ namespace WindBot.Game.AI.Decks
 
             List<ClientCard> problemEnemySpellList = Enemy.SpellZone.Where(c => c?.Data != null && !resultList.Contains(c) && !currentDestroyCardList.Contains(c)
                 && c.IsFloodgate() && c.IsFaceup() && CheckCanBeTargeted(c, canBeTarget, selfType)).ToList();
-            if (problemEnemySpellList.Count > 0) resultList.AddRange(ShuffleList(problemEnemySpellList));
+            if (problemEnemySpellList.Count > 0) resultList.AddRange(Util.ShuffleList(problemEnemySpellList));
 
             List<ClientCard> dangerList = Enemy.MonsterZone.Where(c => c?.Data != null && !resultList.Contains(c) && !currentDestroyCardList.Contains(c)
                 && c.IsMonsterDangerous() && c.IsFaceup() && CheckCanBeTargeted(c, canBeTarget, selfType)).OrderByDescending(card => card.Attack).ToList();
@@ -780,7 +691,7 @@ namespace WindBot.Game.AI.Decks
             List<ClientCard> spells = Enemy.GetSpells().Where(c => c.IsFaceup() && !currentDestroyCardList.Contains(c)
                 && c.HasType(CardType.Equip | CardType.Pendulum | CardType.Field | CardType.Continuous) && CheckCanBeTargeted(c, canBeTarget, selfType)
                 && !notToDestroySpellTrap.Contains(c.Id)).ToList();
-            if (spells.Count > 0 && !ignoreSpells) resultList.AddRange(ShuffleList(spells));
+            if (spells.Count > 0 && !ignoreSpells) resultList.AddRange(Util.ShuffleList(spells));
 
             return resultList;
         }
@@ -792,9 +703,9 @@ namespace WindBot.Game.AI.Decks
             enemyMonster.Sort(CardContainer.CompareCardAttack);
             enemyMonster.Reverse();
             targetList.AddRange(enemyMonster);
-            targetList.AddRange(ShuffleList(Enemy.GetSpells().Where(card => (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(card)) && enemyPlaceThisTurn.Contains(card)).ToList()));
-            targetList.AddRange(ShuffleList(Enemy.GetSpells().Where(card => (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(card)) && !enemyPlaceThisTurn.Contains(card)).ToList()));
-            targetList.AddRange(ShuffleList(Enemy.GetMonsters().Where(card => card.IsFacedown() && (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(card))).ToList()));
+            targetList.AddRange(Util.ShuffleList(Enemy.GetSpells().Where(card => (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(card)) && enemyPlaceThisTurn.Contains(card)).ToList()));
+            targetList.AddRange(Util.ShuffleList(Enemy.GetSpells().Where(card => (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(card)) && !enemyPlaceThisTurn.Contains(card)).ToList()));
+            targetList.AddRange(Util.ShuffleList(Enemy.GetMonsters().Where(card => card.IsFacedown() && (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(card))).ToList()));
 
             return targetList;
         }
@@ -833,7 +744,7 @@ namespace WindBot.Game.AI.Decks
             card = Enemy.MonsterZone.GetHighestAttackMonster(canBeTarget);
             if (card != null) return card;
             List<ClientCard> monsters = Enemy.GetMonsters();
-            if (monsters.Count > 0 && !onlyFaceup) return ShuffleCardList(monsters)[0];
+            if (monsters.Count > 0 && !onlyFaceup) return Util.ShuffleList(monsters)[0];
             return null;
         }
         public ClientCard GetBestEnemySpell(bool onlyFaceup = false, bool canBeTarget = false)
@@ -842,7 +753,7 @@ namespace WindBot.Game.AI.Decks
                 && c.IsFloodgate() && c.IsFaceup() && (!canBeTarget || !c.IsShouldNotBeTarget())).ToList();
             if (problemEnemySpellList.Count > 0)
             {
-                return ShuffleCardList(problemEnemySpellList)[0];
+                return Util.ShuffleList(problemEnemySpellList)[0];
             }
 
             List<ClientCard> spells = Enemy.GetSpells().Where(card => !(card.IsFaceup() && card.IsCode(_CardId.EvenlyMatched))).ToList();
@@ -850,28 +761,15 @@ namespace WindBot.Game.AI.Decks
             List<ClientCard> faceUpList = spells.Where(ecard => ecard.IsFaceup() && (ecard.HasType(CardType.Continuous) || ecard.HasType(CardType.Field) || ecard.HasType(CardType.Pendulum))).ToList();
             if (faceUpList.Count > 0)
             {
-                return ShuffleCardList(faceUpList)[0];
+                return Util.ShuffleList(faceUpList)[0];
             }
 
             if (spells.Count > 0 && !onlyFaceup)
             {
-                return ShuffleCardList(spells)[0];
+                return Util.ShuffleList(spells)[0];
             }
 
             return null;
-        }
-        public List<ClientCard> ShuffleCardList(List<ClientCard> list)
-        {
-            List<ClientCard> result = list;
-            int n = result.Count;
-            while (n-- > 1)
-            {
-                int index = Program.Rand.Next(n + 1);
-                ClientCard temp = result[index];
-                result[index] = result[n];
-                result[n] = temp;
-            }
-            return result;
         }
         public ClientCard GetBestEnemyCard(bool onlyFaceup = false, bool canBeTarget = false, bool checkGrave = false)
         {
@@ -890,7 +788,7 @@ namespace WindBot.Game.AI.Decks
                     graveMonsterList.Reverse();
                     return graveMonsterList[0];
                 }
-                return ShuffleCardList(Enemy.Graveyard.ToList())[0];
+                return Util.ShuffleList(Enemy.Graveyard.ToList())[0];
             }
             return null;
         }
@@ -951,25 +849,25 @@ namespace WindBot.Game.AI.Decks
             if (Card.Location != CardLocation.Hand) return false;
             if (useDeepEyes) return false;
 
-            if (!Bot.HasInHand(CardId.MaidenOfWhite) && !useMaidenSearch && CheckRemainInDeck(CardId.MaidenOfWhite) > 0)
+            if (!Bot.HasInHand(CardId.MaidenOfWhite) && !useMaidenSearch && Bot.HasInDeck(CardId.MaidenOfWhite))
             {
                 AI.SelectCard(CardId.MaidenOfWhite);
                 useDeepEyes = true;
                 return true;
             }
-            else if (!Bot.HasInHand(CardId.SageWithEyesOfBlue) && !nsSage && CheckRemainInDeck(CardId.SageWithEyesOfBlue) > 0)
+            else if (!Bot.HasInHand(CardId.SageWithEyesOfBlue) && !nsSage && Bot.HasInDeck(CardId.SageWithEyesOfBlue))
             {
                 AI.SelectCard(CardId.SageWithEyesOfBlue);
                 useDeepEyes = true;
                 return true;
             }
-            else if (!Bot.HasInHand(CardId.KaibamanTheLegend) && normalSummon < 2 && nsSage && CheckRemainInDeck(CardId.KaibamanTheLegend) > 0)
+            else if (!Bot.HasInHand(CardId.KaibamanTheLegend) && normalSummon < 2 && nsSage && Bot.HasInDeck(CardId.KaibamanTheLegend))
             {
                 AI.SelectCard(CardId.KaibamanTheLegend);
                 useDeepEyes = true;
                 return true;
             }
-            else if (CheckRemainInDeck(CardId.EffectVeiler) > 0)
+            else if (Bot.HasInDeck(CardId.EffectVeiler))
             {
                 AI.SelectCard(CardId.EffectVeiler);
                 useDeepEyes = true;
@@ -1017,7 +915,7 @@ namespace WindBot.Game.AI.Decks
                 nsSage = true;
                 return true;
             }
-            else if (Duel.Turn > 2 && Duel.Player == 0 && (CheckRemainInDeck(CardId.KaibamanTheLegend) > 0 || CheckRemainInDeck(CardId.EffectVeiler) > 0))
+            else if (Duel.Turn > 2 && Duel.Player == 0 && (Bot.HasInDeck(CardId.KaibamanTheLegend) || Bot.HasInDeck(CardId.EffectVeiler)))
             {
                 normalSummon += 1;
                 nsSage = true;
@@ -1042,24 +940,24 @@ namespace WindBot.Game.AI.Decks
             if (Card.Location == CardLocation.MonsterZone) { return true; }
             else if (Card.Location == CardLocation.Grave)
             {
-                if (!Bot.HasInSpellZone(CardId.TrueLight) && !Bot.HasInGraveyard(CardId.MaidenOfWhite) && useDeepEyes == false && CheckRemainInDeck(CardId.DeepEyes) > 0)
+                if (!Bot.HasInSpellZone(CardId.TrueLight) && !Bot.HasInGraveyard(CardId.MaidenOfWhite) && useDeepEyes == false && Bot.HasInDeck(CardId.DeepEyes))
                 {
                     AI.SelectCard(CardId.DeepEyes);
                     return true;
                 }
                 else if (!Bot.HasInHand(CardId.BlueEyesChaosMAXDragon) && !Bot.HasInGraveyard(CardId.BlueEyesChaosMAXDragon) &&
-                         CheckRemainInDeck(CardId.BlueEyesChaosMAXDragon) > 0 && !Bot.HasInMonstersZone(CardId.DragonMasterMagia) &&
+                         Bot.HasInDeck(CardId.BlueEyesChaosMAXDragon) && !Bot.HasInMonstersZone(CardId.DragonMasterMagia) &&
                          Bot.HasInGraveyard(CardId.BlueEyesUltimateDragon))
                 {
                     AI.SelectCard(CardId.BlueEyesChaosMAXDragon);
                     return true;
                 }
-                if (useDeepEyes == false && CheckRemainInDeck(CardId.DeepEyes) > 0)
+                if (useDeepEyes == false && Bot.HasInDeck(CardId.DeepEyes))
                 {
                     AI.SelectCard(CardId.DeepEyes);
                     return true;
                 }
-                else if (!Bot.HasInHand(CardId.BlueEyesJetDragon) && !Bot.HasInGraveyard(CardId.BlueEyesJetDragon) && CheckRemainInDeck(CardId.BlueEyesJetDragon) > 0)
+                else if (!Bot.HasInHand(CardId.BlueEyesJetDragon) && !Bot.HasInGraveyard(CardId.BlueEyesJetDragon) && Bot.HasInDeck(CardId.BlueEyesJetDragon))
                 {
                     AI.SelectCard(CardId.BlueEyesJetDragon);
                     return true;
@@ -1077,17 +975,17 @@ namespace WindBot.Game.AI.Decks
         private bool SageWithEyesOfBlueEffect()
         {
             if (Card.Location == CardLocation.Hand) return false;
-            if (!useMaidenSearch && CheckRemainInDeck(CardId.MaidenOfWhite) > 0)
+            if (!useMaidenSearch && Bot.HasInDeck(CardId.MaidenOfWhite))
             {
                 Logger.DebugWriteLine("Sage > Maiden");
                 AI.SelectCard(CardId.MaidenOfWhite);
             }
-            else if (normalSummon < 2 && CheckRemainInDeck(CardId.KaibamanTheLegend) > 0)
+            else if (normalSummon < 2 && Bot.HasInDeck(CardId.KaibamanTheLegend))
             {
                 Logger.DebugWriteLine("Sage > Kaiba");
                 AI.SelectCard(CardId.KaibamanTheLegend);
             }
-            else if (CheckRemainInDeck(CardId.EffectVeiler) > 0)
+            else if (Bot.HasInDeck(CardId.EffectVeiler))
             {
                 Logger.DebugWriteLine("Sage > Veiler");
                 AI.SelectCard(CardId.EffectVeiler);
@@ -1276,7 +1174,7 @@ namespace WindBot.Game.AI.Decks
             bool maidenInGY = Bot.Graveyard.Any(c => c.Id == CardId.MaidenOfWhite);
             bool bewdInHandOrGY = Bot.HasInHand(new[] { CardId.BlueEyesWhiteDragon }) || Bot.Graveyard.Any(c => c.Id == CardId.BlueEyesWhiteDragon);
 
-            if (!Bot.HasInHand(CardId.Wishes) && !useWishes && Duel.Player == 0 && CheckRemainInDeck(CardId.Wishes) > 0)
+            if (!Bot.HasInHand(CardId.Wishes) && !useWishes && Duel.Player == 0 && Bot.HasInDeck(CardId.Wishes))
             {
                 Logger.DebugWriteLine("TrueLight Search Wishes");
                 AI.SelectOption(1);
@@ -1284,7 +1182,7 @@ namespace WindBot.Game.AI.Decks
                 AI.SelectCard(CardId.Wishes);
                 return true;
             }
-            if (useWishes && needBE && Duel.Player == 0 && CheckRemainInDeck(CardId.RoarOfTheBlueEyedDragons) > 0)
+            if (useWishes && needBE && Duel.Player == 0 && Bot.HasInDeck(CardId.RoarOfTheBlueEyedDragons))
             {
                 Logger.DebugWriteLine("TrueLight Search Roar");
                 AI.SelectOption(1);
@@ -1299,7 +1197,7 @@ namespace WindBot.Game.AI.Decks
                 AI.SelectOption(0);
                 return true;
             }
-            else if (Bot.HasInGraveyard(CardId.BlueEyesWhiteDragon) && CheckRemainInDeck(CardId.MajestyOfTheWhiteDragons) > 0 &&
+            else if (Bot.HasInGraveyard(CardId.BlueEyesWhiteDragon) && Bot.HasInDeck(CardId.MajestyOfTheWhiteDragons) &&
                      Bot.GetMonsterCount() >= 2 && Bot.HasInGraveyard(CardId.SpiritWithEyesOfBlue))
             {
                 Logger.DebugWriteLine("TrueLight Search Majesty");
@@ -1336,16 +1234,16 @@ namespace WindBot.Game.AI.Decks
                 }
                 //if not then use system default
                 int st = 0;
-                if ((CheckRemainInDeck(CardId.UltimateFusion) > 0) && Bot.HasInSpellZone(CardId.TrueLight)) st = CardId.UltimateFusion;
-                else if (CheckRemainInDeck(CardId.RoarOfTheBlueEyedDragons) > 0) st = CardId.RoarOfTheBlueEyedDragons;
-                else if (CheckRemainInDeck(CardId.MajestyOfTheWhiteDragons) > 0) st = CardId.MajestyOfTheWhiteDragons;
+                if (Bot.HasInDeck(CardId.UltimateFusion) && Bot.HasInSpellZone(CardId.TrueLight)) st = CardId.UltimateFusion;
+                else if (Bot.HasInDeck(CardId.RoarOfTheBlueEyedDragons)) st = CardId.RoarOfTheBlueEyedDragons;
+                else if (Bot.HasInDeck(CardId.MajestyOfTheWhiteDragons)) st = CardId.MajestyOfTheWhiteDragons;
                 if (st == 0) return false;
                 AI.SelectNextCard(st); //2 Select S/T
                 int tuner = 0;
-                if (CheckRemainInDeck(CardId.SageWithEyesOfBlue) > 0 && !nsSage && !Bot.HasInHand(CardId.SageWithEyesOfBlue)) tuner = CardId.SageWithEyesOfBlue;
-                else if (CheckRemainInDeck(CardId.MaidenOfWhite) > 0 && !useMaidenSearch && !Bot.HasInHand(CardId.MaidenOfWhite)) tuner = CardId.MaidenOfWhite;
-                else if (CheckRemainInDeck(CardId.KaibamanTheLegend) > 0 && normalSummon < 2) tuner = CardId.KaibamanTheLegend;
-                else if (CheckRemainInDeck(CardId.EffectVeiler) > 0) tuner = CardId.EffectVeiler;
+                if (Bot.HasInDeck(CardId.SageWithEyesOfBlue) && !nsSage && !Bot.HasInHand(CardId.SageWithEyesOfBlue)) tuner = CardId.SageWithEyesOfBlue;
+                else if (Bot.HasInDeck(CardId.MaidenOfWhite) && !useMaidenSearch && !Bot.HasInHand(CardId.MaidenOfWhite)) tuner = CardId.MaidenOfWhite;
+                else if (Bot.HasInDeck(CardId.KaibamanTheLegend) && normalSummon < 2) tuner = CardId.KaibamanTheLegend;
+                else if (Bot.HasInDeck(CardId.EffectVeiler)) tuner = CardId.EffectVeiler;
                 if (tuner == 0) return false;
                 AI.SelectNextCard(tuner);//3 Select Tuner
                 SelectSTPlace(null, true);
@@ -1392,7 +1290,7 @@ namespace WindBot.Game.AI.Decks
             if (ActivateDescription == -1)
             {
                 Logger.DebugWriteLine("Link1 on Summon");
-                if (CheckRemainInDeck(CardId.MausoleumOfWhite) <= 0)
+                if (!Bot.HasInDeck(CardId.MausoleumOfWhite))
                     return false;
                 AI.SelectOption(0);
                 return true;
@@ -1440,7 +1338,7 @@ namespace WindBot.Game.AI.Decks
             if (Bot.GetMonsterCount() >= 5) return false;
             if (Card.Location == CardLocation.Grave) return false;
             if (Bot.HasInGraveyard(CardId.MaidenOfWhite) && SSMaiden == false &&
-                CheckRemainInDeck(CardId.BlueEyesWhiteDragon) > 0 && !Bot.HasInMonstersZone(CardId.SpiritWithEyesOfBlue))
+                Bot.HasInDeck(CardId.BlueEyesWhiteDragon) && !Bot.HasInMonstersZone(CardId.SpiritWithEyesOfBlue))
             {
                 AI.SelectCard(CardId.BlueEyesWhiteDragon);
                 SelectSTPlace(null, true);
@@ -1481,7 +1379,7 @@ namespace WindBot.Game.AI.Decks
         }
         private void AddGogoPick(List<int> picks, int cardId, int want = 1)
         {
-            int remain = CheckRemainInDeck(cardId);
+            int remain = Bot.GetCardCountInDeck(cardId);
             int already = picks.Count(x => x == cardId);
             int canAdd = Math.Max(0, Math.Min(want, remain - already));
 
