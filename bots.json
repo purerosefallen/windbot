@@ -68,22 +68,12 @@
       },
       {
         "name": "复制植物",
-        "deck": "Lightsworn",
-        "dialog": "copy.zh-CN"
-      },
-      {
-        "name": "复制植物",
-        "deck": "Lightsworn",
-        "dialog": "copy.zh-CN"
-      },
-      {
-        "name": "复制植物",
         "deck": "Rank8",
         "dialog": "copy.zh-CN"
       },
       {
         "name": "复制植物",
-        "deck": "Rank8",
+        "deck": "Lightsworn",
         "dialog": "copy.zh-CN"
       },
       {
@@ -313,6 +303,16 @@
         "name": "今晚有宵夜吗",
         "deck": "Neko",
         "dialog": "Xiaoye.zh-CN"
+      },
+      {
+        "name": "偷摸灵兽幽灵",
+        "deck": "RadiantTyphoon",
+        "dialog": "soyorin.zh-CN"
+      },
+      {
+        "name": "偷摸灵兽幽灵",
+        "deck": "RadiantTyphoon",
+        "dialog": "soyorin.zh-CN"
       }
     ]
 }
