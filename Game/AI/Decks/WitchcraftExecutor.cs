@@ -1187,8 +1187,6 @@ namespace WindBot.Game.AI.Decks
                 return false;
             }
 
-            SelectDiscardSpell();
-
             // check whether should call MadameVerre for destroying monster
             bool lesssummon = false;
             int extra_attack = CheckPlusAttackforMadameVerre(true, false, true);
@@ -1201,9 +1199,13 @@ namespace WindBot.Game.AI.Decks
             {
                 lesssummon = true;
             }
-            
+
+            bool shouldStopAllSpecialSummons = CheckShouldNoMoreSpSummon();
+            bool shouldStopDeckSpecialSummons = CheckShouldNoMoreSpSummon(CardLocation.Deck);
+            int summonId = 0;
+
             // SS lower 4
-            if (!CheckShouldNoMoreSpSummon(CardLocation.Deck) && !lesssummon && discardable_hands >= 2 && Duel.Player == 0)
+            if (!shouldStopDeckSpecialSummons && !lesssummon && discardable_hands >= 2 && Duel.Player == 0)
             {
                 int[] SS_priority = { CardId.Schmietta, CardId.Pittore, CardId.Genni, CardId.Potterie };
                 foreach (int cardid in SS_priority)
@@ -1211,20 +1213,31 @@ namespace WindBot.Game.AI.Decks
                     if (!UseSSEffect.Contains(cardid) && Card.Id != cardid && Bot.HasInDeck(cardid)
                         && Bot.MonsterZone.GetFirstMatchingCard(card => card.Id == cardid && card.IsFaceup()) == null)
                     {
-                        UseSSEffect.Add(Card.Id);
-                        AI.SelectNextCard(cardid);
-                        return true;
+                        summonId = cardid;
+                        break;
                     }
                 }
             }
 
-            // Fuwalos feeds deck SS; skip high-level as well. Maxx C still SS one boss.
-            if (!CheckShouldNoMoreSpSummon() && CheckShouldNoMoreSpSummon(CardLocation.Deck)) return false;
+            if (summonId == 0)
+            {
+                // Fuwalos feeds deck SS; skip high-level as well. Maxx C still SS one boss.
+                if (!shouldStopAllSpecialSummons && shouldStopDeckSpecialSummons) return false;
 
-            // check whether continue to ss
-            bool should_attack = Util.GetOneEnemyBetterThanValue(Card.Attack) == null;
-            if ((should_attack ^ Card.IsDefense()) && Duel.Player == 1) return false;
-            if (!Bot.HasInDeck(CardId.Haine, CardId.MadameVerre, CardId.GolemAruru)) return false;
+                // check whether continue to ss
+                bool should_attack = Util.GetOneEnemyBetterThanValue(Card.Attack) == null;
+                if ((should_attack ^ Card.IsDefense()) && Duel.Player == 1) return false;
+                if (!Bot.HasInDeck(CardId.Haine, CardId.MadameVerre, CardId.GolemAruru)) return false;
+            }
+
+            SelectDiscardSpell();
+
+            if (summonId != 0)
+            {
+                UseSSEffect.Add(Card.Id);
+                AI.SelectNextCard(summonId);
+                return true;
+            }
 
             // SS higer level
             if (Bot.HasInMonstersZone(CardId.Haine) || (lesssummon && !Bot.HasInMonstersZone(CardId.MadameVerre, true)))
