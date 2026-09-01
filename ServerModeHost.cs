@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using WindBot.Game.AI;
 using YGOSharp.Network;
 
 namespace WindBot
@@ -57,6 +58,12 @@ namespace WindBot
                 parseInfoCallback(rawUrl, out info, out port);
                 if (info == null)
                     info = new WindBotInfo();
+
+                if (info.Deck != null && !DecksManager.HasDeck(info.Deck))
+                {
+                    WriteHttpResponse(socket, 404, "Not Found", "");
+                    return;
+                }
 
                 string upgradeHeader = GetHeader(headers, "upgrade");
                 string connectionHeader = GetHeader(headers, "connection");

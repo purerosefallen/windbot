@@ -26,6 +26,7 @@ namespace WindBot.Game
         public bool IsSpecialSummoned { get; private set; }
         public int ActivateDescription { get; private set; }
         public IList<ClientCard> Targets { get; private set; }
+        public IList<int> Announces { get; private set; }
 
         public ChainInfo(ClientCard card)
             : this(card, card.Controller, 0)
@@ -53,6 +54,7 @@ namespace WindBot.Game
             IsSpecialSummoned = card.IsSpecialSummoned;
             ActivateDescription = desc;
             Targets = new List<ClientCard>();
+            Announces = new List<int>();
         }
 
         public bool HasPosition(CardPosition position)
@@ -65,9 +67,51 @@ namespace WindBot.Game
             return ((int)ActivateLocation & (int)location) != 0;
         }
 
+        public bool HasAnnounce(int desc)
+        {
+            return Announces != null && Announces.Contains(desc);
+        }
+
+        public bool HasAnnounce(params int[] descs)
+        {
+            if (descs == null)
+                return false;
+            foreach (int desc in descs)
+            {
+                if (HasAnnounce(desc))
+                    return true;
+            }
+            return false;
+        }
+
         public bool IsActivateCode(int id)
         {
-            return ActivateId == id || Math.Abs(ActivateAlias - ActivateId) <= 20 && ActivateAlias == id;
+            return ActivateId == id || ActivateAlias == id && NamedCard.IsAltartAlias(ActivateId, ActivateAlias);
+        }
+
+        public bool IsActivateCode(IList<int> ids)
+        {
+            if (ids == null)
+                return false;
+            // 对每个 id 走发动快照匹配，规则与单参 IsActivateCode 一致
+            foreach (int id in ids)
+            {
+                if (IsActivateCode(id))
+                    return true;
+            }
+            return false;
+        }
+
+        public bool IsActivateCode(params int[] ids)
+        {
+            if (ids == null)
+                return false;
+            foreach (int id in ids)
+            {
+                if (IsActivateCode(id))
+                    return true;
+            }
+            return false;
         }
 
         public bool IsCode(int id)
