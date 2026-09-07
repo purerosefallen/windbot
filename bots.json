@@ -67,35 +67,26 @@
         "hidden": true
       },
       {
-        "name": "音羽真寻",
-        "deck": "Lightsworn",
-        "dialog": "wof-Otoha-Mahiro"
-      },
-      {
-        "name": "诺玛·林斯科特",
-        "deck": "MathMech",
-        "dialog": "wof-Norma-Linscott"
-      },
-      {
         "name": "二叶柚实",
         "deck": "Rank8",
         "dialog": "wof-Futaba-Yumi"
       },
       {
-        "name": "神崎春瑚",
-        "deck": "Blackwing",
-        "dialog": "wof-Kanzaki-Haruko"
+        "name": "音羽真寻",
+        "deck": "Lightsworn",
+        "dialog": "wof-Otoha-Mahiro"
       },
       {
-        "name": "樱庭小梅",
-        "deck": "CyberDragon",
-        "dialog": "wof-Sakuraba-Koume",
+        "name": "有栖川蓝子",
+        "deck": "MokeyMokey",
+        "dialog": "wof-Arisugawa-Aiko",
         "hidden": true
       },
       {
-        "name": "淡野美妙子",
-        "deck": "Evilswarm",
-        "dialog": "wof-Awaya-Mieko"
+        "name": "有栖川蓝子",
+        "deck": "MokeyMokeyKing",
+        "dialog": "wof-Arisugawa-Aiko",
+        "hidden": true
       },
       {
         "name": "濑名歌铃",
@@ -173,6 +164,16 @@
         "dialog": "wof-Natsume-Miyako"
       },
       {
+        "name": "木村有容",
+        "deck": "Enneacraft",
+        "dialog": "wof-Kimura-Yuro"
+      },
+      {
+        "name": "古本峻平",
+        "deck": "Pumpking",
+        "dialog": "near.zh-CN"
+      },
+      {
         "name": "水晶艾蕾娜",
         "deck": "ST1732",
         "dialog": "wof-Suisho-Erena"
@@ -243,27 +244,6 @@
         "hidden": true
       },
       {
-        "name": "有栖川蓝子",
-        "deck": "MokeyMokeyKing",
-        "dialog": "wof-Arisugawa-Aiko",
-        "hidden": true
-      },
-      {
-        "name": "璃池樱空",
-        "deck": "Gravekeeper",
-        "dialog": "wof-Akiike-Sara"
-      },
-      {
-        "name": "月白五十铃",
-        "deck": "Graydle",
-        "dialog": "wof-Tsukishiro-Isuzu"
-      },
-	  {
-        "name": "白石唯",
-        "deck": "Nekroz",
-        "dialog": "wof-Shiraishi-Yui"
-      },
-      {
         "name": "黑崎智秋",
         "deck": "FamiliarPossessed",
         "dialog": "wof-Kurosaki-Chiaki"
@@ -323,6 +303,52 @@
         "name": "楠木明绘",
         "deck": "Neko",
         "dialog": "wof-Akie-Kusunoki"
+      },
+      {
+        "name": "霞泽天马",
+        "deck": "RadiantTyphoon",
+        "dialog": "wof-Kasumisawa-Haruma"
+      },
+      {
+        "name": "尤娜·希斯",
+        "deck": "ChaosRitual",
+        "dialog": "wof-Yuna-Heath"
+      },
+	  {
+        "name": "白石唯",
+        "deck": "Nekroz",
+        "dialog": "wof-Shiraishi-Yui"
+      },
+      {
+        "name": "神崎春瑚",
+        "deck": "Blackwing",
+        "dialog": "wof-Kanzaki-Haruko"
+      },
+      {
+        "name": "樱庭小梅",
+        "deck": "CyberDragon",
+        "dialog": "wof-Sakuraba-Koume",
+        "hidden": true
+      },
+      {
+        "name": "淡野美妙子",
+        "deck": "Evilswarm",
+        "dialog": "wof-Awaya-Mieko"
+      },
+      {
+        "name": "璃池樱空",
+        "deck": "Gravekeeper",
+        "dialog": "wof-Akiike-Sara"
+      },
+      {
+        "name": "月白五十铃",
+        "deck": "Graydle",
+        "dialog": "wof-Tsukishiro-Isuzu"
+      },
+      {
+        "name": "诺玛·林斯科特",
+        "deck": "MathMech",
+        "dialog": "wof-Norma-Linscott"
       }
     ]
 }
