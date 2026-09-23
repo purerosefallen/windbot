@@ -215,6 +215,7 @@ namespace WindBot.Game.AI
             public const int GhostrickAlucard = 75367227;
             public const int DinowrestlerKingTWrextle = 77967790;
             public const int NumberF0UtopicFutureZexal = 41522092;
+            public const int RaiseMoonHopeSqueezeJackpot = 9484285;
 
             public const int PerformapalMissDirector = 92932860;
             public const int AncientWarriorsMasterfulSunMou = 40140448;
@@ -250,6 +251,7 @@ namespace WindBot.Game.AI
 
             public const int LoThePrayersOfTheVoicelessVoice = 25801745;
             public const int BarrierOfTheVoicelessVoice = 98477480;
+            public const int ElfnotesRhapsodiaOfMadness = 24092792;
 
             public const int DiabellzeOfTheOriginalSin = 53765052;
             public const int PotOfExtravagance = 49238328;
@@ -358,7 +360,8 @@ namespace WindBot.Game.AI
             {_CardId.GhostrickAlucard, defender => defender.HasSetcode(_Setcode.Ghostrick) || defender.IsFacedown()},
             {_CardId.MekkKnightCrusadiaAstram, defender => true},
             {_CardId.DinowrestlerKingTWrextle, defender => true},
-            {_CardId.NumberF0UtopicFutureZexal, defender => true}
+            {_CardId.NumberF0UtopicFutureZexal, defender => true},
+            {_CardId.RaiseMoonHopeSqueezeJackpot, defender => true}
         };
 
         /// <summary>
@@ -538,6 +541,13 @@ namespace WindBot.Game.AI
             if (Enemy.HasInSpellZone(_CardId.BarrierOfTheVoicelessVoice, true) && Enemy.HasInMonstersZone(_CardId.LoThePrayersOfTheVoicelessVoice, faceUp: true)
                 && Enemy.GetMonsters().Any(card => card.HasType(CardType.Ritual) && card.IsFaceup()) && !defender.HasType(CardType.Ritual))
                 return false;
+
+            if (Enemy.HasInSpellZone(_CardId.ElfnotesRhapsodiaOfMadness, true))
+            {
+                ClientCard centerMonster = Enemy.MonsterZone[2];
+                if (centerMonster != null && defender != centerMonster)
+                    return false;
+            }
 
             return true;
         }
