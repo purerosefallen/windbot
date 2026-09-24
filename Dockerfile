@@ -29,7 +29,15 @@ ARG TARGET_FRAMEWORK_VERSION
 
 COPY . /windbot-source
 WORKDIR /windbot-source
-RUN xbuild WindBot.sln /p:Configuration=Release /p:TargetFrameworkVersion="${TARGET_FRAMEWORK_VERSION}" /p:OutDir=/windbot/
+RUN xbuild WindBot.sln /p:Configuration=Release /p:TargetFrameworkVersion="${TARGET_FRAMEWORK_VERSION}" /p:OutDir=/windbot/ && \
+  for arch in x86 x64; do \
+    source_path="/windbot/ThirdParty/sqlite/$arch/sqlite3.dll"; \
+    target_dir="/windbot/$arch"; \
+    if [ -f "$source_path" ]; then \
+      mkdir -p "$target_dir"; \
+      mv -f "$source_path" "$target_dir/sqlite3.dll"; \
+    fi; \
+  done
 
 FROM mono-alpine
 COPY --from=builder /windbot /windbot

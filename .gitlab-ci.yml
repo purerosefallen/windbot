@@ -26,6 +26,15 @@ build:
     - sed -i -e '/download.mono-project.com/d' -e 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list /etc/apt/sources.list.d/*
     - apt update && apt -y install p7zip-full tar
     - msbuild /p:Configuration=Release /p:Platform="Any CPU" /p:TargetFrameworkVersion=v4.8
+    - |
+      for arch in x86 x64; do
+        source_path="bin/Release/ThirdParty/sqlite/$arch/sqlite3.dll"
+        target_dir="bin/Release/$arch"
+        if [ -f "$source_path" ]; then
+          mkdir -p "$target_dir"
+          mv -f "$source_path" "$target_dir/sqlite3.dll"
+        fi
+      done
     - mv -f bin/Release WindBot
     #- rm -rf WindBot/WindBot.exe.config
     - mv -f BotWrapper/bin/Release/Bot.exe .

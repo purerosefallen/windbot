@@ -110,8 +110,6 @@ namespace WindBot.Game.AI.Decks
             };
         private List<int> notToDestroySpellTrap = new List<int> { 50005218, 6767771 };
 
-        private bool DivinerCheck = false; // In case of Trias in Hand, add either spell/ritual or board break
-        private bool summoned = false; //Some unused variables since code was borrowed from Louse's lab
         private List<int> activatedCardIdList = new List<int>();
         private List<ClientCard> currentNegateMonsterList = new List<ClientCard>();
         private List<ClientCard> currentDestroyCardList = new List<ClientCard>();
@@ -120,12 +118,7 @@ namespace WindBot.Game.AI.Decks
         private List<ClientCard> enemySetThisTurn = new List<ClientCard>();
         private List<ClientCard> escapeTargetList = new List<ClientCard>();
         private List<ClientCard> summonInChainList = new List<ClientCard>();
-        private int banSpSummonExceptFiendCount = 0;
-        private int enemySpSummonFromExLastTurn = 0;
-        private int enemySpSummonFromExThisTurn = 0;
         private List<int> chainSummoningIdList = new List<int>(3);
-        private bool enemy_activate_MaxxC = false;
-        private bool enemy_activate_DimensionShifter = false;
         private Dictionary<int, int> CalledbytheGraveCount = new Dictionary<int, int>();
         private List<int> infiniteImpermanenceList = new List<int>();
         private int CrossoutDesignatorTarget = 0;
@@ -310,59 +303,17 @@ namespace WindBot.Game.AI.Decks
                     && !useAdvancedMonster && (card.IsAttack() || !summonThisTurn.Contains(card))) return false;
                 return true;
             }).ToList();
-            materialList.Sort();
+            materialList.Sort(CompareUsableAttack);
             return materialList;
         }
         public List<ClientCard> SPLittleKnightSelectMaterial(bool needToUseEffect = false)
         {
-            List<ClientCard> usedMaterialList = new List<ClientCard>();
-            if (Bot.GetMonstersExtraZoneCount() > 0)
-            {
-                ClientCard botMonsterExtraZome = Bot.GetMonstersInExtraZone()[0];
-                if (botMonsterExtraZome.HasType(CardType.Fusion | CardType.Synchro | CardType.Xyz | CardType.Pendulum))
-                {
-                    usedMaterialList.Add(botMonsterExtraZome);
-                    if (botMonsterExtraZome.HasType(CardType.Fusion | CardType.Synchro | CardType.Xyz | CardType.Link)) needToUseEffect = false;
-                }
-                List<ClientCard> materialList = GetCanBeUsedForLinkMaterial(true, card => card == botMonsterExtraZome);
-                if (materialList.Count() > 0)
-                {
-                    foreach (ClientCard card in materialList)
-                    {
-                        if (!needToUseEffect || card.HasType(CardType.Fusion | CardType.Synchro | CardType.Xyz) || (card.HasType(CardType.Link) && card.LinkCount <= 2))
-                        {
-                            usedMaterialList.Add(card);
-                            if (card.HasType(CardType.Fusion | CardType.Synchro | CardType.Xyz | CardType.Link)) needToUseEffect = false;
-                        }
-                        if (usedMaterialList.Count() >= 2) break;
-                    }
-                }
-                if (usedMaterialList.Count() < 2) usedMaterialList.Clear();
-            } else {
-                List<ClientCard> materialList = GetCanBeUsedForLinkMaterial(true, card => !needToUseEffect
-                    || card.HasType(CardType.Fusion | CardType.Synchro | CardType.Xyz) || (card.HasType(CardType.Link) && card.LinkCount <= 2));
-                if (materialList.Count() >= 2)
-                {
-                    for (int idx1 = 0; idx1 < materialList.Count() - 1; ++ idx1)
-                    {
-                        ClientCard material1 = materialList[idx1];
-                        if (material1.HasType(CardType.Link) && material1.LinkCount >= 3) continue;
-                        bool flag1 = !needToUseEffect || material1.HasType(CardType.Fusion | CardType.Synchro | CardType.Xyz | CardType.Link);
-                        for (int idx2 = 0; idx2 < materialList.Count(); ++ idx2)
-                        {
-                            ClientCard material2 = materialList[idx2];
-                            if (material2.HasType(CardType.Link) && material2.LinkCount >= 3) continue;
-                            bool flag2 = !needToUseEffect || material2.HasType(CardType.Fusion | CardType.Synchro | CardType.Xyz | CardType.Link);
-                            if (flag1 || flag2)
-                            {
-                                return new List<ClientCard>{material1, material2};
-                            }
-                        }
-                    }
-                }
-            }
-
-            return usedMaterialList;
+            List<ClientCard> candidates = GetCanBeUsedForLinkMaterial(true)
+                .Where(card => card.HasType(CardType.Effect)
+                    && (!card.HasType(CardType.Link) || card.LinkCount <= 2)).ToList();
+            return Util.GetLinkMaterials(candidates, 2, 2, 2).FirstOrDefault(materials =>
+                (!needToUseEffect || materials.Any(card => card.HasType(CardType.Fusion | CardType.Synchro | CardType.Xyz | CardType.Link)))
+                && Util.GetBotAvailZonesFromExtraDeck(materials) > 0) ?? new List<ClientCard>();
         }
         public List<ClientCard> GetDangerousCardinEnemyGrave(bool onlyMonster = false)
         {
@@ -382,14 +333,14 @@ namespace WindBot.Game.AI.Decks
                 return card;
 
             card = Enemy.MonsterZone.Where(c => c?.Data != null && c.HasType(CardType.Monster) && c.IsFaceup()
-                && CheckCanBeTargeted(c, canBeTarget, selfType) && (!ignoreCurrentDestroy || currentDestroyCardList.Contains(c)))
+                && CheckCanBeTargeted(c, canBeTarget, selfType) && (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(c)))
                 .OrderByDescending(c => c.Attack).FirstOrDefault();
             if (card != null)
                 return card;
 
-            List<ClientCard> monsters = Enemy.GetMonsters().Where(c => !ignoreCurrentDestroy || currentDestroyCardList.Contains(c)).ToList();
+            List<ClientCard> monsters = Enemy.GetMonsters().Where(c => CheckCanBeTargeted(c, canBeTarget, selfType)
+                && (!ignoreCurrentDestroy || !currentDestroyCardList.Contains(c))).ToList();
 
-            // after GetHighestAttackMonster, the left monsters must be face-down.
             if (monsters.Count() > 0 && !onlyFaceup)
                 return Util.ShuffleList(monsters)[0];
 
@@ -523,19 +474,6 @@ namespace WindBot.Game.AI.Decks
             AI.SelectPlace(0);
         }
 
-        // check whether negate maxxc and InfiniteImpermanence
-        public void CheckDeactiveFlag()
-        {
-            if (Util.GetLastChainCard() != null && Util.GetLastChainCard().Id == CardId.MaxxC && Duel.LastChainPlayer == 1)
-            {
-                enemy_activate_MaxxC = true;
-            }
-            if (Util.GetLastChainCard() != null && Util.GetLastChainCard().Id == CardId.DimensionShifter && Duel.LastChainPlayer == 1)
-            {
-                enemy_activate_DimensionShifter = true;
-            }
-        }
-
         public bool NegatedCheck(bool disablecheck = true)
         {
             if (Card.IsSpell() || Card.IsTrap())
@@ -588,7 +526,6 @@ namespace WindBot.Game.AI.Decks
                         }
                         AI.SelectCard(code);
                         CalledbytheGraveCount[code] = 2;
-                        CheckDeactiveFlag();
                         return true;
                     }
                 }

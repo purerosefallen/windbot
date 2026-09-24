@@ -346,12 +346,15 @@ namespace WindBot.Game.AI.Decks
 
         private bool FoolishBurialEffect()
         {
-            AI.SelectCard(new[] {
+            int[] targets = new[] {
                 CardId.DestrudoTheLostDragonsFrisson,
                 CardId.JetSynchron,
                 CardId.OrcustHarpHorror,
                 CardId.OrcustCymbalSkeleton
-            });
+            };
+            AI.SelectCard(targets.OrderBy(id =>
+                id == CardId.OrcustHarpHorror && HarpHorrorUsed
+                || id == CardId.OrcustCymbalSkeleton && CymbalSkeletonUsed).ToArray());
             return true;
         }
 
@@ -713,7 +716,7 @@ namespace WindBot.Game.AI.Decks
         private bool OrcustKnightmareEffect()
         {
             if (DefaultCheckWhetherCardIsNegated(Card)) return false;
-            if (!Bot.HasInGraveyard(CardId.OrcustHarpHorror))
+            if (!HarpHorrorUsed && !Bot.HasInGraveyard(CardId.OrcustHarpHorror) && Bot.HasInDeck(CardId.OrcustHarpHorror))
             {
                 AI.SelectCard(Util.GetBestBotMonster());
                 AI.SelectNextCard(CardId.OrcustHarpHorror);
@@ -725,7 +728,7 @@ namespace WindBot.Game.AI.Decks
                 AI.SelectNextCard(CardId.WorldLegacyWorldWand);
                 return true;
             }
-            else if (!Bot.HasInGraveyard(CardId.OrcustCymbalSkeleton) && Bot.HasInDeck(CardId.OrcustCymbalSkeleton) && Bot.HasInGraveyard(CardId.SheorcustDingirsu) && !SheorcustDingirsuSummoned)
+            else if (!CymbalSkeletonUsed && !Bot.HasInGraveyard(CardId.OrcustCymbalSkeleton) && Bot.HasInDeck(CardId.OrcustCymbalSkeleton) && Bot.HasInGraveyard(CardId.SheorcustDingirsu) && !SheorcustDingirsuSummoned)
             {
                 AI.SelectCard(CardId.GalateaTheOrcustAutomaton);
                 AI.SelectNextCard(CardId.OrcustCymbalSkeleton);
@@ -987,24 +990,9 @@ namespace WindBot.Game.AI.Decks
             mats.Sort(CardContainer.CompareCardAttack);
             mats.Reverse();
 
-            int link = 0;
-            bool doubleused = false;
-            IList<ClientCard> selected = new List<ClientCard>();
-            foreach (ClientCard card in mats)
-            {
-                selected.Add(card);
-                if (!doubleused && card.LinkCount == 2)
-                {
-                    doubleused = true;
-                    link += 2;
-                }
-                else
-                    link++;
-                if (link >= 4)
-                    break;
-            }
-
-            if (link >= 4 && Util.GetBotAvailZonesFromExtraDeck(selected) > 0)
+            List<ClientCard> selected = Util.GetLinkMaterials(mats, 4, 3, 4)
+                .FirstOrDefault(materials => Util.GetBotAvailZonesFromExtraDeck(materials) > 0);
+            if (selected != null)
             {
                 AI.SelectMaterials(selected);
                 return true;
